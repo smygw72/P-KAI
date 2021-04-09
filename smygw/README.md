@@ -1,4 +1,4 @@
-# How to use.
+# How to run
 1. Make python environment.
 ```
 $ python -m venv venv
@@ -19,7 +19,21 @@ $ python ./smygw/learn/main.py
 ```
 5. Use model. (todo)
 ```
-$ python ./smygw/use_model.py
+$ python ./smygw/inference.py
+```
+# How to update dataset
+1. Update Youtube.csv
+2. Make all_pair.csv file
+```
+$ python ./smygw/utils/make_pair.py
+```
+3. Fill a label column (0/1/-1 instead of 'X') in all_pair.csv. You can use semi-automatic labeling with stdin.
+```
+$ python ./smygw/utils/annotate.py
+```
+4. Make train/test split file based on k-fold cross validation
+```
+$ python ./smygw/utils/split_pair.py
 ```
 
 # Task
@@ -54,6 +68,9 @@ $ python ./smygw/use_model.py
 - 楽譜を用いたアライメント
     - 難しい箇所と簡単な箇所で条件付けするため
 - ハイパラ最適化
+- midiファイルに変換して学習
+- 論理距離を考慮した損失関数設計
+- Bokeh使ってインタラクティブにアノテーション
 
 ## 検討すべきこと
 - MFCCのwindow幅はいくつにすべきか？
