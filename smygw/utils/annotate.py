@@ -41,27 +41,33 @@ def main():
         sys.exit(0)
 
     df = pd.read_csv(annotation_file)
+    print("Input 1/0/-1\n")
     for i, node in enumerate(unannotated_nodes):
-        dijkstra(i, df, graph, node[0], node[1])
-        dijkstra(i, df, graph, node[1], node[0])
+        answer = question(graph, node[0], node[1])
+        if answer is not None:
+            df.iloc[i, 2] = str(answer)
+            continue
+        answer = question(graph, node[1], node[0])
+        if answer is not None:
+            df.iloc[i, 2] = str(-1 * answer)
+            continue
+
     df.to_csv(annotation_file)
 
 
-def dijkstra(i, df, graph, id1, id2):
+def question(id1, id2):
     if not graph.has_node(id1):
-        return
+        return None
     if not graph.has_node(id2):
-        return
+        return None
     if nx.has_path(graph, id1, id2):
         length = nx.shortest_path_length(graph, id1, id2, weight='weight')
-        answer = question(id1, id2, length)
-        df.iloc[i, 2] = answer
+        print(f'{id1}, {id2} (length: {length})')
+        return int(input())
+    return None
 
 
-def question(id1, id2,length):
-    print(f'{id1}, {id2} (length: {length})')
-    answer = input() + '  # answered'
-    return answer
+
 
 
 if __name__ == "__main__":
