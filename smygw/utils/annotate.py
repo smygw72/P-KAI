@@ -55,7 +55,7 @@ def main():
     df.to_csv(annotation_file)
 
 
-def question(id1, id2):
+def question(graph, id1, id2):
     if not graph.has_node(id1):
         return None
     if not graph.has_node(id2):
