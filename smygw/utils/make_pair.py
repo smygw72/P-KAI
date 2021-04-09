@@ -11,9 +11,10 @@ def main():
         for j, id2 in enumerate(ids):
             if i < j:
                 pair_list.append({'id1': id1, 'id2': id2})
+
     print(len(pair_list))
 
-    with open('./smygw/annotation/all_pair.csv', mode='a') as f:
+    with open('./smygw/annotation/all_pair.csv', mode='r') as f:
         reader = csv.reader(f)
         old_list = []
         for row in reader:
@@ -22,6 +23,7 @@ def main():
             old_row = {'id1': old_id1, 'id2': old_id2}
             old_list.append(old_row)
 
+    with open('./smygw/annotation/all_pair.csv', mode='a') as f:
         writer = csv.writer(f)
 
         if len(old_list) > 0:
