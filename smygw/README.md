@@ -27,7 +27,10 @@ $ python ./smygw/inference.py
 ```
 $ python ./smygw/utils/make_pair.py
 ```
-3. Fill a label column (0/1/-1 instead of 'X') in all_pair.csv
+3. Fill a label column (0/1/-1 instead of 'X') in all_pair.csv. You can use semi-automatic labeling with stdin.
+```
+$ python ./smygw/utils/annotate.py
+```
 4. Make train/test split file based on k-fold cross validation
 ```
 $ python ./smygw/utils/split_pair.py
@@ -67,6 +70,7 @@ $ python ./smygw/utils/split_pair.py
 - ハイパラ最適化
 - midiファイルに変換して学習
 - 論理距離を考慮した損失関数設計
+- Bokeh使ってインタラクティブにアノテーション
 
 ## 検討すべきこと
 - MFCCのwindow幅はいくつにすべきか？
