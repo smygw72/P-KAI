@@ -8,7 +8,7 @@ import librosa
 
 def convert2sec(s):
     time = s.split(':')
-    sec = 60*float(time[0]) + float(time[1])
+    sec = 60 * float(time[0]) + float(time[1])
     return sec
 
 
@@ -23,7 +23,7 @@ def get_info():
 
     lengths = [e - s for (s, e) in zip(start_secs, end_secs)]
 
-    return ids, lengths, start_secs
+    return ids, lengths
 
 
 def noise_reduction():
@@ -32,10 +32,14 @@ def noise_reduction():
 
 def get_melspectrogram_db(file_path, offset=0, duration=None, sr=None, n_fft=2048, hop_length=512, n_mels=128, fmin=20, fmax=8300, top_db=80):
     wav, sr = librosa.load(file_path, sr=sr, offset=offset, duration=duration)
-    if wav.shape[0] < 5*sr:
-        wav = np.pad(wav, int(np.ceil((5*sr-wav.shape[0])/2)), mode='reflect')
+    if wav.shape[0] < 5 * sr:
+        wav = np.pad(
+            wav,
+            int(np.ceil((5 * sr - wav.shape[0]) / 2)),
+            mode='reflect'
+        )
     else:
-        wav = wav[:5*sr]
+        wav = wav[:5 * sr]
     spec = librosa.feature.melspectrogram(
         wav, sr=sr, n_fft=n_fft,
         hop_length=hop_length, n_mels=n_mels, fmin=fmin, fmax=fmax
@@ -55,25 +59,25 @@ def spec_to_image(spec, eps=1e-6):
 
 
 def main():
-    ids, lengths, start_secs = get_info()
+    ids, lengths = get_info()
 
-    for (id, length, start_sec) in zip(ids, lengths, start_secs):
+    for (id, length) in zip(ids, lengths):
         sound_file_path = f'./smygw/sounds/{id}.mp3'
         output_dir = f'./smygw/mfcc/{id}'
         os.makedirs(output_dir, exist_ok=True)
 
-        # non-overlapping segment
+        # non-overlapping windows
         # NOTE: 本当に3秒だけでスキルを判定できる？要検討
-        segment_len = 3
+        window_width = 2
 
         i = 0
-        while i * segment_len < length:
+        while i * window_width < length:
             file_idx = str(i).zfill(6)
-            start_segment = i*segment_len + start_sec
+            start_segment = i * window_width
             try:
                 spec = get_melspectrogram_db(
                     sound_file_path, offset=start_segment,
-                    duration=segment_len
+                    duration=window_width
                 )
                 mfcc_arr = spec_to_image(spec)
                 mfcc_img = Image.fromarray(mfcc_arr)
