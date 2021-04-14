@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>piano skill 採点</title>
+    <meta name="description" content="ディスクリプションを入力">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="main.js"></script>
+</head>
+
+<body>
+    <h1>ピアノスキル 採点</h1>
+    <form method="post" action="/">
+        <h4>【1】ファイルを選択</h4>
+        <input type="file" name="target">
+        <h4>【2】曲の指定</h4>
+        <select name="song">
+            <option value="Free">指定なし</option>
+            <option value="1">きらきら星</option>
+            <option value="2">カノン</option>
+            <option value="3">エリーゼのために</option>
+        </select>
+        <input type="submit" value="送信する">
+    </form>
+</body>
+</html>
