@@ -1,8 +1,10 @@
 import os
-import pandas as pd
+import random
+import matplotlib.image as mpimg
+import torch
 from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms
 
-from preprocess import get_melspectrogram_db, spec_to_image
 from config import CONFIG
 
 
@@ -30,7 +32,7 @@ class PairDataSet(Dataset):
         self._parse_list()
 
     def __len__(self):
-        return len(self.data)
+        return len(self.pair_list)
 
     def __getitem__(self, index):
         record = self.pair_list[index]
@@ -48,20 +50,51 @@ class PairDataSet(Dataset):
             inf_id = record.id2
             similar = True
 
-        sup = preprocess(sup_id)
-        inf = preprocess(inf_id)
+        sup = sampling(sup_id)
+        inf = sampling(inf_id)
 
         return (sup, inf, similar)
 
     def _parse_list(self):
-        file_path = f'./smygw/annotation/{CONFIG.dataset.split_id}/{self.train_or_test}.csv'
+        file_path = f'./smygw/annotation/{CONFIG.split_id}/{self.train_or_test}_pair.csv'
         self.pair_list = [
-            PairRecord(x.strip().split(' ')) for x in open(file_path)
+            PairRecord(x.strip().split(',')) for x in open(file_path)
         ]
 
 
 def sampling(id):
-    pass
+    files = os.listdir(f'./mfcc/{id}/')
+    n_file = len(files)
+    n_sample = CONFIG.n_sample
+    segment_len = int(n_file / n_sample)
+
+    mfcc_tensor = torch.Tensor(
+        n_sample, 1, CONFIG.input_size, CONFIG.input_size
+    )
+
+    for i in n_sample:
+        start_idx = i * segment_len
+        end_idx = (i + 1) * segment_len
+        if end_idx > n_file:
+            end_idx = n_file
+        idx = random.randint(start_idx, end_idx)
+        mfcc_tensor[i] = get_img(files[idx])
+
+    return mfcc_tensor
+
+
+def get_img(path):
+    transform = transforms.Compose([
+        transforms.resize(
+            CONFIG.input_size,
+            CONFIG.input_size
+        ),
+        transforms.ToTensor(),
+    ])
+    img = mpimg.imread(path)
+    img_tensor = transform(img)
+
+    return img_tensor
 
 
 def get_dataloader(train_or_test):
@@ -75,9 +108,9 @@ def get_dataloader(train_or_test):
 
     data_loader = DataLoader(
         dataset,
-        batch_size=CONFIG.learning.batch_size,
+        batch_size=CONFIG.batch_size,
         shuffle=shuffle,
-        num_workers=CONFIG.learning.n_worker,
+        num_workers=CONFIG.n_worker,
         pin_memory=True
     )
     return data_loader

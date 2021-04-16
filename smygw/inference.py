@@ -21,6 +21,7 @@ def set_seed(seed):
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
 
+
 def mutagen_length(path):
     try:
         audio = MP3(path)
@@ -31,7 +32,7 @@ def mutagen_length(path):
 
 
 def main(*args, **kwargs):
-    set_seed(CONFIG.other.seed)
+    set_seed(CONFIG.seed)
 
     model = get_model().to(device)
     model.eval()
@@ -62,9 +63,6 @@ def main(*args, **kwargs):
 
     score_avg = torch.mean(scores).item()
     print(f"average score: {score_avg}")
-
-
-
 
 
 if __name__ == "__main__":

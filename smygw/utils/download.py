@@ -1,5 +1,4 @@
 import os
-import csv
 import subprocess
 import pandas as pd
 
@@ -14,8 +13,8 @@ def trim(row, output_dir):
     start_time = str(row[1]).split(':')
     end_time = str(row[2]).split(':')
 
-    start_sec = 60*float(start_time[0]) + float(start_time[1])
-    end_sec = 60*float(end_time[0]) + float(end_time[1])
+    start_sec = 60 * float(start_time[0]) + float(start_time[1])
+    end_sec = 60 * float(end_time[0]) + float(end_time[1])
     duration = end_sec - start_sec
 
     subprocess.call([
@@ -51,7 +50,7 @@ def main():
 
     for i, row in df.iterrows():
         print(row)
-        output_dir = f'./smygw/sound'
+        output_dir = './smygw/sounds'
         data_path = f'{output_dir}/{row["ID"]}.mp3'
         if not os.path.isfile(data_path):
             download(row, output_dir)
