@@ -19,7 +19,7 @@
             <option value="2">カノン</option>
             <option value="3">エリーゼのために</option>
         </select>
-        <input type="button" id="btnsend" name="submit" value="送信する" onclick="async_send()">
+        <input type="button" id="btnsend" name="submit" value="送信する" onclick="postData()">
     </form>
     <hr>
     <div id="result"></div>
@@ -27,18 +27,31 @@
 </html>
 
 <script>
-var req = new XMLHttpRequest();
-req.onreadystatechange = function() {
-    var result = document.getElementById('result');
-    if (req.readyState == 4) { // 通信の完了時
-        if (req.status == 200) { // 通信の成功時
-            result.innerHTML = req.responseText;
+function postData(){
+
+    const apiUrl = "/api";
+    const jsonData = { value : 0 };
+    const loadData = JSON.stringify(jsonData);
+
+    // JSONデータをajax通信でPOST送信
+    const req = new XMLHttpRequest();
+    req.open("POST", apiUrl);
+    req.setRequestHeader('content-type', 'application/json');
+    req.send( loadData );
+
+    // レスポンス
+    req.onreadystatechange = function() {
+        const result = document.getElementById('result');
+        if (req.readyState == 4) { // 通信の完了時
+            if (req.status == 200) { // 通信の成功時
+                result.innerHTML = req.responseText;
+            }
+            else{
+                result.innerHTML = "通信に失敗"
+            }
+        }else{
+            result.innerHTML = "通信中...";
         }
-        else{
-            result.innerHTML = "通信に失敗"
-        }
-    }else{
-        result.innerHTML = "通信中...";
     }
 }
 </script>
