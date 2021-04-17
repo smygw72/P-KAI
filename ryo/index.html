@@ -3,25 +3,55 @@
 <head>
     <meta charset="utf-8">
     <title>piano skill 採点</title>
-    <meta name="description" content="ディスクリプションを入力">
+    <meta name="description" content="ピアノ採点ホームページ">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <script src="main.js"></script>
 </head>
 
 <body>
     <h1>ピアノスキル 採点</h1>
-    <form method="post" action="/">
+    <form name="fm">
         <h4>【1】ファイルを選択</h4>
-        <input type="file" name="target">
+        <input type="file" name="target_file">
         <h4>【2】曲の指定</h4>
-        <select name="song">
-            <option value="Free">指定なし</option>
+        <select name="target_song">
+            <option value="0">指定なし</option>
             <option value="1">きらきら星</option>
             <option value="2">カノン</option>
             <option value="3">エリーゼのために</option>
         </select>
-        <input type="submit" value="送信する">
+        <input type="button" id="btnsend" name="submit" value="送信する" onclick="postData()">
     </form>
+    <hr>
+    <div id="result"></div>
 </body>
 </html>
+
+<script>
+function postData(){
+
+    const apiUrl = "/api";
+    const jsonData = { value : 0 };
+    const loadData = JSON.stringify(jsonData);
+
+    // JSONデータをajax通信でPOST送信
+    const req = new XMLHttpRequest();
+    req.open("POST", apiUrl);
+    req.setRequestHeader('content-type', 'application/json');
+    req.send( loadData );
+
+    // レスポンス
+    req.onreadystatechange = function() {
+        const result = document.getElementById('result');
+        if (req.readyState == 4) { // 通信の完了時
+            if (req.status == 200) { // 通信の成功時
+                result.innerHTML = req.responseText;
+            }
+            else{
+                result.innerHTML = "通信に失敗"
+            }
+        }else{
+            result.innerHTML = "通信中...";
+        }
+    }
+}
+</script>
