@@ -11,47 +11,77 @@
     <h1>ピアノスキル 採点</h1>
     <form name="fm">
         <h4>【1】ファイルを選択</h4>
-        <input type="file" name="target_file">
+            <input type="file" name="target_file">
         <h4>【2】曲の指定</h4>
-        <select name="target_song">
-            <option value="0">指定なし</option>
-            <option value="1">きらきら星</option>
-            <option value="2">カノン</option>
-            <option value="3">エリーゼのために</option>
-        </select>
-        <input type="button" id="btnsend" name="submit" value="送信する" onclick="postData()">
+            <select name="target_song">
+                <option value="0">指定なし</option>
+                <option value="1">きらきら星</option>
+                <option value="2">カノン</option>
+                <option value="3">エリーゼのために</option>
+            </select>
+        <h4>【3】名前を記入（任意）</h4>
+            <input type="text" id="user_input_name">
+    <div id="button_block">
+        <input type="button" id="btnsend" name="submit" value="採点する" onclick="postData()">
+    </div>
     </form>
     <hr>
-    <div id="result"></div>
+    <p>
+        ユーザー：<span id="result_user"></span>
+    </p>
+    <p>
+        スコア：<span id="result_score"></span>
+    </p>
 </body>
 </html>
 
 <script>
 function postData(){
 
-    const apiUrl = "/api";
-    const jsonData = { value : 0 };
-    const loadData = JSON.stringify(jsonData);
+    const apiUrl = "https://flhrsaddm1.execute-api.ap-northeast-1.amazonaws.com/dev";
+
+    // 入力情報を定義
+    const user_input_name = document.getElementById("user_input_name").value
+    const data = { user : user_input_name };
+
+    // アウトプットを定義
+    const result_user = document.getElementById("result_user");
+    const result_score = document.getElementById("result_score");
 
     // JSONデータをajax通信でPOST送信
-    const req = new XMLHttpRequest();
-    req.open("POST", apiUrl);
-    req.setRequestHeader('content-type', 'application/json');
-    req.send( loadData );
+    fetch(apiUrl,{
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        body = JSON.parse(data["body"]);
 
-    // レスポンス
-    req.onreadystatechange = function() {
-        const result = document.getElementById('result');
-        if (req.readyState == 4) { // 通信の完了時
-            if (req.status == 200) { // 通信の成功時
-                result.innerHTML = req.responseText;
-            }
-            else{
-                result.innerHTML = "通信に失敗"
-            }
-        }else{
-            result.innerHTML = "通信中...";
-        }
-    }
+        // アウトプット
+        result_user.textContent = body.user;
+        result_score.textContent = body.score;       
+    })
+    .catch((err) => {
+        result.textContent = `【通信に失敗】エラー原因：${err}`;
+    })
 }
 </script>
+
+<style>
+#button_block{
+    text-align: center;
+    margin: 5%;
+    height: 80px;
+}
+#btnsend{
+    background-color: black;
+    width: 50%;
+    height: 90%;
+    color: white;
+    cursor: pointer;
+    font-size: large;
+}
+</style>
