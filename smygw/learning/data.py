@@ -1,6 +1,6 @@
 import os
 import random
-import matplotlib.image as mpimg
+from PIL import Image
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
@@ -53,17 +53,17 @@ class PairDataSet(Dataset):
         sup = sampling(sup_id)
         inf = sampling(inf_id)
 
-        return (sup, inf, similar)
+        return sup, inf, similar
 
     def _parse_list(self):
-        file_path = f'./smygw/annotation/{CONFIG.split_id}/{self.train_or_test}_pair.csv'
+        file_path = f'{CONFIG.path.annotation_dir}/{CONFIG.split_id}/{self.train_or_test}_pair.csv'
         self.pair_list = [
             PairRecord(x.strip().split(',')) for x in open(file_path)
         ]
 
 
 def sampling(id):
-    files = os.listdir(f'./mfcc/{id}/')
+    files = os.listdir(f'{CONFIG.path.mfcc_dir}/{id}/')
     n_file = len(files)
     n_sample = CONFIG.n_sample
     segment_len = int(n_file / n_sample)
@@ -72,26 +72,24 @@ def sampling(id):
         n_sample, 1, CONFIG.input_size, CONFIG.input_size
     )
 
-    for i in n_sample:
+    for i in range(n_sample):
         start_idx = i * segment_len
         end_idx = (i + 1) * segment_len
         if end_idx > n_file:
             end_idx = n_file
-        idx = random.randint(start_idx, end_idx)
-        mfcc_tensor[i] = get_img(files[idx])
+        idx = random.randint(start_idx, end_idx + 1)
+        path = f'{CONFIG.path.mfcc_dir}/{id}/{files[idx]}'
+        mfcc_tensor[i] = get_img(path)
 
     return mfcc_tensor
 
 
 def get_img(path):
     transform = transforms.Compose([
-        transforms.resize(
-            CONFIG.input_size,
-            CONFIG.input_size
-        ),
+        transforms.Resize((CONFIG.input_size, CONFIG.input_size)),
         transforms.ToTensor(),
     ])
-    img = mpimg.imread(path)
+    img = Image.open(path)
     img_tensor = transform(img)
 
     return img_tensor
