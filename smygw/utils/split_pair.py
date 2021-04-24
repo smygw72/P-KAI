@@ -75,8 +75,8 @@ def main():
         test_pairs = []
         for id1, id2, label in zip(id1s, id2s, labels):
 
-            if label  == 'X':
-                print(f"Warning: Not annotated for ({id1}, {id2}")
+            if label == 'X':
+                print(f"Warning: Not annotated for ({id1}, {id2})")
 
             d = {'id1': id1, 'id2': id2, 'label': label}
 

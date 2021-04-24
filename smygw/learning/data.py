@@ -5,7 +5,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
-from config import CONFIG
+from learning_config import CONFIG
 
 
 class PairRecord(object):
@@ -57,9 +57,10 @@ class PairDataSet(Dataset):
 
     def _parse_list(self):
         file_path = f'{CONFIG.path.annotation_dir}/{CONFIG.split_id}/{self.train_or_test}_pair.csv'
-        self.pair_list = [
-            PairRecord(x.strip().split(',')) for x in open(file_path)
-        ]
+        for row in open(file_path):
+            record = PairRecord(row.strip().split(','))
+            if record.label != 'X':
+                self.pair_list.append(record)
 
 
 def sampling(id):

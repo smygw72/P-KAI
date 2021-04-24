@@ -1,6 +1,6 @@
 import torch
 
-from config import CONFIG
+from learning_config import CONFIG
 
 
 def get_loss(sup_output, inf_output):

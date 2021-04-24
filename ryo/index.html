@@ -5,48 +5,79 @@
     <title>piano skill 採点</title>
     <meta name="description" content="ピアノ採点ホームページ">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
 </head>
 
 <body>
     <h1>ピアノスキル 採点</h1>
-    <form name="fm">
-        <h4>【1】ファイルを選択</h4>
-            <input type="file" name="target_file">
-        <h4>【2】曲の指定</h4>
-            <select name="target_song">
-                <option value="0">指定なし</option>
-                <option value="1">きらきら星</option>
-                <option value="2">カノン</option>
-                <option value="3">エリーゼのために</option>
-            </select>
-        <h4>【3】名前を記入（任意）</h4>
-            <input type="text" id="user_input_name">
+    <form id="post_form" name="post_form">
+        <div class="post_items">
+            ユーザー名: <span class="input_boxes"><input type="text" id="user_input_name" name="user_input_name" size="40" placeholder="NoName"></span>
+        </div>
+        <div class="post_items">
+            ファイル: 　<span class="input_boxes"><input type="file" id="target_file" name="target_file"></span>
+        </div>
+        <div class="post_items">
+            ファイル名: <span class="input_boxes"><input type="text" id="target_file_name" name="target_file_name" size="40"></span>
+        </div>
+        <div class="post_items">
+            曲の種類: 　
+            <span class="input_boxes">
+                <input type="text" name="target_song" id="target_song" autocomplete="off" list="songs" placeholder="テキスト入力または選択" size="40">
+                    <datalist id="songs">
+                        <option value="指定なし"></option>
+                        <option value="きらきら星"></option>
+                        <option value="カノン"></option>
+                        <option value="エリーゼのために"></option>
+                    </datalist>
+            </span>
+        </div>
     <div id="button_block">
-        <input type="button" id="btnsend" name="submit" value="採点する" onclick="postData()">
+        <input type="button" id="score_btn" name="submit" value="採点" onclick="postData()">
     </div>
     </form>
     <hr>
-    <p>
-        ユーザー：<span id="result_user"></span>
-    </p>
-    <p>
-        スコア：<span id="result_score"></span>
-    </p>
+    <div id="score_block">
+        <div>
+            Score：<span id="result_score"></span>
+        </div>
+        <div>
+            ユーザー名:<span id="result_user_name"></span>
+        </div>
+        <div>
+            ファイル名:<span id="result_file_name"></span>
+        </div>
+        <div>
+            曲の種類:<span id="result_song"></span>
+        </div>
+
+    </div>
 </body>
 </html>
 
 <script>
+//とりあえずjQueryで選択した曲のタグを取得（後で変える）
+let song_value = ""
+$('input[name=target_song').on('change', function() {
+    song_value = $(this).val();
+});
+
 function postData(){
 
     const apiUrl = "https://flhrsaddm1.execute-api.ap-northeast-1.amazonaws.com/dev";
 
     // 入力情報を定義
-    const user_input_name = document.getElementById("user_input_name").value
-    const data = { user : user_input_name };
+    const user_input_name = document.getElementById("user_input_name").value;
+    const fileInput = document.getElementById('target_file');
+    const target_file = fileInput.files[0];
+    const file_name = document.getElementById("target_file_name").value;
+    const post_data = { user : user_input_name,  song : song_value, file: target_file, file_name: file_name };
 
     // アウトプットを定義
-    const result_user = document.getElementById("result_user");
     const result_score = document.getElementById("result_score");
+    const result_user = document.getElementById("result_user_name");
+    const result_file_name = document.getElementById("result_file_name");
+    const result_song = document.getElementById("result_song");
 
     // JSONデータをajax通信でPOST送信
     fetch(apiUrl,{
@@ -54,34 +85,59 @@ function postData(){
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(post_data)
     })
     .then(response => response.json())
     .then(data => {
         body = JSON.parse(data["body"]);
 
         // アウトプット
+        result_score.textContent = body.score;
         result_user.textContent = body.user;
-        result_score.textContent = body.score;       
+        result_file_name.textContent = body.file_name;  
+        result_song.textContent = body.song_value;      
     })
     .catch((err) => {
-        result.textContent = `【通信に失敗】エラー原因：${err}`;
+        result_score.textContent = `【通信に失敗】エラー原因：${err}`;
     })
 }
 </script>
 
 <style>
+body{
+    margin: 2%;
+}
 #button_block{
     text-align: center;
-    margin: 5%;
+    margin-top: 8%;
+    margin-bottom: 4%;
     height: 80px;
 }
-#btnsend{
-    background-color: black;
-    width: 50%;
-    height: 90%;
+#score_btn{
+    background-color: rgb(47, 133, 190);
+    width: 12%;
+    height: 40%;
     color: white;
     cursor: pointer;
+    font-size: medium;
+    border-radius: 10px;
+    border-width:0px
+}
+.post_items{
+    margin-top: 3%;
+    margin-bottom: 3%;
+}
+.input_boxes{
+    margin-left: 8%;
+}
+#score_block{
+    text-align: center;
+    font-size: large;
+    margin-top: 5%;
+    height: 40px;
+}
+#result_score{
+    color: red;
     font-size: large;
 }
 </style>
