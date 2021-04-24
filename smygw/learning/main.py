@@ -8,7 +8,7 @@ from tensorboardX import SummaryWriter
 from data import get_dataloader
 from network import get_model
 from metric import get_accuracy, get_loss
-from config import CONFIG
+from learning_config import CONFIG
 
 
 if torch.cuda.is_available():
@@ -124,7 +124,7 @@ def main():
                 "model_state_dict": model.state_dict(),
                 "optimizer_state_dict": optimizer.state_dict(),
             },
-            f'{CONFIG.path.model_file}'
+            f'{CONFIG.path.model_dor}/{CONFIG.version}_latest.tar'
         )
 
         # save best model (without optimizer)
@@ -132,7 +132,10 @@ def main():
             count += 1
             if count >= CONFIG.save_ths:
                 best_loss = test_loss
-                torch.save(model.state_dict(), '')
+                torch.save(
+                    model.state_dict(),
+                    f'{CONFIG.path.model_dor}/{CONFIG.version}.pth'
+                )
         else:
             count = 0
 
