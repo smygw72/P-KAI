@@ -68,8 +68,8 @@ def test(model, test_loader):
             sup_input = sup_input.to(device, dtype=torch.float32)
             inf_input = inf_input.to(device, dtype=torch.float32)
 
-            sup_output = model(sup_input).detach()
-            inf_output = model(inf_input).detach()
+            sup_output = model(sup_input).to('cpu').detach()
+            inf_output = model(inf_input).to('cpu').detach()
 
             sup_outputs = torch.cat([sup_outputs, sup_output], dim=0)
             inf_outputs = torch.cat([inf_outputs, inf_output], dim=0)

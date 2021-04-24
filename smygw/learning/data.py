@@ -75,10 +75,10 @@ def sampling(id):
 
     for i in range(n_sample):
         start_idx = i * segment_len
-        end_idx = (i + 1) * segment_len
-        if end_idx > n_file:
-            end_idx = n_file
-        idx = random.randint(start_idx, end_idx + 1)
+        end_idx = (i + 1) * segment_len - 1
+        if i == (n_sample - 1):
+            end_idx = n_file - 1
+        idx = random.randint(start_idx, end_idx)
         path = f'{CONFIG.path.mfcc_dir}/{id}/{files[idx]}'
         mfcc_tensor[i] = get_img(path)
 

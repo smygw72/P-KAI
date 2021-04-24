@@ -5,7 +5,8 @@
     <title>piano skill 採点</title>
     <meta name="description" content="ピアノ採点ホームページ">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.892.0.min.js"></script>
 </head>
 
 <body>
@@ -55,7 +56,14 @@
 </body>
 </html>
 
-<script>
+<script>    
+// AWS Cognitoを利用
+const s3_client = function() {
+    AWS.config.region = "ap-northeast-1";
+    AWS.config.credentials = new AWS.CognitoIdentityCredentials({IdentityPoolId: "ap-northeast-1:test"});
+    return new AWS.S3({params: {Bucket: "pianoskillassessment-test/uploaded_files"}});
+};
+
 //とりあえずjQueryで選択した曲のタグを取得（後で変える）
 let song_value = ""
 $('input[name=target_song').on('change', function() {
@@ -71,8 +79,24 @@ function postData(){
     const fileInput = document.getElementById('target_file');
     const target_file = fileInput.files[0];
     const file_name = document.getElementById("target_file_name").value;
+
     const post_data = { user : user_input_name,  song : song_value, file: target_file, file_name: file_name };
 
+    //S3へファイルアップロード
+    s3_client().putObject({
+        Key: file_name,
+        ContentType:target_file.type,
+        Body: target_file,
+        ACL: "public-read"
+    },
+        function(err,data){
+            if(data !== null){
+                alert("アップロード成功!");
+            } else {
+                alert("アップロード失敗.");
+            }
+        }
+    );
     // アウトプットを定義
     const result_score = document.getElementById("result_score");
     const result_user = document.getElementById("result_user_name");
