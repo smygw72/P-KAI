@@ -3,7 +3,7 @@
 ```
 $ python -m venv venv
 $ source venv/bin/activate
-$ pip install ./smygw/requirements.txt
+$ pip install -r ./smygw/requirements.txt
 ```
 2. Download dataset from Youtube.
 ```
