@@ -75,10 +75,10 @@ def main():
         test_pairs = []
         for id1, id2, label in zip(id1s, id2s, labels):
 
-            if label  == 'X':
-                print(f"Warning: Not annotated for ({id1}, {id2}")
+            if label == 'X':
+                print(f"Warning: Not annotated for ({id1}, {id2}"))
 
-            d = {'id1': id1, 'id2': id2, 'label': label}
+            d={'id1': id1, 'id2': id2, 'label': label}
 
             # NOTE: (train_id, test_id) pairs are removed
             if (id1 in train_ids) and (id2 in train_ids):
@@ -86,13 +86,13 @@ def main():
             elif (id1 in test_ids) and (id2 in test_ids):
                 test_pairs.append(d)
 
-        with open(f'{output_dir}/train_pair.csv', mode='a') as f:
-            writer = csv.writer(f)
+        with open(f'{output_dir}/train_pair.csv', mode = 'a') as f:
+            writer=csv.writer(f)
             for pair in train_pairs:
                 writer.writerow([pair["id1"], pair["id2"], pair["label"]])
 
-        with open(f'{output_dir}/test_pair.csv', mode='a') as f:
-            writer = csv.writer(f)
+        with open(f'{output_dir}/test_pair.csv', mode = 'a') as f:
+            writer=csv.writer(f)
             for pair in test_pairs:
                 writer.writerow([pair["id1"], pair["id2"], pair["label"]])
 
