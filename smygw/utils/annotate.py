@@ -71,13 +71,13 @@ def main():
         answer = question(graph, node1, node2)
         if answer is not None:
             df.iloc[idx, 2] = str(answer)
+            df.to_csv(annotation_file, index=False)
             continue
         answer = question(graph, node2, node1)
         if answer is not None:
             df.iloc[idx, 2] = str(-1 * answer)
+            df.to_csv(annotation_file, index=False)
             continue
-
-    df.to_csv(annotation_file, index=False)
 
 
 def question(graph, id1, id2):
@@ -87,7 +87,7 @@ def question(graph, id1, id2):
         return None
     if nx.has_path(graph, id1, id2):
         length = nx.shortest_path_length(graph, id1, id2, weight='weight')
-        print(f'{id1}, {id2} (length: {length})')
+        print(f'{id1}, {id2} (distance: {length})')
         return int(input())
     return None
 
