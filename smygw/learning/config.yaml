@@ -1,9 +1,17 @@
 split_id  : -1
 input_size: 224
 batch_size: 4
-n_worker  : 4
+n_worker  : 2
 n_sample  : 10
 epochs    : 100
 lr        : 0.0001
+margin    : 1.0
 seed      : 0
 save_ths  : 3
+path:
+  annotation_dir: ./smygw/annotation
+  mfcc_dir      : ./smygw/mfcc
+  log_dir       : ./smygw/learning/logs/
+  latest_model  : ./smygw/model/latest_model.tar
+  best_model    : ./smygw/model/best_model.pth
+
