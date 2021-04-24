@@ -15,7 +15,7 @@ $ python ./smygw/utils/make_mfcc.py
 ```
 4. Learn model. (todo)
 ```
-$ python ./smygw/learn/main.py
+$ python ./smygw/learning/main.py
 ```
 5. Use model. (todo)
 ```
