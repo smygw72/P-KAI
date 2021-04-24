@@ -1,3 +1,4 @@
+import argparse
 import random
 import numpy as np
 import torch
@@ -7,6 +8,14 @@ from .utils.make_mfcc import spec_to_image, get_melspectrogram_db
 from network import get_model
 from config import CONFIG
 
+
+window_width = 2
+batch_size = 16
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--path', default='./smygw/sounds/Z_-hWZetOS0.mp3')
+args = parser.parse_args()
 
 if torch.cuda.is_available():
     device = torch.device('cuda')
@@ -27,7 +36,7 @@ def mutagen_length(path):
         audio = MP3(path)
         length = audio.info.length
         return length
-    except:
+    except Exception:
         return None
 
 
@@ -37,32 +46,33 @@ def main(*args, **kwargs):
     model = get_model().to(device)
     model.eval()
 
-    file = None  # TODO
-    length = mutagen_length(file)
+    file_path = args.path
+    length = mutagen_length(file_path)
 
-    scores = torch.Tensor()
+    inputs = torch.Tensor()
+    outputs = torch.Tensor()
 
-    i = 0
-    segment_len = 3
+    n_mfcc = int(length / window_width)
     with torch.no_grad():
-        while i * segment_len < length:
-            file_idx = str(i).zfill(6)
-            start_segment = i*segment_len
+        for i in range(n_mfcc):
+            start_segment = i * window_width
 
             spec = get_melspectrogram_db(
-                sound_file_path, offset=start_segment,
-                duration=segment_len
+                file_path, offset=start_segment,
+                duration=window_width
             )
-            mfcc_np = spec_to_image(spec)
-            mfcc_tensor = torch.from_numpy(mfcc_np).unsqueeze(0)
+            input_arr = spec_to_image(spec)
+            input_tensor = torch.from_numpy(input_arr).unsqueeze(0)
+            inputs = torch.cat([inputs, input_tensor], dim=0)
 
-            score = model(mfcc_tensor).detach()
-            scores = torch.cat([scores, score], dim=0)
+            if (len(inputs) == batch_size) or (i == n_mfcc - 1):
+                output = model(inputs).detach()
+                outputs = torch.cat([outputs, output], dim=0)
+                inputs = torch.Tensor()
 
-            i += 1
-
-    score_avg = torch.mean(scores).item()
+    score_avg = torch.mean(outputs).item()
     print(f"average score: {score_avg}")
+    return score_avg
 
 
 if __name__ == "__main__":
