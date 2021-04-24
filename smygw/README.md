@@ -47,6 +47,7 @@ $ python ./smygw/utils/split_pair.py
     - [Audio Classification using Librosa and Pytorch (blog)](https://medium.com/@hasithsura/audio-classification-d37a82d6715)
 - モデル設計
     - [Who's Better? Who's Best? Pairwise Deep Ranking for Skill Determination (CVPR'18)](https://arxiv.org/abs/1703.09913)
+- モデル実装
 
 ## Todo
 ### must
@@ -74,3 +75,7 @@ $ python ./smygw/utils/split_pair.py
 
 ## 検討すべきこと
 - MFCCのwindow幅はいくつにすべきか？
+
+## version
+- 0.1: ResNet + marginal loss (acc: X)
+- 0.2: XXXXXXXXXXX (acc: X)
