@@ -68,8 +68,6 @@ def sampling(id):
     n_file = len(files)
     n_sample = CONFIG.n_sample
     segment_len = int(n_file / n_sample)
-    if (n_file % n_sample) != 0:
-        segment_len += 1
 
     mfcc_tensor = torch.Tensor(
         n_sample, 1, CONFIG.input_size, CONFIG.input_size
@@ -77,8 +75,8 @@ def sampling(id):
 
     for i in range(n_sample):
         start_idx = i * segment_len
-        end_idx = (i + 1) * segment_len
-        if end_idx >= n_file:
+        end_idx = (i + 1) * segment_len - 1
+        if i == (n_sample - 1):
             end_idx = n_file - 1
         idx = random.randint(start_idx, end_idx)
         path = f'{CONFIG.path.mfcc_dir}/{id}/{files[idx]}'
