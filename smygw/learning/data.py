@@ -40,20 +40,20 @@ class PairDataSet(Dataset):
         if record.label == '1':
             sup_id = record.id1
             inf_id = record.id2
-            similar = False
+            label_sim = False
         elif record.label == '-1':
             sup_id = record.id2
             inf_id = record.id1
-            similar = False
+            label_sim = False
         elif record.label == '0':
             sup_id = record.id1
             inf_id = record.id2
-            similar = True
+            label_sim = True
 
         sup = sampling(sup_id)
         inf = sampling(inf_id)
 
-        return sup, inf, similar
+        return sup, inf, label_sim
 
     def _parse_list(self):
         file_path = f'{CONFIG.path.annotation_dir}/{CONFIG.split_id}/{self.train_or_test}_pair.csv'
