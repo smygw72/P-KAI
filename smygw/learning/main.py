@@ -210,7 +210,7 @@ def main():
         'total_acc': AverageMeter()
     }
 
-    # train_loader = get_dataloader('train')
+    train_loader = get_dataloader('train')
     test_loader = get_dataloader('test')
 
     model = get_model().to(device)
@@ -221,19 +221,19 @@ def main():
 
     for epoch in range(1, CONFIG.epochs + 1):
         print(f'Epoch {epoch}')
-        # optimizer = lr_decay(optimizer, epoch)
+        optimizer = lr_decay(optimizer, epoch)
 
-        # train_acc, train_loss = train(
-        #     model, train_loader, optimizer, av_meters, lr_decay
-        # )
+        train_acc, train_loss = train(
+            model, train_loader, optimizer, av_meters, lr_decay
+        )
         # print(f'train acc: {train_acc}')
         test_acc, test_loss = test(
             model, test_loader, av_meters
         )
         print(f'test acc : {test_acc}')
 
-        # writer.add_scalar('train/acc', train_acc, epoch)
-        # writer.add_scalar('train/loss', train_loss, epoch)
+        writer.add_scalar('train/acc', train_acc, epoch)
+        writer.add_scalar('train/loss', train_loss, epoch)
         writer.add_scalar('test/acc', test_acc, epoch)
         writer.add_scalar('test/loss', test_loss, epoch)
 
