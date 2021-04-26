@@ -42,66 +42,89 @@
         <div>
             Score：<span id="result_score"></span>
         </div>
-        <div>
-            ユーザー名:<span id="result_user_name"></span>
-        </div>
-        <div>
-            ファイル名:<span id="result_file_name"></span>
-        </div>
-        <div>
-            曲の種類:<span id="result_song"></span>
-        </div>
-
     </div>
 </body>
 </html>
 
-<script>    
+<script>
+//暫定的なログイン 後でCognitoを利用して差し替える
+function login(){
+    user = window.prompt("ユーザー名を入力してください", "");
+    if(user == 'tester'){
+        return;
+    }
+    else{
+        location.href = "/erro.html";
+    }
+}
+login();
+
 // AWS Cognitoを利用
 const s3_client = function() {
     AWS.config.region = "ap-northeast-1";
-    AWS.config.credentials = new AWS.CognitoIdentityCredentials({IdentityPoolId: "ap-northeast-1:test"});
+    AWS.config.credentials = new AWS.CognitoIdentityCredentials({IdentityPoolId: "ap-northeast-1:e298631a-cdc2-4575-b4ec-e887bc41e37f"});
     return new AWS.S3({params: {Bucket: "pianoskillassessment-test/uploaded_files"}});
-};
+}; 
+
+let target_id = "";
 
 //とりあえずjQueryで選択した曲のタグを取得（後で変える）
-let song_value = ""
+let song_value = "";
 $('input[name=target_song').on('change', function() {
     song_value = $(this).val();
 });
+
+// ランダム文字列を生成 ※後でセキュアな物に差し替える
+function makeRandomChar(){
+    // 生成する文字列の長さ
+    const length = 14;
+    // 生成する文字列に含める文字セット
+    const c = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX0123456789";
+    const cl = c.length;
+
+    for(var i=0; i<length; i++){
+        target_id += c[Math.floor(Math.random()*cl)];
+    }
+    return target_id;
+}
 
 function postData(){
 
     const apiUrl = "https://flhrsaddm1.execute-api.ap-northeast-1.amazonaws.com/dev";
 
     // 入力情報を定義
+
     const user_input_name = document.getElementById("user_input_name").value;
     const fileInput = document.getElementById('target_file');
     const target_file = fileInput.files[0];
     const file_name = document.getElementById("target_file_name").value;
 
-    const post_data = { user : user_input_name,  song : song_value, file: target_file, file_name: file_name };
+    // apiへの送信情報を定義
+    const post_data = { 
+        user : user_input_name, 
+        file_id:  makeRandomChar(),
+        file: target_file,
+        file_name: file_name ,
+        song : song_value
+    };
 
     //S3へファイルアップロード
     s3_client().putObject({
-        Key: file_name,
+        Key: `${user_input_name}/${target_id}`, //ユーザーがつけたファイル名ももし入れる場合はfile_nameを利用する
         ContentType:target_file.type,
         Body: target_file,
         ACL: "public-read"
     },
         function(err,data){
             if(data !== null){
-                alert("アップロード成功!");
+                console.log("アップロード成功");
             } else {
-                alert("アップロード失敗.");
+                console.log("アップロード失敗",err);
             }
         }
     );
     // アウトプットを定義
     const result_score = document.getElementById("result_score");
-    const result_user = document.getElementById("result_user_name");
-    const result_file_name = document.getElementById("result_file_name");
-    const result_song = document.getElementById("result_song");
 
     // JSONデータをajax通信でPOST送信
     fetch(apiUrl,{
@@ -116,10 +139,7 @@ function postData(){
         body = JSON.parse(data["body"]);
 
         // アウトプット
-        result_score.textContent = body.score;
-        result_user.textContent = body.user;
-        result_file_name.textContent = body.file_name;  
-        result_song.textContent = body.song_value;      
+        result_score.textContent = body.score;     
     })
     .catch((err) => {
         result_score.textContent = `【通信に失敗】エラー原因：${err}`;
