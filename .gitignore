@@ -1,7 +1,8 @@
 .vscode/
-smygw/sounds
-smygw/mfcc
+smygw/sounds/*
+smygw/mfcc/*
 smygw/learning/logs
+smygw/model/*
 
 ## Python
 # Byte-compiled / optimized / DLL files

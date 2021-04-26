@@ -1,7 +1,7 @@
 version   : v0.1
-split_id  : 1
+split_id  : 0
 input_size: 224
-batch_size: 1
+batch_size: 2
 n_worker  : 2
 n_sample  : 10
 epochs    : 100
