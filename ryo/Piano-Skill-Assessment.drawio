@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2021-04-28T15:53:09.715Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36" version="14.6.6" etag="TiTF42BiOBhPi1FT51FZ" type="github" pages="4">
+<mxfile host="app.diagrams.net" modified="2021-04-28T16:00:10.603Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36" version="14.6.6" etag="GGuLF_KprubxBxQ5xiKk" type="github" pages="4">
   <diagram id="piDafpqhtRUU5qUU-vj8" name="HOME,TOP">
     <mxGraphModel dx="2292" dy="1228" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" background="#FFFFFF" math="0" shadow="0">
       <root>
@@ -134,7 +134,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="inad0leWlo-gA2G2Xd5q" name="RANKING">
-    <mxGraphModel dx="898" dy="680" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="946" dy="614" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="cpTVbMQMFTYyx2Wrn9bh-0" />
         <mxCell id="cpTVbMQMFTYyx2Wrn9bh-1" parent="cpTVbMQMFTYyx2Wrn9bh-0" />
@@ -217,7 +217,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="4HpNBhxujljwyRETHbB6" name="MYSCORE（Score)">
-    <mxGraphModel dx="898" dy="680" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="946" dy="614" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="oP6zgN_roBama4-uzWyA-0" />
         <mxCell id="oP6zgN_roBama4-uzWyA-1" parent="oP6zgN_roBama4-uzWyA-0" />
