@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <title>piano skill 採点</title>
+    <meta name="description" content="ピアノ採点ホームページ">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.892.0.min.js"></script>
+</head>
+
+<body>
+    <h1>ピアノスキル 採点</h1>
+    <form id="post_form" name="post_form">
+        <div class="post_items">
+            ユーザー名: <span class="input_boxes"><input type="text" id="user_input_name" name="user_input_name" size="40" placeholder="NoName"></span>
+        </div>
+        <div class="post_items">
+            ファイル: 　<span class="input_boxes"><input type="file" id="target_file" name="target_file"></span>
+        </div>
+        <div class="post_items">
+            ファイル名: <span class="input_boxes"><input type="text" id="target_file_name" name="target_file_name" size="40"></span>
+        </div>
+        <div class="post_items">
+            曲の種類: 　
+            <span class="input_boxes">
+                <input type="text" name="target_song" id="target_song" autocomplete="off" list="songs" placeholder="テキスト入力または選択" size="40">
+                    <datalist id="songs">
+                        <option value="指定なし"></option>
+                        <option value="きらきら星"></option>
+                        <option value="カノン"></option>
+                        <option value="エリーゼのために"></option>
+                    </datalist>
+            </span>
+        </div>
+    <div id="button_block">
+        <input type="button" id="score_btn" name="submit" value="採点" onclick="postData()">
+    </div>
+    </form>
+    <hr>
+    <div id="score_block">
+        <div>
+            Score：<span id="result_score"></span>
+        </div>
+    </div>
+</body>
+</html>
+
+<script>
+//暫定的なログイン 後でCognitoを利用して差し替える
+function login(){
+    user = window.prompt("ユーザー名を入力してください", "");
+    if(user == 'tester'){
+        return;
+    }
+    else{
+        location.href = "/erro.html";
+    }
+}
+login();
+
+// AWS Cognitoを利用
+const s3_client = function() {
+    AWS.config.region = "ap-northeast-1";
+    AWS.config.credentials = new AWS.CognitoIdentityCredentials({IdentityPoolId: "ap-northeast-1:e298631a-cdc2-4575-b4ec-e887bc41e37f"});
+    return new AWS.S3({params: {Bucket: "pianoskillassessment-test/uploaded_files"}});
+}; 
+
+let target_id = "";
+
+//とりあえずjQueryで選択した曲のタグを取得（後で変える）
+let song_value = "";
+$('input[name=target_song').on('change', function() {
+    song_value = $(this).val();
+});
+
+// ランダム文字列を生成 ※後でセキュアな物に差し替える
+function makeRandomChar(){
+    // 生成する文字列の長さ
+    const length = 14;
+    // 生成する文字列に含める文字セット
+    const c = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX0123456789";
+    const cl = c.length;
+
+    for(var i=0; i<length; i++){
+        target_id += c[Math.floor(Math.random()*cl)];
+    }
+    return target_id;
+}
+
+function postData(){
+
+    const apiUrl = "https://flhrsaddm1.execute-api.ap-northeast-1.amazonaws.com/dev";
+
+    // 入力情報を定義
+
+    const user_input_name = document.getElementById("user_input_name").value;
+    const fileInput = document.getElementById('target_file');
+    const target_file = fileInput.files[0];
+    const file_name = document.getElementById("target_file_name").value;
+
+    // apiへの送信情報を定義
+    const post_data = { 
+        user : user_input_name, 
+        file_id:  makeRandomChar(),
+        file: target_file,
+        file_name: file_name ,
+        song : song_value
+    };
+
+    //S3へファイルアップロード
+    s3_client().putObject({
+        Key: `${user_input_name}/${target_id}`, //ユーザーがつけたファイル名ももし入れる場合はfile_nameを利用する
+        ContentType:target_file.type,
+        Body: target_file,
+        ACL: "public-read"
+    },
+        function(err,data){
+            if(data !== null){
+                console.log("アップロード成功");
+            } else {
+                console.log("アップロード失敗",err);
+            }
+        }
+    );
+    // アウトプットを定義
+    const result_score = document.getElementById("result_score");
+
+    // JSONデータをajax通信でPOST送信
+    fetch(apiUrl,{
+        method: "POST",
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(post_data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        body = JSON.parse(data["body"]);
+
+        // アウトプット
+        result_score.textContent = body.score;     
+    })
+    .catch((err) => {
+        result_score.textContent = `【通信に失敗】エラー原因：${err}`;
+    })
+}
+</script>
+
+<style>
+body{
+    margin: 2%;
+}
+#button_block{
+    text-align: center;
+    margin-top: 8%;
+    margin-bottom: 4%;
+    height: 80px;
+}
+#score_btn{
+    background-color: rgb(47, 133, 190);
+    width: 12%;
+    height: 40%;
+    color: white;
+    cursor: pointer;
+    font-size: medium;
+    border-radius: 10px;
+    border-width:0px
+}
+.post_items{
+    margin-top: 3%;
+    margin-bottom: 3%;
+}
+.input_boxes{
+    margin-left: 8%;
+}
+#score_block{
+    text-align: center;
+    font-size: large;
+    margin-top: 5%;
+    height: 40px;
+}
+#result_score{
+    color: red;
+    font-size: large;
+}
+</style>
