@@ -5,6 +5,9 @@ import pandas as pd
 from PIL import Image
 import librosa
 
+import _paths
+from config import CONFIG
+
 
 def convert2sec(s):
     time = s.split(':')
@@ -13,7 +16,7 @@ def convert2sec(s):
 
 
 def get_info():
-    id_df = pd.read_csv('./smygw/youtube.csv', header=0)
+    id_df = pd.read_csv(CONFIG.common.path.datalist_path, header=0)
     ids = id_df['ID'].tolist()
 
     start_times = id_df['start_time'].tolist()
@@ -58,12 +61,12 @@ def spec_to_image(spec, eps=1e-6):
     return spec_scaled
 
 
-def main():
+def main(*args, **kwargs):
     ids, lengths = get_info()
 
     for (id, length) in zip(ids, lengths):
-        sound_file_path = f'../dataset/sounds/{id}.mp3'
-        output_dir = f'../dataset/mfcc/{id}'
+        sound_file_path = f'{CONFIG.common.path.sound_dir}/{id}.mp3'
+        output_dir = f'{CONFIG.common.path.mfcc_dir}/{id}'
         os.makedirs(output_dir, exist_ok=True)
 
         # non-overlapping windows
