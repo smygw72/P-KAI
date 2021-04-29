@@ -76,7 +76,7 @@ def main(*args, **kwargs):
 
             if (len(inputs) == CONFIG.inference.batch_size) or (i == n_mfcc - 1):
                 inputs = inputs.to(device)
-                output = model(inputs).detach()
+                output = model(inputs).detach().to('cpu')
                 outputs = torch.cat([outputs, output], dim=0)
                 inputs = torch.Tensor()  # make empty
 
