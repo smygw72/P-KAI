@@ -11,7 +11,7 @@ seed      : 0
 save_ths  : 3
 path:
   annotation_dir: ./smygw/annotation
-  mfcc_dir      : ../mfcc
+  mfcc_dir      : ../dataset/mfcc
   log_dir       : ./smygw/learning/logs/
   model_dir     : ../model
 
