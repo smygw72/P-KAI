@@ -79,31 +79,16 @@ const s3_client = function() {
 let target_id = "";
 
 //とりあえずjQueryで選択した曲のタグを取得（後で変える）
-let song_value = "";
+let tag_value = "";
 $('input[name=target_song').on('change', function() {
-    song_value = $(this).val();
+    tag_value = $(this).val();
 });
-
-// ランダム文字列を生成 ※後でセキュアな物に差し替える
-function makeRandomChar(){
-    // 生成する文字列の長さ
-    const length = 14;
-    // 生成する文字列に含める文字セット
-    const c = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX0123456789";
-    const cl = c.length;
-
-    for(var i=0; i<length; i++){
-        target_id += c[Math.floor(Math.random()*cl)];
-    }
-    return target_id;
-}
 
 function postData(){
 
     const apiUrl = "https://flhrsaddm1.execute-api.ap-northeast-1.amazonaws.com/dev";
 
     // 入力情報を定義
-
     const user_input_name = document.getElementById("user_input_name").value;
     const fileInput = document.getElementById('target_file');
     const target_file = fileInput.files[0];
@@ -111,28 +96,12 @@ function postData(){
 
     // apiへの送信情報を定義
     const post_data = { 
-        user : user_input_name, 
-        file_id:  makeRandomChar(),
+        user : user_input_name,
         file: target_file,
         file_name: file_name ,
-        song : song_value
+        tag : tag_value
     };
 
-    //S3へファイルアップロード
-    s3_client().putObject({
-        Key: `${user_input_name}/${target_id}`, //ユーザーがつけたファイル名ももし入れる場合はfile_nameを利用する
-        ContentType:target_file.type,
-        Body: target_file,
-        ACL: "public-read"
-    },
-        function(err,data){
-            if(data !== null){
-                console.log("アップロード成功");
-            } else {
-                console.log("アップロード失敗",err);
-            }
-        }
-    );
     // アウトプットを定義
     const result_score = document.getElementById("result_score");
 
