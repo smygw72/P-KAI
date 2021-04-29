@@ -193,7 +193,7 @@ def lr_decay(optimizer, epoch):
     return optimizer
 
 
-def main():
+def main(*args, **kwargs):
     set_seed(CONFIG.learning.seed)
     now = datetime.datetime.now()
     timestamp = f'{now.month}-{now.day}-{now.hour}-{now.minute}'
@@ -224,11 +224,11 @@ def main():
         train_acc, train_loss = train(
             model, train_loader, optimizer, av_meters, lr_decay
         )
-        print(f'train acc: {train_acc}')
+        print(f' train acc: {train_acc}')
         test_acc, test_loss = test(
             model, test_loader, av_meters
         )
-        print(f'test acc : {test_acc}')
+        print(f' test acc : {test_acc}')
 
         writer.add_scalar('train/acc', train_acc, epoch)
         writer.add_scalar('train/loss', train_loss, epoch)
