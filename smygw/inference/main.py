@@ -3,6 +3,7 @@ import random
 import numpy as np
 import torch
 from mutagen.mp3 import MP3
+from torchvision import transforms
 from tensorboardX import SummaryWriter
 
 import _paths
@@ -61,18 +62,31 @@ def main(*args, **kwargs):
                 file_path, offset=start_segment,
                 duration=CONFIG.inference.window_wid
             )
-            input_arr = spec_to_image(spec)
+            input_arr = spec_to_image(spec)  # 2D
             input_tensor = torch.from_numpy(input_arr).unsqueeze(0)
-            inputs = torch.cat([inputs, input_tensor], dim=0)
+
+            transform = transforms.Compose([
+                transforms.Resize((
+                    CONFIG.common.input_size, CONFIG.common.input_size
+                )),
+            ])
+            input_tensor = transform(input_tensor)
+
+            inputs = torch.cat([inputs, input_tensor.unsqueeze(0)], dim=0)
 
             if (len(inputs) == CONFIG.inference.batch_size) or (i == n_mfcc - 1):
                 output = model(inputs).detach()
                 outputs = torch.cat([outputs, output], dim=0)
                 inputs = torch.Tensor()  # make empty
 
-    writer.close()
+    for i in len(outputs):
+        writer.add_scalar("timeline", outputs[i], i)
+
     score_avg = torch.mean(outputs).item()
     print(f"average score: {score_avg}")
+
+    writer.close()
+
     return score_avg
 
 
