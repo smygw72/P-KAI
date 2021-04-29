@@ -75,6 +75,7 @@ def main(*args, **kwargs):
             inputs = torch.cat([inputs, input_tensor.unsqueeze(0)], dim=0)
 
             if (len(inputs) == CONFIG.inference.batch_size) or (i == n_mfcc - 1):
+                inputs = inputs.to(device)
                 output = model(inputs).detach()
                 outputs = torch.cat([outputs, output], dim=0)
                 inputs = torch.Tensor()  # make empty
