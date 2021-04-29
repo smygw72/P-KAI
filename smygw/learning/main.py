@@ -226,7 +226,7 @@ def main():
         train_acc, train_loss = train(
             model, train_loader, optimizer, av_meters, lr_decay
         )
-        # print(f'train acc: {train_acc}')
+        print(f'train acc: {train_acc}')
         test_acc, test_loss = test(
             model, test_loader, av_meters
         )

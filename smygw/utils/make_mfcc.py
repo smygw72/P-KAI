@@ -62,8 +62,8 @@ def main():
     ids, lengths = get_info()
 
     for (id, length) in zip(ids, lengths):
-        sound_file_path = f'./smygw/sounds/{id}.mp3'
-        output_dir = f'./smygw/mfcc/{id}'
+        sound_file_path = f'../dataset/sounds/{id}.mp3'
+        output_dir = f'../dataset/mfcc/{id}'
         os.makedirs(output_dir, exist_ok=True)
 
         # non-overlapping windows
