@@ -1,4 +1,6 @@
 # How to run
+## [Colaboratory version](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJfEsj_?usp=sharing)
+## local version
 1. Make python environment.
 ```
 $ python -m venv venv
@@ -19,7 +21,7 @@ $ python ./smygw/learning/main.py
 ```
 5. Use model. (todo)
 ```
-$ python ./smygw/inference.py
+$ python ./smygw/inference/main.py
 ```
 # How to update dataset
 1. Update Youtube.csv
