@@ -1,6 +1,0 @@
-version   : v0.1
-input_size: 224
-batch_size: 16
-n_worker  : 2
-seed      : 0
-window_wid: 2
