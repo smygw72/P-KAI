@@ -46,11 +46,11 @@ def download(row, output_dir):
 def main():
     df = pd.read_csv('./smygw/youtube.csv', header=0)
     df.drop_duplicates(subset='ID', inplace=True)
-    os.makedirs('./smygw/sounds', exist_ok=True)
+    os.makedirs('../sounds', exist_ok=True)
 
     for i, row in df.iterrows():
         print(row)
-        output_dir = './smygw/sounds'
+        output_dir = '../sounds'
         data_path = f'{output_dir}/{row["ID"]}.mp3'
         if not os.path.isfile(data_path):
             download(row, output_dir)

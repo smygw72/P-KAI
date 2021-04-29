@@ -10,8 +10,8 @@ margin    : 1.0
 seed      : 0
 save_ths  : 3
 path:
-  annotation_dir: ./smygw/annotation
-  mfcc_dir      : ./smygw/mfcc
+  annotation_dir: ../annotation
+  mfcc_dir      : ../mfcc
   log_dir       : ./smygw/learning/logs/
-  model_dir     : ./smygw/model
+  model_dir     : ../model
 
