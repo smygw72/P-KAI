@@ -3,9 +3,12 @@ common:
   input_size: 224
   arch      : resnet
   path:
-    annotation_dir: ./smygw/annotation
+    sound_dir     : ../dataset/sounds
     mfcc_dir      : ../dataset/mfcc
     model_dir     : ../model
+    annotation_dir: ./smygw/annotation
+    datalist_path : ./smygw/youtube.csv
+    allpair_path  : ./smygw/annotation/all_pair.csv
 
 learning:
   split_id  : 0
