@@ -80,7 +80,7 @@ def main(*args, **kwargs):
                 outputs = torch.cat([outputs, output], dim=0)
                 inputs = torch.Tensor()  # make empty
 
-    for i in len(outputs):
+    for i in range(len(outputs)):
         writer.add_scalar("timeline", outputs[i], i)
 
     score_avg = torch.mean(outputs).item()
