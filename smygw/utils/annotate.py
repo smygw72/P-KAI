@@ -2,11 +2,11 @@ import argparse
 import sys
 import csv
 import pandas as pd
-# import matplotlib.pyplot as plt
 import networkx as nx
 
-annotation_file = './smygw/annotation/all_pair.csv'
-# annotation_file = './smygw/test.csv'
+import _paths
+from config import CONFIG
+
 
 miyagawa_range = (1, 145)
 kanaishi_range = (146, 290)
@@ -21,12 +21,12 @@ def args_parser():
     return parser.parse_args()
 
 
-def main():
+def main(*args, **kwargs):
     args = args_parser()
     edges = []  # list of (start, end, weight)
     unannotated_idxs = []
 
-    with open(annotation_file, mode='r') as f:
+    with open(CONFIG.common.path.datalist_path, mode='r') as f:
         reader = csv.reader(f)
 
         for i, row in enumerate(reader):
@@ -61,7 +61,7 @@ def main():
         print('There are no pairs')
         sys.exit(0)
 
-    df = pd.read_csv(annotation_file)
+    df = pd.read_csv(CONFIG.common.path.allpair_path)
     print("Input 1/0/-1\n")
 
     for idx in unannotated_idxs:
@@ -71,12 +71,12 @@ def main():
         answer = question(graph, node1, node2)
         if answer is not None:
             df.iloc[idx, 2] = str(answer)
-            df.to_csv(annotation_file, index=False)
+            df.to_csv(CONFIG.common.path.allpair_path, index=False)
             continue
         answer = question(graph, node2, node1)
         if answer is not None:
             df.iloc[idx, 2] = str(-1 * answer)
-            df.to_csv(annotation_file, index=False)
+            df.to_csv(CONFIG.common.path.allpair_path, index=False)
             continue
 
 
