@@ -40,10 +40,12 @@ def main(*args, **kwargs):
 
     # file_path = args.path
     file_path = '../dataset/sounds/2oGJrufm_4w.mp3'
-    file_name = os.path.basename(file_path)
+    file_name = os.path.splitext(os.path.basename(file_path))[0]
     length = mutagen_length(file_path)
 
-    writer = SummaryWriter(f'{CONFIG.inference.path.log_dir}/{file_name}')
+    writer = SummaryWriter(
+        f'{CONFIG.inference.path.log_dir}/{CONFIG.common.version}/{file_name}'
+    )
 
     model = get_model(CONFIG.common.arch).to(device)
     model_path = f'{CONFIG.common.path.model_dir}/{CONFIG.common.version}.pth'
