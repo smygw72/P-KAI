@@ -2,7 +2,7 @@ import torch.nn as nn
 from torchvision.models import resnet34
 
 
-def get_model():
+def get_resnet():
     model = resnet34(pretrained=True)
     model.fc = nn.Linear(512, 1)
     model.conv1 = nn.Conv2d(

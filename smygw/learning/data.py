@@ -5,7 +5,8 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
-from learning_config import CONFIG
+import _paths
+from config import CONFIG
 
 
 class PairRecord(object):
@@ -56,7 +57,7 @@ class PairDataSet(Dataset):
         return sup, inf, label_sim
 
     def _parse_list(self):
-        file_path = f'{CONFIG.path.annotation_dir}/{CONFIG.split_id}/{self.train_or_test}_pair.csv'
+        file_path = f'{CONFIG.common.path.annotation_dir}/{CONFIG.learning.split_id}/{self.train_or_test}_pair.csv'
         for row in open(file_path):
             record = PairRecord(row.strip().split(','))
             if record.label != 'X':
@@ -64,13 +65,13 @@ class PairDataSet(Dataset):
 
 
 def sampling(id):
-    files = os.listdir(f'{CONFIG.path.mfcc_dir}/{id}/')
+    files = os.listdir(f'{CONFIG.common.path.mfcc_dir}/{id}/')
     n_file = len(files)
-    n_sample = CONFIG.n_sample
+    n_sample = CONFIG.learning.n_sample
     segment_len = int(n_file / n_sample)
 
     mfcc_tensor = torch.Tensor(
-        n_sample, 1, CONFIG.input_size, CONFIG.input_size
+        n_sample, 1, CONFIG.common.input_size, CONFIG.common.input_size
     )
 
     for i in range(n_sample):
@@ -79,7 +80,7 @@ def sampling(id):
         if i == (n_sample - 1):
             end_idx = n_file - 1
         idx = random.randint(start_idx, end_idx)
-        path = f'{CONFIG.path.mfcc_dir}/{id}/{files[idx]}'
+        path = f'{CONFIG.common.path.mfcc_dir}/{id}/{files[idx]}'
         mfcc_tensor[i] = get_img(path)
 
     return mfcc_tensor
@@ -87,7 +88,8 @@ def sampling(id):
 
 def get_img(path):
     transform = transforms.Compose([
-        transforms.Resize((CONFIG.input_size, CONFIG.input_size)),
+        transforms.Resize(
+            (CONFIG.common.input_size, CONFIG.common.input_size)),
         transforms.ToTensor(),
     ])
     img = Image.open(path)
@@ -107,9 +109,9 @@ def get_dataloader(train_or_test):
 
     data_loader = DataLoader(
         dataset,
-        batch_size=CONFIG.batch_size,
+        batch_size=CONFIG.learning.batch_size,
         shuffle=shuffle,
-        num_workers=CONFIG.n_worker,
+        num_workers=CONFIG.learning.n_worker,
         pin_memory=True
     )
     return data_loader
