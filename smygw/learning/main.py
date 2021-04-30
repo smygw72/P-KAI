@@ -198,7 +198,7 @@ def main(*args, **kwargs):
     now = datetime.datetime.now()
     timestamp = f'{now.month}-{now.day}-{now.hour}-{now.minute}'
     # log
-    writer = SummaryWriter(f'{CONFIG.learning.path.log_dir}/v0.1/{timestamp}')
+    writer = SummaryWriter(f'{CONFIG.learning.log_dir}/v0.1/{timestamp}')
     av_meters = {
         'dif_loss': AverageMeter(),
         'sim_loss': AverageMeter(),
@@ -242,7 +242,7 @@ def main(*args, **kwargs):
                 "model_state_dict": model.state_dict(),
                 "optimizer_state_dict": optimizer.state_dict(),
             },
-            f'{CONFIG.common.path.model_dir}/{CONFIG.common.version}_latest.tar'
+            f'{CONFIG.common.model_dir}/{CONFIG.common.version}_latest.tar'
         )
 
         # save best model (without optimizer)
@@ -252,7 +252,7 @@ def main(*args, **kwargs):
                 best_loss = test_loss
                 torch.save(
                     model.state_dict(),
-                    f'{CONFIG.common.path.model_dir}/{CONFIG.common.version}.pth'
+                    f'{CONFIG.common.model_dir}/{CONFIG.common.version}.pth'
                 )
         else:
             count = 0

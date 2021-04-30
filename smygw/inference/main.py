@@ -44,11 +44,11 @@ def main(*args, **kwargs):
     length = mutagen_length(file_path)
 
     writer = SummaryWriter(
-        f'{CONFIG.inference.path.log_dir}/{CONFIG.common.version}/{file_name}'
+        f'{CONFIG.inference.log_dir}/{CONFIG.common.version}/{file_name}'
     )
 
     model = get_model(CONFIG.common.arch).to(device)
-    model_path = f'{CONFIG.common.path.model_dir}/{CONFIG.common.version}.pth'
+    model_path = f'{CONFIG.common.model_dir}/{CONFIG.common.version}.pth'
     model.load_state_dict(torch.load(model_path))
     model.eval()
 
