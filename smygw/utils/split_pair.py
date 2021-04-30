@@ -17,14 +17,14 @@ def set_seed(seed):
 
 
 def get_ids():
-    id_df = pd.read_csv(CONFIG.common.path.datalist_path, header=0)
+    id_df = pd.read_csv(CONFIG.common.datalist_path, header=0)
     all_ids = id_df['ID'].tolist()
     random.shuffle(all_ids)
     return all_ids
 
 
 def get_pairs():
-    pair_df = pd.read_csv(CONFIG.common.path.allpair_path, header=0)
+    pair_df = pd.read_csv(CONFIG.common.allpair_path, header=0)
     id1s = pair_df['id1'].tolist()
     id2s = pair_df['id2'].tolist()
     labels = pair_df['label'].tolist()
@@ -40,7 +40,7 @@ def main(*args, **kwargs):
     subset_size = int(len(all_ids) / k)
 
     for i in range(k):
-        output_dir = f'{CONFIG.common.path.annotation_dir}/{i}'
+        output_dir = f'{CONFIG.common.annotation_dir}/{i}'
         os.makedirs(f'{output_dir}', exist_ok=True)
 
         # split id

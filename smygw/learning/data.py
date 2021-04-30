@@ -57,7 +57,7 @@ class PairDataSet(Dataset):
         return sup, inf, label_sim
 
     def _parse_list(self):
-        file_path = f'{CONFIG.common.path.annotation_dir}/{CONFIG.learning.split_id}/{self.train_or_test}_pair.csv'
+        file_path = f'{CONFIG.common.annotation_dir}/{CONFIG.learning.split_id}/{self.train_or_test}_pair.csv'
         for row in open(file_path):
             record = PairRecord(row.strip().split(','))
             if record.label != 'X':
@@ -65,7 +65,7 @@ class PairDataSet(Dataset):
 
 
 def sampling(id):
-    files = os.listdir(f'{CONFIG.common.path.mfcc_dir}/{id}/')
+    files = os.listdir(f'{CONFIG.common.mfcc_dir}/{id}/')
     n_file = len(files)
     n_sample = CONFIG.learning.n_sample
     segment_len = int(n_file / n_sample)
@@ -80,7 +80,7 @@ def sampling(id):
         if i == (n_sample - 1):
             end_idx = n_file - 1
         idx = random.randint(start_idx, end_idx)
-        path = f'{CONFIG.common.path.mfcc_dir}/{id}/{files[idx]}'
+        path = f'{CONFIG.common.mfcc_dir}/{id}/{files[idx]}'
         mfcc_tensor[i] = get_img(path)
 
     return mfcc_tensor

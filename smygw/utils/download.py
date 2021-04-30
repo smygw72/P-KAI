@@ -47,16 +47,16 @@ def download(row, output_dir):
 
 
 def main(*args, **kwargs):
-    df = pd.read_csv(CONFIG.common.path.datalist_path, header=0)
+    df = pd.read_csv(CONFIG.common.datalist_path, header=0)
     df.drop_duplicates(subset='ID', inplace=True)
-    os.makedirs(CONFIG.common.path.sound_dir, exist_ok=True)
+    os.makedirs(CONFIG.common.sound_dir, exist_ok=True)
 
     for i, row in df.iterrows():
         print(row)
-        data_path = f'{CONFIG.common.path.sound_dir}/{row["ID"]}.mp3'
+        data_path = f'{CONFIG.common.sound_dir}/{row["ID"]}.mp3'
         if not os.path.isfile(data_path):
-            download(row, CONFIG.common.path.sound_dir)
-            trim(row, CONFIG.common.path.sound_dir)
+            download(row, CONFIG.common.sound_dir)
+            trim(row, CONFIG.common.sound_dir)
 
 
 if __name__ == "__main__":

@@ -2,13 +2,12 @@ common:
   version   : v0.1
   input_size: 224
   arch      : resnet
-  path:
-    sound_dir     : ../dataset/sounds
-    mfcc_dir      : ../dataset/mfcc
-    model_dir     : ../model
-    annotation_dir: ./smygw/annotation
-    datalist_path : ./smygw/youtube.csv
-    allpair_path  : ./smygw/annotation/all_pair.csv
+  sound_dir     : ../dataset/sounds
+  mfcc_dir      : ../dataset/mfcc
+  model_dir     : ../model
+  datalist_path : ./smygw/youtube.csv
+  annotation_dir: ./smygw/annotation
+  allpair_path  : ./smygw/annotation/all_pair.csv
 
 learning:
   split_id  : 0
@@ -20,13 +19,11 @@ learning:
   margin    : 1.0
   seed      : 0
   save_ths  : 3
-  path:
-    log_dir : ./smygw/learning/logs/
+  log_dir : ./smygw/learning/logs/
 
 inference:
   batch_size: 16
   n_worker  : 2
   seed      : 0
   window_wid: 2
-  path:
-    log_dir   : ./smygw/inference/logs/
+  log_dir   : ./smygw/inference/logs/
