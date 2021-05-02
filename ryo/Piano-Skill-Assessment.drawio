@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e" pages="4">
     <diagram id="piDafpqhtRUU5qUU-vj8" name="HOME,TOP">
-        <mxGraphModel dx="1725" dy="680" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
+        <mxGraphModel dx="2324" dy="908" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -131,7 +131,7 @@
         </mxGraphModel>
     </diagram>
     <diagram id="inad0leWlo-gA2G2Xd5q" name="RANKING">
-        <mxGraphModel dx="898" dy="680" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
+        <mxGraphModel dx="898" dy="545" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
             <root>
                 <mxCell id="cpTVbMQMFTYyx2Wrn9bh-0"/>
                 <mxCell id="cpTVbMQMFTYyx2Wrn9bh-1" parent="cpTVbMQMFTYyx2Wrn9bh-0"/>
@@ -210,11 +210,29 @@
                 <mxCell id="mDzIoAoNwGUpQpL_4Mir-0" value="&lt;font style=&quot;font-size: 12px&quot; color=&quot;#ffffff&quot;&gt;Piano採点&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;labelBackgroundColor=none;fontSize=26;fontColor=#000000;fontStyle=3" parent="cpTVbMQMFTYyx2Wrn9bh-1" vertex="1">
                     <mxGeometry x="70" y="90" width="70" height="20" as="geometry"/>
                 </mxCell>
+                <mxCell id="yyMen7As9ZxPIDfpTzRC-5" value="" style="group" vertex="1" connectable="0" parent="cpTVbMQMFTYyx2Wrn9bh-1">
+                    <mxGeometry x="424" y="220" width="62" height="12" as="geometry"/>
+                </mxCell>
+                <mxCell id="yyMen7As9ZxPIDfpTzRC-0" value="" style="html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;shadow=0;dashed=0;strokeWidth=2;shape=mxgraph.ios7.misc.star;fillColor=#0080f0;strokeColor=none;" vertex="1" parent="yyMen7As9ZxPIDfpTzRC-5">
+                    <mxGeometry width="12" height="12" as="geometry"/>
+                </mxCell>
+                <mxCell id="yyMen7As9ZxPIDfpTzRC-1" value="" style="html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;shadow=0;dashed=0;strokeWidth=2;shape=mxgraph.ios7.misc.star;fillColor=#0080f0;strokeColor=none;" vertex="1" parent="yyMen7As9ZxPIDfpTzRC-5">
+                    <mxGeometry x="14" width="12" height="12" as="geometry"/>
+                </mxCell>
+                <mxCell id="yyMen7As9ZxPIDfpTzRC-2" value="" style="html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;shadow=0;dashed=0;strokeWidth=2;shape=mxgraph.ios7.misc.star;fillColor=#0080f0;strokeColor=none;" vertex="1" parent="yyMen7As9ZxPIDfpTzRC-5">
+                    <mxGeometry x="26" width="12" height="12" as="geometry"/>
+                </mxCell>
+                <mxCell id="yyMen7As9ZxPIDfpTzRC-3" value="" style="html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;shadow=0;dashed=0;strokeWidth=2;shape=mxgraph.ios7.misc.star;fillColor=#0080f0;strokeColor=none;" vertex="1" parent="yyMen7As9ZxPIDfpTzRC-5">
+                    <mxGeometry x="38" width="12" height="12" as="geometry"/>
+                </mxCell>
+                <mxCell id="yyMen7As9ZxPIDfpTzRC-4" value="" style="html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;shadow=0;dashed=0;strokeWidth=2;shape=mxgraph.ios7.misc.star;fillColor=#0080f0;strokeColor=none;" vertex="1" parent="yyMen7As9ZxPIDfpTzRC-5">
+                    <mxGeometry x="50" width="12" height="12" as="geometry"/>
+                </mxCell>
             </root>
         </mxGraphModel>
     </diagram>
     <diagram id="4HpNBhxujljwyRETHbB6" name="MYSCORE（Score)">
-        <mxGraphModel dx="898" dy="680" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
+        <mxGraphModel dx="898" dy="545" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" background="#ffffff" math="0" shadow="0">
             <root>
                 <mxCell id="oP6zgN_roBama4-uzWyA-0"/>
                 <mxCell id="oP6zgN_roBama4-uzWyA-1" parent="oP6zgN_roBama4-uzWyA-0"/>
@@ -305,7 +323,7 @@
         </mxGraphModel>
     </diagram>
     <diagram id="o-zhPHLmkjhSWaumSwWv" name="MYSCORE（グラフ)">
-        <mxGraphModel dx="898" dy="680" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+        <mxGraphModel dx="898" dy="545" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
             <root>
                 <mxCell id="ZtxaTcMJVVirn4OB9FzO-0"/>
                 <mxCell id="ZtxaTcMJVVirn4OB9FzO-1" parent="ZtxaTcMJVVirn4OB9FzO-0"/>
