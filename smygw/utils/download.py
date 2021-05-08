@@ -2,6 +2,9 @@ import os
 import subprocess
 import pandas as pd
 
+import _paths
+from config import CONFIG
+
 
 def trim(row, output_dir):
     original_data_path = f'{output_dir}/{row["ID"]}_original.mp3'
@@ -43,20 +46,17 @@ def download(row, output_dir):
     ])
 
 
-def main():
-    csv_path = './smygw/youtube.csv'
-    sound_dir = '../dataset/sounds'
-
-    df = pd.read_csv(csv_path, header=0)
+def main(*args, **kwargs):
+    df = pd.read_csv(CONFIG.common.datalist_path, header=0)
     df.drop_duplicates(subset='ID', inplace=True)
-    os.makedirs(sound_dir, exist_ok=True)
+    os.makedirs(CONFIG.common.sound_dir, exist_ok=True)
 
     for i, row in df.iterrows():
         print(row)
-        data_path = f'{sound_dir}/{row["ID"]}.mp3'
+        data_path = f'{CONFIG.common.sound_dir}/{row["ID"]}.mp3'
         if not os.path.isfile(data_path):
-            download(row, sound_dir)
-            trim(row, sound_dir)
+            download(row, CONFIG.common.sound_dir)
+            trim(row, CONFIG.common.sound_dir)
 
 
 if __name__ == "__main__":

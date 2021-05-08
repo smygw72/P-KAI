@@ -1,4 +1,5 @@
 import random
+import datetime
 import numpy as np
 from tqdm import tqdm
 import torch
@@ -6,9 +7,11 @@ import torch.optim as optim
 from tensorboardX import SummaryWriter
 
 from data import get_dataloader
-from network import get_model
 from metric import get_dif_loss, get_sim_loss, get_dif_acc, get_sim_acc
-from learning_config import CONFIG
+
+import _paths
+from config import CONFIG
+from network.interface import get_model
 
 
 if torch.cuda.is_available():
@@ -56,18 +59,15 @@ def train(model, train_loader, optimizer, av_meters, change_lr=None):
         inf_input = minibatch[1].to(device, dtype=torch.float32)
         label_sim = minibatch[2]
 
-        sup_input = sup_input.view(
-            -1, 1, CONFIG.input_size, CONFIG.input_size
-        )
-        inf_input = inf_input.view(
-            -1, 1, CONFIG.input_size, CONFIG.input_size
-        )
+        input_size = CONFIG.common.input_size
+        sup_input = sup_input.view(-1, 1, input_size, input_size)
+        inf_input = inf_input.view(-1, 1, input_size, input_size)
 
         sup_output = model(sup_input).to('cpu')
         inf_output = model(inf_input).to('cpu')
 
-        sup_output = sup_output.view(-1, CONFIG.n_sample)
-        inf_output = inf_output.view(-1, CONFIG.n_sample)
+        sup_output = sup_output.view(-1, CONFIG.learning.n_sample)
+        inf_output = inf_output.view(-1, CONFIG.learning.n_sample)
 
         dif_size = len(label_sim[~label_sim])
         sim_size = len(label_sim[label_sim])
@@ -121,18 +121,15 @@ def test(model, test_loader, av_meters):
             inf_input = minibatch[1].to(device, dtype=torch.float32)
             label_sim = minibatch[2]
 
-            sup_input = sup_input.view(
-                -1, 1, CONFIG.input_size, CONFIG.input_size
-            )
-            inf_input = inf_input.view(
-                -1, 1, CONFIG.input_size, CONFIG.input_size
-            )
+            input_size = CONFIG.common.input_size
+            sup_input = sup_input.view(-1, 1, input_size, input_size)
+            inf_input = inf_input.view(-1, 1, input_size, input_size)
 
             sup_output = model(sup_input).to('cpu').detach()
             inf_output = model(inf_input).to('cpu').detach()
 
-            sup_output = sup_output.view(-1, CONFIG.n_sample)
-            inf_output = inf_output.view(-1, CONFIG.n_sample)
+            sup_output = sup_output.view(-1, CONFIG.learning.n_sample)
+            inf_output = inf_output.view(-1, CONFIG.learning.n_sample)
 
             dif_size = len(label_sim[~label_sim])
             sim_size = len(label_sim[label_sim])
@@ -191,16 +188,17 @@ def update_meters(av_meters,
 
 def lr_decay(optimizer, epoch):
     if epoch % 10 == 0:
-        new_lr = CONFIG.lr / (10 ** (epoch // 10))
+        new_lr = CONFIG.learning.lr / (10 ** (epoch // 10))
         optimizer.param_groups[0]['lr'] = new_lr
     return optimizer
 
 
-def main():
-    set_seed(CONFIG.seed)
-
+def main(*args, **kwargs):
+    set_seed(CONFIG.learning.seed)
+    now = datetime.datetime.now()
+    timestamp = f'{now.month}-{now.day}-{now.hour}-{now.minute}'
     # log
-    writer = SummaryWriter(f'{CONFIG.path.log_dir}')
+    writer = SummaryWriter(f'{CONFIG.learning.log_dir}/v0.1/{timestamp}')
     av_meters = {
         'dif_loss': AverageMeter(),
         'sim_loss': AverageMeter(),
@@ -213,24 +211,24 @@ def main():
     train_loader = get_dataloader('train')
     test_loader = get_dataloader('test')
 
-    model = get_model().to(device)
-    optimizer = optim.Adam(model.parameters(), lr=CONFIG.lr)
+    model = get_model(CONFIG.common.arch).to(device)
+    optimizer = optim.Adam(model.parameters(), lr=CONFIG.learning.lr)
 
     best_loss = float('inf')
     count = 0
 
-    for epoch in range(1, CONFIG.epochs + 1):
+    for epoch in range(1, CONFIG.learning.epochs + 1):
         print(f'Epoch {epoch}')
         optimizer = lr_decay(optimizer, epoch)
 
         train_acc, train_loss = train(
             model, train_loader, optimizer, av_meters, lr_decay
         )
-        print(f'train acc: {train_acc}')
+        print(f' train acc: {train_acc}')
         test_acc, test_loss = test(
             model, test_loader, av_meters
         )
-        print(f'test acc : {test_acc}')
+        print(f' test acc : {test_acc}')
 
         writer.add_scalar('train/acc', train_acc, epoch)
         writer.add_scalar('train/loss', train_loss, epoch)
@@ -244,17 +242,17 @@ def main():
                 "model_state_dict": model.state_dict(),
                 "optimizer_state_dict": optimizer.state_dict(),
             },
-            f'{CONFIG.path.model_dir}/{CONFIG.version}_latest.tar'
+            f'{CONFIG.common.model_dir}/{CONFIG.common.version}_latest.tar'
         )
 
         # save best model (without optimizer)
         if best_loss > test_loss:
             count += 1
-            if count >= CONFIG.save_ths:
+            if count >= CONFIG.learning.save_ths:
                 best_loss = test_loss
                 torch.save(
                     model.state_dict(),
-                    f'{CONFIG.path.model_dir}/{CONFIG.version}.pth'
+                    f'{CONFIG.common.model_dir}/{CONFIG.common.version}.pth'
                 )
         else:
             count = 0

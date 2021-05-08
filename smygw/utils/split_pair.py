@@ -4,6 +4,8 @@ import csv
 import numpy as np
 import pandas as pd
 
+import _paths
+from config import CONFIG
 
 k = 3  # k-folds cross validation
 seed = 0  # 再現性確保
@@ -15,30 +17,30 @@ def set_seed(seed):
 
 
 def get_ids():
-    id_df = pd.read_csv('./smygw/youtube.csv', header=0)
+    id_df = pd.read_csv(CONFIG.common.datalist_path, header=0)
     all_ids = id_df['ID'].tolist()
     random.shuffle(all_ids)
     return all_ids
 
 
 def get_pairs():
-    pair_df = pd.read_csv('./smygw/annotation/all_pair.csv', header=0)
+    pair_df = pd.read_csv(CONFIG.common.allpair_path, header=0)
     id1s = pair_df['id1'].tolist()
     id2s = pair_df['id2'].tolist()
     labels = pair_df['label'].tolist()
     return id1s, id2s, labels
 
 
-def main():
+def main(*args, **kwargs):
     set_seed(seed)
 
     all_ids = get_ids()
     id1s, id2s, labels = get_pairs()
 
-    subset_size = int(len(all_ids)/k)
+    subset_size = int(len(all_ids) / k)
 
     for i in range(k):
-        output_dir = f'./smygw/annotation/{i}'
+        output_dir = f'{CONFIG.common.annotation_dir}/{i}'
         os.makedirs(f'{output_dir}', exist_ok=True)
 
         # split id
