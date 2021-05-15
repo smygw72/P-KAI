@@ -62,12 +62,12 @@ def main(*args, **kwargs):
             else:
                 test_ids.extend(subset_ids)
 
-        with open(f'{output_dir}/train_id.csv', mode='a') as f:
+        with open(f'{output_dir}/train_id.csv', mode='a', newline='') as f:
             writer = csv.writer(f)
             for train_id in train_ids:
                 writer.writerow([train_id])
 
-        with open(f'{output_dir}/test_id.csv', mode='a') as f:
+        with open(f'{output_dir}/test_id.csv', mode='a', newline='') as f:
             writer = csv.writer(f)
             for test_id in test_ids:
                 writer.writerow([test_id])
@@ -88,12 +88,12 @@ def main(*args, **kwargs):
             elif (id1 in test_ids) and (id2 in test_ids):
                 test_pairs.append(d)
 
-        with open(f'{output_dir}/train_pair.csv', mode='a') as f:
+        with open(f'{output_dir}/train_pair.csv', mode='a', newline='') as f:
             writer = csv.writer(f)
             for pair in train_pairs:
                 writer.writerow([pair["id1"], pair["id2"], pair["label"]])
 
-        with open(f'{output_dir}/test_pair.csv', mode='a') as f:
+        with open(f'{output_dir}/test_pair.csv', mode='a', newline='') as f:
             writer = csv.writer(f)
             for pair in test_pairs:
                 writer.writerow([pair["id1"], pair["id2"], pair["label"]])

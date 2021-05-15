@@ -1,11 +1,12 @@
 import os
+import warnings
 import random
 import numpy as np
-import torch
+from tqdm import tqdm
 from mutagen.mp3 import MP3
+import torch
 from torchvision import transforms
 from tensorboardX import SummaryWriter
-
 import _paths
 from config import CONFIG
 from network.interface import get_model
@@ -36,10 +37,11 @@ def mutagen_length(path):
 
 
 def main(*args, **kwargs):
+    warnings.filterwarnings('ignore')
     set_seed(CONFIG.inference.seed)
 
     # file_path = args.path
-    file_path = '../dataset/sounds/2oGJrufm_4w.mp3'
+    file_path = './smygw/inference/test.mp3'
     file_name = os.path.splitext(os.path.basename(file_path))[0]
     length = mutagen_length(file_path)
 
@@ -57,7 +59,7 @@ def main(*args, **kwargs):
 
     n_mfcc = int(length / CONFIG.inference.window_wid)
     with torch.no_grad():
-        for i in range(n_mfcc):
+        for i in tqdm(range(n_mfcc)):
             start_segment = i * CONFIG.inference.window_wid
 
             spec = get_melspectrogram_db(

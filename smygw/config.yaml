@@ -4,7 +4,7 @@ common:
   arch      : resnet
   sound_dir     : ../dataset/sounds
   mfcc_dir      : ../dataset/mfcc
-  model_dir     : ../model
+  model_dir     : ./smygw/models
   datalist_path : ./smygw/youtube.csv
   annotation_dir: ./smygw/annotation
   allpair_path  : ./smygw/annotation/all_pair.csv
