@@ -1,11 +1,26 @@
 # How to run
-## [Colaboratory version](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJfEsj_?usp=sharing)
-## local version
+## Setup with Colaboratory
+See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJfEsj_?usp=sharing)
+## Setup with Docker
+1. Build Image.
+```
+$ docker image build -f ./smygw/Dockerfile.{GPU/CPU} -t psa ./
+```
+2. Run container.
+```
+$ docker container run -d --rm psa --name psa_app
+```
+3. Execute CMD in the container (Example is as follows).
+```
+$ docker container exec psa_app sh -c "python /smygw/inference/main.py"
+```
+
+## Manual setup
 1. Make python environment.
 ```
 $ python -m venv venv
 $ source venv/bin/activate
-$ pip install -r ./smygw/requirements.txt
+$ pip install -r ./smygw/requirements_{cpu/gpu}.txt
 ```
 2. Download dataset from Youtube.
 ```
