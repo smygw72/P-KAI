@@ -1,6 +1,7 @@
 .vscode/
 smygw/learning/logs
 smygw/inference/logs
+smygw/models
 
 ## Python
 # Byte-compiled / optimized / DLL files
