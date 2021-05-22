@@ -44,10 +44,10 @@ def mutagen_length(path):
         return None
 
 
-def inference(model, file_path, i):
+def cpu_inference(model, sound_path, i):
     start_segment = i * CONFIG.inference.window_wid
     spec = get_melspectrogram_db(
-        file_path, offset=start_segment,
+        sound_path, offset=start_segment,
         duration=CONFIG.inference.window_wid
     )
     input_arr = spec_to_image(spec)
@@ -55,20 +55,46 @@ def inference(model, file_path, i):
         input_arr
     ).float().unsqueeze(0).unsqueeze(0)
     input_tensor = transform(input_tensor)
-    score = model(input_tensor.to(device)).to('cpu').item()
+    with torch.no_grad():
+        score = model(input_tensor.to(device)).to('cpu').item()
     return score
 
 
-def main(*args, **kwargs):
+def gpu_inference(model, sound_path, n_mfcc):
+    inputs = torch.Tensor()
+    outputs = torch.Tensor()
+
+    for i in tqdm(range(n_mfcc)):
+        start_segment = i * CONFIG.inference.window_wid
+
+        spec = get_melspectrogram_db(
+            sound_path, offset=start_segment,
+            duration=CONFIG.inference.window_wid
+        )
+        input_arr = spec_to_image(spec)
+        input_tensor = torch.from_numpy(input_arr)  # 2D tensor
+        input_tensor = input_tensor.unsqueeze(0).unsqueeze(0)
+        input_tensor = transform(input_tensor)
+        inputs = torch.cat([inputs, input_tensor], dim=0)
+
+        if (len(inputs) == CONFIG.inference.batch_size) or (i == n_mfcc - 1):
+            inputs = inputs.to(device)
+            output = model(inputs).detach().to('cpu').item()
+            outputs = torch.cat([outputs, output], dim=0)
+            inputs = torch.Tensor()  # make empty
+    return outputs.tolist()
+
+
+def main(sound_path=None):
     start_time = time.time()
     warnings.filterwarnings('ignore')
     set_seed(CONFIG.inference.seed)
 
-    # file_path = args.path
-    file_path = './smygw/inference/test.mp3'
+    if sound_path is None:
+        sound_path = './smygw/inference/test.mp3'
 
-    file_name = os.path.splitext(os.path.basename(file_path))[0]
-    length = mutagen_length(file_path)
+    file_name = os.path.splitext(os.path.basename(sound_path))[0]
+    length = mutagen_length(sound_path)
 
     writer = SummaryWriter(
         f'{CONFIG.inference.log_dir}/{CONFIG.common.version}/{file_name}'
@@ -80,10 +106,14 @@ def main(*args, **kwargs):
     model.eval()
 
     n_mfcc = int(length / CONFIG.inference.window_wid)
-    with torch.no_grad():
+    if device == torch.device('cpu'):
+        # parallel learning
         p = Pool(cpu_count())
-        args = [(model, file_path, i) for i in range(n_mfcc)]
-        outputs = p.starmap(inference, args)
+        args = [(model, sound_path, i) for i in range(n_mfcc)]
+        outputs = p.starmap(cpu_inference, args)
+    elif device == torch.device('cuda'):
+        # batch processing
+        outputs = gpu_inference(model, sound_path, n_mfcc)
 
     for i in range(len(outputs)):
         writer.add_scalar("timeline", outputs[i], i)
