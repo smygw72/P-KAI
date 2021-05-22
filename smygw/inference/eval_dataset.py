@@ -9,14 +9,16 @@ def main():
     test_id_path = f'{CONFIG.common.annotation_dir}/{CONFIG.learning.split_id}/test_id.csv'
 
     for row in open(train_id_path):
-        print(row)
-        train_path = f'{CONFIG.common.sound_dir}/{row}.mp3'
-        inference.main(train_path)
+        sound_id = row.rstrip()
+        print(sound_id)
+        sound_path = f'{CONFIG.common.sound_dir}/{sound_id}.mp3'
+        inference.main(sound_path)
 
     for row in open(test_id_path):
-        print(row)
-        test_path = f'{CONFIG.common.sound_dir}/{row}.mp3'
-        inference.main(test_path)
+        sound_id = row.rstrip()
+        print(sound_id)
+        sound_path = f'{CONFIG.common.sound_dir}/{sound_id}.mp3'
+        inference.main(sound_path)
 
 
 if __name__ == "__main__":
