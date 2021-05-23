@@ -1,9 +1,11 @@
 import random
-import datetime
+from pytz import timezone
+from datetime import datetime
 import numpy as np
 from tqdm import tqdm
 import torch
 import torch.optim as optim
+from torch.optim.lr_scheduler import StepLR
 from tensorboardX import SummaryWriter
 
 from data import get_dataloader
@@ -47,7 +49,7 @@ def set_seed(seed):
     torch.backends.cudnn.deterministic = True
 
 
-def train(model, train_loader, optimizer, av_meters, change_lr=None):
+def train(model, train_loader, optimizer, av_meters):
     for value in av_meters.values():
         value.reset()
 
@@ -104,11 +106,6 @@ def train(model, train_loader, optimizer, av_meters, change_lr=None):
         total_loss.backward()
         optimizer.step()
 
-    total_loss_avg = av_meters['total_loss'].avg
-    total_acc_avg = av_meters['total_acc'].avg
-
-    return total_acc_avg, total_loss_avg
-
 
 def test(model, test_loader, av_meters):
     for value in av_meters.values():
@@ -163,10 +160,74 @@ def test(model, test_loader, av_meters):
                 total_loss, total_acc, total_size
             )
 
-        total_loss_avg = av_meters['total_loss'].avg
-        total_acc_avg = av_meters['total_acc'].avg
 
-        return total_acc_avg, total_loss_avg
+def main(*args, **kwargs):
+    set_seed(CONFIG.learning.seed)
+
+    utc_now = datetime.now(timezone('UTC'))
+    jst_now = utc_now.astimezone(timezone('Asia/Tokyo'))
+    timestamp = datetime.strftime(jst_now, '%m-%d-%H:%M:%S')
+
+    # log
+    writer = SummaryWriter(f'{CONFIG.learning.log_dir}/v0.1/{timestamp}')
+    av_meters = {
+        'dif_loss': AverageMeter(),
+        'sim_loss': AverageMeter(),
+        'total_loss': AverageMeter(),
+        'dif_acc': AverageMeter(),
+        'sim_acc': AverageMeter(),
+        'total_acc': AverageMeter()
+    }
+
+    train_loader = get_dataloader('train')
+    test_loader = get_dataloader('test')
+
+    model = get_model(CONFIG.common.arch).to(device)
+    optimizer = optim.Adam(model.parameters(), lr=CONFIG.learning.lr)
+    scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
+
+    best_loss = float('inf')
+    count = 0
+
+    for epoch in range(1, CONFIG.learning.epochs + 1):
+        print(f'Epoch {epoch}')
+
+        train(model, train_loader, optimizer, av_meters)
+        update_writer(writer, av_meters, 'train', epoch)
+
+        train_loss = av_meters['total_loss'].avg
+        print(f' train loss : {train_loss}')
+
+        test(model, test_loader, av_meters)
+        update_writer(writer, av_meters, 'test', epoch)
+
+        test_loss = av_meters['total_loss'].avg
+        print(f' test  loss : {test_loss}')
+
+        # save latest model
+        torch.save(
+            {
+                "epoch": epoch,
+                "model_state_dict": model.state_dict(),
+                "optimizer_state_dict": optimizer.state_dict(),
+            },
+            f'{CONFIG.common.model_dir}/{CONFIG.common.version}_latest.tar'
+        )
+
+        # save best model (without optimizer)
+        if best_loss < test_loss:
+            count += 1
+            if count >= CONFIG.learning.save_ths:
+                best_loss = test_loss
+                torch.save(
+                    model.state_dict(),
+                    f'{CONFIG.common.model_dir}/{CONFIG.common.version}.pth'
+                )
+        else:
+            count = 0
+
+        scheduler.step()
+    writer.close()
 
 
 def update_meters(av_meters,
@@ -186,78 +247,25 @@ def update_meters(av_meters,
     av_meters['total_acc'].update(total_acc, total_size)
 
 
-def lr_decay(optimizer, epoch):
-    if epoch % 10 == 0:
-        new_lr = CONFIG.learning.lr / (10 ** (epoch // 10))
-        optimizer.param_groups[0]['lr'] = new_lr
-    return optimizer
-
-
-def main(*args, **kwargs):
-    set_seed(CONFIG.learning.seed)
-    now = datetime.datetime.now()
-    timestamp = f'{now.month}-{now.day}-{now.hour}-{now.minute}'
-    # log
-    writer = SummaryWriter(f'{CONFIG.learning.log_dir}/v0.1/{timestamp}')
-    av_meters = {
-        'dif_loss': AverageMeter(),
-        'sim_loss': AverageMeter(),
-        'total_loss': AverageMeter(),
-        'dif_acc': AverageMeter(),
-        'sim_acc': AverageMeter(),
-        'total_acc': AverageMeter()
-    }
-
-    train_loader = get_dataloader('train')
-    test_loader = get_dataloader('test')
-
-    model = get_model(CONFIG.common.arch).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=CONFIG.learning.lr)
-
-    best_loss = float('inf')
-    count = 0
-
-    for epoch in range(1, CONFIG.learning.epochs + 1):
-        print(f'Epoch {epoch}')
-        optimizer = lr_decay(optimizer, epoch)
-
-        train_acc, train_loss = train(
-            model, train_loader, optimizer, av_meters, lr_decay
-        )
-        print(f' train acc: {train_acc}')
-        test_acc, test_loss = test(
-            model, test_loader, av_meters
-        )
-        print(f' test acc : {test_acc}')
-
-        writer.add_scalar('train/acc', train_acc, epoch)
-        writer.add_scalar('train/loss', train_loss, epoch)
-        writer.add_scalar('test/acc', test_acc, epoch)
-        writer.add_scalar('test/loss', test_loss, epoch)
-
-        # save latest model
-        torch.save(
-            {
-                "epoch": epoch,
-                "model_state_dict": model.state_dict(),
-                "optimizer_state_dict": optimizer.state_dict(),
-            },
-            f'{CONFIG.common.model_dir}/{CONFIG.common.version}_latest.tar'
-        )
-
-        # save best model (without optimizer)
-        if best_loss > test_loss:
-            count += 1
-            if count >= CONFIG.learning.save_ths:
-                best_loss = test_loss
-                torch.save(
-                    model.state_dict(),
-                    f'{CONFIG.common.model_dir}/{CONFIG.common.version}.pth'
-                )
-        else:
-            count = 0
-
-    writer.close()
+def update_writer(writer, av_meters, train_or_test, epoch):
+    # writer.add_scalar(
+    #     f'{train_or_test}/total_acc', av_meters['total_acc'].avg, epoch
+    # )
+    writer.add_scalar(
+        f'{train_or_test}/dif_acc', av_meters['dif_acc'].avg, epoch
+    )
+    # writer.add_scalar(
+    #     f'{train_or_test}/sim_acc', av_meters['sim_acc'].avg, epoch
+    # )
+    writer.add_scalar(
+        f'{train_or_test}/total_loss', av_meters['total_loss'].avg, epoch
+    )
+    writer.add_scalar(
+        f'{train_or_test}/dif_loss', av_meters['dif_loss'].avg, epoch
+    )
+    writer.add_scalar(
+        f'{train_or_test}/sim_loss', av_meters['sim_loss'].avg, epoch
+    )
 
 
 if __name__ == "__main__":
