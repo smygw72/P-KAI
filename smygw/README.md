@@ -65,6 +65,8 @@ $ python ./smygw/utils/split_pair.py
 - モデル設計
     - [Who's Better? Who's Best? Pairwise Deep Ranking for Skill Determination (CVPR'18)](https://arxiv.org/abs/1703.09913)
 - モデル実装
+- モデル学習・評価
+- 可視化(スキルの変動など)
 
 ## Todo
 ### must
@@ -72,11 +74,10 @@ $ python ./smygw/utils/split_pair.py
     - id1 > id2: 1
     - id1 < id2: -1
     - id1 = id2: 0
-- モデル実装
-- モデル学習・評価
-- 本番環境移行(AWS SageMaker?)
+- 本番環境移行
 ### option
-- 可視化(スキルの変動など)
+- データ拡張
+    - [SpecAugmentation](https://arxiv.org/pdf/1904.08779.pdf)
 - 特徴量追加([参考](https://qiita.com/__Attsun__/items/e033d689c336315435b3))
 - モデルのバイアス除去
     - 雑音除去(or 音源分離)
