@@ -1,7 +1,7 @@
 common:
   version   : v0.1
   input_size: 224
-  arch      : resnet
+  arch      : resnet50
   sound_dir     : ../dataset/sounds
   mfcc_dir      : ../dataset/mfcc
   model_dir     : ./smygw/models
@@ -14,7 +14,7 @@ learning:
   batch_size: 2
   n_worker  : 2
   n_sample  : 10
-  epochs    : 100
+  epochs    : 60
   lr        : 0.0001
   margin    : 1.0
   seed      : 0
