@@ -82,7 +82,7 @@ def gpu_inference(model, sound_path, n_mfcc):
             output = model(inputs).detach().to('cpu')
             outputs = torch.cat([outputs, output], dim=0)
             inputs = torch.Tensor()  # make empty
-    return outputs.tolist()
+    return outputs.squeeze().tolist()
 
 
 def main(sound_path=None):
