@@ -2,6 +2,8 @@
 smygw/learning/logs
 smygw/inference/logs
 smygw/models
+cloudflared
+*.tgz
 
 ## Python
 # Byte-compiled / optimized / DLL files
