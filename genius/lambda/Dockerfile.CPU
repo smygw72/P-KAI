@@ -1,0 +1,65 @@
+ARG FUNCTION_DIR="/function/"
+FROM python:3
+ARG FUNCTION_DIR
+USER root
+
+RUN apt-get update
+RUN apt-get -y install locales && \
+    localedef -f UTF-8 -i ja_JP ja_JP.UTF-8
+ENV LANG ja_JP.UTF-8
+ENV LANGUAGE ja_JP:ja
+ENV LC_ALL ja_JP.UTF-8
+ENV TZ JST-9
+ENV TERM xterm
+
+RUN apt-get install -y \
+	libsndfile1 \
+	ffmpeg \
+	&&\
+	apt-get autoremove -y &&\
+	apt-get clean &&\
+	rm -rf /usr/local/src/*
+
+# ==================================================================
+# pytorch
+# ------------------------------------------------------------------
+RUN pip install -U pip &&\
+	pip install --no-cache-dir \
+    torch==1.8.1+cpu \
+    torchvision==0.9.1+cpu \
+    -f https://download.pytorch.org/whl/torch_stable.html
+
+# ==================================================================
+# other libs
+# ------------------------------------------------------------------
+RUN pip install --no-cache-dir \
+    tensorboardX \
+    librosa \
+    ffmpeg \
+    pyyaml \
+    pandas \
+    tqdm \
+    mutagen \
+    librosa \
+    addict
+
+# ==================================================================
+# source
+# ==================================================================
+RUN mkdir -p ${FUNCTION_DIR}
+COPY ./ ${FUNCTION_DIR}
+
+# ==================================================================
+# add https://qiita.com/gorogoroyasu/items/2039273e7c04365f3da8
+# ==================================================================
+RUN pip install \
+    --target ${FUNCTION_DIR} \
+        awslambdaric
+WORKDIR ${FUNCTION_DIR}        
+RUN pip install boto3
+ENTRYPOINT [ "/usr/local/bin/python", "-m", "awslambdaric" ]
+
+# ==================================================================
+# PID1 command
+# ==================================================================
+CMD ["app.handler"]
