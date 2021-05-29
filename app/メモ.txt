@@ -5,7 +5,7 @@ mkdir -p ~/.aws-lambda-rie && \
 
 # ローカルデバック
 ## ローカルでbuild & run
-cd /home/ec2-user/psa/smygw
+cd /home/ec2-user/psa/app
 ./build_and_run.sh
 
 ## リクエスト（リクエストパラメータはダミー）

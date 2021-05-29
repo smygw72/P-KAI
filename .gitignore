@@ -1,7 +1,7 @@
 .vscode/
-smygw/learning/logs
-smygw/inference/logs
-smygw/models
+app/learning/logs
+app/inference/logs
+app/models
 cloudflared
 *.tgz
 mlruns

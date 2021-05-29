@@ -92,7 +92,7 @@ def main(sound_path=None) -> float:
     set_seed(CONFIG.inference.seed)
 
     if sound_path is None:
-        sound_path = './smygw/inference/test.mp3'
+        sound_path = './app/inference/test.mp3'
 
     file_name = os.path.splitext(os.path.basename(sound_path))[0]
     length = mutagen_length(sound_path)
