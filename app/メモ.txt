@@ -1,0 +1,27 @@
+# AWS Lambda Runtime Interface Emulatorのインストール
+mkdir -p ~/.aws-lambda-rie && \
+    curl -Lo ~/.aws-lambda-rie/aws-lambda-rie https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie && \
+    chmod +x ~/.aws-lambda-rie/aws-lambda-rie
+
+# ローカルデバック
+## ローカルでbuild & run
+cd /home/ec2-user/psa/smygw
+./build_and_run.sh
+
+## リクエスト（リクエストパラメータはダミー）
+curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{"dummy": "a"}'
+
+# Docker関係
+## インストールされているパッケージ更新
+sudo yum update -y
+
+## Dockerインストール（途中y押下）
+sudo amazon-linux-extras install docker
+
+## サービス起動
+sudo service docker start
+
+## sudoを使用せずにDockerコマンドを実行できるように、ec2-user を docker グループに追加
+sudo usermod -a -G docker ec2-user
+
+# ECRへのpush（加筆予定）
