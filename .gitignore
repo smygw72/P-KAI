@@ -4,6 +4,8 @@ smygw/inference/logs
 smygw/models
 cloudflared
 *.tgz
+mlruns
+outputs
 
 ## Python
 # Byte-compiled / optimized / DLL files
