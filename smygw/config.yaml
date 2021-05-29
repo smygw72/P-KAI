@@ -1,12 +1,16 @@
+version:
+  data: v0.1
+  code: v0.1
+  param: v0.1
+
 common:
-  version   : v0.1
-  input_size: 224
-  arch      : resnet
+  input_size    : 224
+  arch          : resnet50
   sound_dir     : ../dataset/sounds
   mfcc_dir      : ../dataset/mfcc
-  model_dir     : ../model
-  datalist_path : ./smygw/youtube.csv
+  model_dir     : ./smygw/models
   annotation_dir: ./smygw/annotation
+  datalist_path : ./smygw/annotation/youtube.csv
   allpair_path  : ./smygw/annotation/all_pair.csv
 
 learning:
@@ -14,16 +18,16 @@ learning:
   batch_size: 2
   n_worker  : 2
   n_sample  : 10
-  epochs    : 100
+  epochs    : 3
   lr        : 0.0001
   margin    : 1.0
   seed      : 0
   save_ths  : 3
-  log_dir : ./smygw/learning/logs/
+  log_dir   : ./smygw/learning/logs
 
 inference:
   batch_size: 16
   n_worker  : 2
   seed      : 0
   window_wid: 2
-  log_dir   : ./smygw/inference/logs/
+  log_dir   : ./smygw/inference/logs

@@ -1,107 +1,50 @@
-# We created Dockerfile based on https://github.com/ufoym/deepo/blob/master/docker/Dockerfile.pytorch-py36-cpu
+FROM python:3
+USER root
+
+RUN apt-get update
+RUN apt-get -y install locales && \
+    localedef -f UTF-8 -i ja_JP ja_JP.UTF-8
+ENV LANG ja_JP.UTF-8
+ENV LANGUAGE ja_JP:ja
+ENV LC_ALL ja_JP.UTF-8
+ENV TZ JST-9
+ENV TERM xterm
+
+RUN apt-get install -y \
+	libsndfile1 \
+	ffmpeg \
+	&&\
+	apt-get autoremove -y &&\
+	apt-get clean &&\
+	rm -rf /usr/local/src/*
 
 # ==================================================================
-# module list
+# pytorch
 # ------------------------------------------------------------------
-# python        3.8    (apt)
-# pytorch       latest (pip)
+RUN pip install -U pip &&\
+	pip install --no-cache-dir \
+    torch==1.8.1+cpu \
+    torchvision==0.9.1+cpu \
+    -f https://download.pytorch.org/whl/torch_stable.html
+
 # ==================================================================
-FROM ubuntu:18.04
-ENV LANG C.UTF-8
-RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
-    PIP_INSTALL="python -m pip --no-cache-dir install --upgrade" && \
-    GIT_CLONE="git clone --depth 10" && \
-    rm -rf /var/lib/apt/lists/* \
-    /etc/apt/sources.list.d/cuda.list \
-    /etc/apt/sources.list.d/nvidia-ml.list && \
-    apt-get update && \
-    # ==================================================================
-    # tools
-    # ------------------------------------------------------------------
-    DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
-    build-essential \
-    apt-utils \
-    ca-certificates \
-    wget \
-    git \
-    vim \
-    libssl-dev \
-    curl \
-    unzip \
-    unrar \
-    && \
-    $GIT_CLONE https://github.com/Kitware/CMake ~/cmake && \
-    cd ~/cmake && \
-    ./bootstrap && \
-    make -j"$(nproc)" install && \
-    # ==================================================================
-    # python
-    # ------------------------------------------------------------------
-    DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
-    software-properties-common \
-    && \
-    add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
-    python3.8 \
-    python3.8-dev \
-    python3-distutils-extra \
-    && \
-    wget -O ~/get-pip.py \
-    https://bootstrap.pypa.io/get-pip.py && \
-    python3.8 ~/get-pip.py && \
-    ln -s /usr/bin/python3.8 /usr/local/bin/python3 && \
-    ln -s /usr/bin/python3.8 /usr/local/bin/python && \
-    $PIP_INSTALL \
-    setuptools \
-    && \
-    $PIP_INSTALL \
-    numpy \
-    scipy \
-    pandas \
-    cloudpickle \
-    scikit-image>=0.14.2 \
-    scikit-learn \
-    matplotlib \
-    Cython \
-    tqdm \
-    addict \
-    && \
-    # ==================================================================
-    # pytorch
-    # ------------------------------------------------------------------
-    $PIP_INSTALL \
-    future \
-    numpy \
-    protobuf \
-    enum34 \
-    pyyaml \
-    typing \
-    && \
-    $PIP_INSTALL \
-    --pre torch torchvision -f \
-    https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html \
-    && \
-    $PIP_INSTALL \
+# other libs
+# ------------------------------------------------------------------
+RUN pip install --no-cache-dir \
     tensorboardX \
-    && \
-    # ==================================================================
-    # config & cleanup
-    # ------------------------------------------------------------------
-    ldconfig && \
-    apt-get clean && \
-    apt-get autoremove && \
-    rm -rf /var/lib/apt/lists/* /tmp/* ~/*
+    librosa \
+    ffmpeg \
+    pyyaml \
+    pandas \
+    tqdm \
+    mutagen \
+    librosa \
+    addict
 
 # ==================================================================
-# sourcecode
+# source
 # ==================================================================
-COPY ./smygw/ /Piano-Skill-Assessment/smygw/
-
-# ==================================================================
-# model
-# ==================================================================
-COPY ../model/v0.1.pth /Piano-Skill-Assessment/model/v0.1.pth
+COPY ./smygw/ /smygw/
 
 # ==================================================================
 # PID1 command

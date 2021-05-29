@@ -1,11 +1,26 @@
 # How to run
-## [Colaboratory version](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJfEsj_?usp=sharing)
-## local version
+## Setup with Colaboratory
+See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJfEsj_?usp=sharing)
+## Setup with Docker
+1. Build Image.
+```
+$ docker image build -f ./smygw/Dockerfile.{GPU/CPU} -t psa ./
+```
+2. Run container.
+```
+$ docker container run -d --rm psa --name psa_app
+```
+3. Execute CMD in the container (Example is as follows).
+```
+$ docker container exec psa_app sh -c "python /smygw/inference/main.py"
+```
+
+## Manual setup
 1. Make python environment.
 ```
 $ python -m venv venv
 $ source venv/bin/activate
-$ pip install -r ./smygw/requirements.txt
+$ pip install -r ./smygw/requirements_{cpu/gpu}.txt
 ```
 2. Download dataset from Youtube.
 ```
@@ -50,6 +65,8 @@ $ python ./smygw/utils/split_pair.py
 - モデル設計
     - [Who's Better? Who's Best? Pairwise Deep Ranking for Skill Determination (CVPR'18)](https://arxiv.org/abs/1703.09913)
 - モデル実装
+- モデル学習・評価
+- 可視化(スキルの変動など)
 
 ## Todo
 ### must
@@ -57,11 +74,10 @@ $ python ./smygw/utils/split_pair.py
     - id1 > id2: 1
     - id1 < id2: -1
     - id1 = id2: 0
-- モデル実装
-- モデル学習・評価
-- 本番環境移行(AWS SageMaker?)
+- 本番環境移行
 ### option
-- 可視化(スキルの変動など)
+- データ拡張
+    - [SpecAugmentation](https://arxiv.org/pdf/1904.08779.pdf)
 - 特徴量追加([参考](https://qiita.com/__Attsun__/items/e033d689c336315435b3))
 - モデルのバイアス除去
     - 雑音除去(or 音源分離)
