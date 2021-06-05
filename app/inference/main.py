@@ -107,10 +107,11 @@ def main(sound_path=None) -> float:
 
     n_mfcc = int(length / CONFIG.inference.window_wid)
     if device == torch.device('cpu'):
+        model.share_memory()
         # parallel learning
         p = Pool(cpu_count())
         args = [(model, sound_path, i) for i in range(n_mfcc)]
-        outputs = p.starmap(cpu_inference, args)
+        outputs = p.starmap(cpu_inference, tqdm(args, total=n_mfcc))
     elif device == torch.device('cuda'):
         # batch processing
         outputs = gpu_inference(model, sound_path, n_mfcc)
