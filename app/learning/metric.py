@@ -4,7 +4,7 @@ import _paths
 from config import CONFIG
 
 
-def get_dif_loss(dif1, dif2, dif_size, CONFIG):
+def get_dif_loss(dif1, dif2, dif_size):
     if dif_size == 0:
         return torch.sum(torch.zeros(1))
     tmp = CONFIG.learning.margin - dif1 + dif2
@@ -47,17 +47,17 @@ def cal_metrics(sup_output, inf_output, label_sim):
     sim_size = len(label_sim[label_sim])
     total_size = dif_size + sim_size
 
-    dif_loss = get_dif_loss(sup_output[~label_sim], inf_output[~label_sim],
-                            dif_size, CONFIG)
-    sim_loss = get_sim_loss(sup_output[label_sim], inf_output[label_sim],
-                            sim_size, CONFIG)
+    dif_loss = get_dif_loss(
+        sup_output[~label_sim], inf_output[~label_sim], dif_size)
+    sim_loss = get_sim_loss(
+        sup_output[label_sim], inf_output[label_sim], sim_size)
     total_loss = dif_loss + sim_loss
 
     sup_score = torch.mean(sup_output, dim=1)
     inf_score = torch.mean(inf_output, dim=1)
 
-    dif_acc = get_dif_acc(sup_score[~label_sim], inf_score[~label_sim],
-                          dif_size)
+    dif_acc = get_dif_acc(sup_score[~label_sim],
+                          inf_score[~label_sim], dif_size)
     sim_acc = get_sim_acc(sup_score[label_sim], inf_score[label_sim], sim_size)
     total_acc = (dif_size * dif_acc + sim_size * sim_acc) / total_size
 

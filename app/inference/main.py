@@ -101,7 +101,7 @@ def main(sound_path=None) -> float:
     writer = SummaryWriter(f'{CONFIG.inference.log_dir}/{version}/{file_name}')
 
     model = get_model(CONFIG.common.arch).to(device)
-    model_path = f'{CONFIG.common.model_dir}/{version}.pth'
+    model_path = f'{CONFIG.common.model_dir}/{version}/model.pth'
     model.load_state_dict(torch.load(model_path))
     model.eval()
 

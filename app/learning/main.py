@@ -41,7 +41,7 @@ def inference(model, minibatch):
     return sup_output, inf_output
 
 
-def train(model, train_loader, optimizer, av_meter):
+def train(model, train_loader, optimizer, av_meters):
     for value in av_meters.values():
         value.reset()
 
