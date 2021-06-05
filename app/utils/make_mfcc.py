@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 import librosa
+import torchlibrosa as tl
 
 import _paths
 from config import CONFIG
@@ -29,24 +30,35 @@ def get_info():
     return ids, lengths
 
 
-def noise_reduction():
+def augmnent_noise():
     pass  # TODO
 
 
-def get_melspectrogram_db(file_path, offset=0, duration=None, sr=None, n_fft=2048, hop_length=512, n_mels=128, fmin=20, fmax=8300, top_db=80):
+def get_melspectrogram_db(file_path,
+                          offset=0,
+                          duration=None,
+                          sr=None,
+                          n_fft=2048,
+                          hop_length=512,
+                          n_mels=128,
+                          fmin=20,
+                          fmax=8300,
+                          top_db=80):
+
     wav, sr = librosa.load(file_path, sr=sr, offset=offset, duration=duration)
     if wav.shape[0] < 5 * sr:
-        wav = np.pad(
-            wav,
-            int(np.ceil((5 * sr - wav.shape[0]) / 2)),
-            mode='reflect'
-        )
+        wav = np.pad(wav,
+                     int(np.ceil((5 * sr - wav.shape[0]) / 2)),
+                     mode='reflect')
     else:
         wav = wav[:5 * sr]
-    spec = librosa.feature.melspectrogram(
-        wav, sr=sr, n_fft=n_fft,
-        hop_length=hop_length, n_mels=n_mels, fmin=fmin, fmax=fmax
-    )
+    spec = librosa.feature.melspectrogram(wav,
+                                          sr=sr,
+                                          n_fft=n_fft,
+                                          hop_length=hop_length,
+                                          n_mels=n_mels,
+                                          fmin=fmin,
+                                          fmax=fmax)
     spec_db = librosa.power_to_db(spec, top_db=top_db)
     return spec_db
 
@@ -61,7 +73,7 @@ def spec_to_image(spec, eps=1e-6):
     return spec_scaled
 
 
-def main(*args, **kwargs):
+def main() -> None:
     ids, lengths = get_info()
 
     for (id, length) in zip(ids, lengths):
@@ -78,10 +90,9 @@ def main(*args, **kwargs):
             file_idx = str(i).zfill(6)
             start_segment = i * window_width
             try:
-                spec = get_melspectrogram_db(
-                    sound_file_path, offset=start_segment,
-                    duration=window_width
-                )
+                spec = get_melspectrogram_db(sound_file_path,
+                                             offset=start_segment,
+                                             duration=window_width)
                 mfcc_arr = spec_to_image(spec)
                 mfcc_img = Image.fromarray(mfcc_arr)
                 mfcc_img.save(f'{output_dir}/{file_idx}.png')
