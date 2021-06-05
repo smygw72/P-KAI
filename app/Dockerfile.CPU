@@ -41,7 +41,8 @@ RUN pip install --no-cache-dir \
     librosa \
     addict \
     hydra-core \
-    mlflow
+    mlflow \
+    torchlibrosa
 
 # ==================================================================
 # source
