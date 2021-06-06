@@ -13,18 +13,18 @@ ENV TZ JST-9
 ENV TERM xterm
 
 RUN apt-get install -y \
-	libsndfile1 \
-	ffmpeg \
-	&&\
-	apt-get autoremove -y &&\
-	apt-get clean &&\
-	rm -rf /usr/local/src/*
+    libsndfile1 \
+    ffmpeg \
+    &&\
+    apt-get autoremove -y &&\
+    apt-get clean &&\
+    rm -rf /usr/local/src/*
 
 # ==================================================================
 # pytorch
 # ------------------------------------------------------------------
 RUN pip install -U pip &&\
-	pip install --no-cache-dir \
+    pip install --no-cache-dir \
     torch==1.8.1+cpu \
     torchvision==0.9.1+cpu \
     -f https://download.pytorch.org/whl/torch_stable.html
@@ -50,11 +50,20 @@ RUN mkdir -p ${FUNCTION_DIR}
 COPY ./ ${FUNCTION_DIR}
 
 # ==================================================================
+# add aws lambda
+# ==================================================================
+#!/bin/sh
+RUN mkdir -p /aws-lambda && \
+    curl -Lo /aws-lambda/aws-lambda-rie \
+    https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie && \
+    chmod +x /aws-lambda/aws-lambda-rie
+
+# ==================================================================
 # add https://qiita.com/gorogoroyasu/items/2039273e7c04365f3da8
 # ==================================================================
 RUN pip install \
     --target ${FUNCTION_DIR} \
-        awslambdaric
+    awslambdaric
 WORKDIR ${FUNCTION_DIR}
 RUN pip install boto3
 ENTRYPOINT [ "/usr/local/bin/python", "-m", "awslambdaric" ]
