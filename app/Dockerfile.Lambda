@@ -1,7 +1,8 @@
-ARG FUNCTION_DIR="/function/"
-FROM python:3
+# Define custom function directory
+ARG FUNCTION_DIR="/functions/"
+FROM python:3.8.5
+# Include global arg in this stage of the build
 ARG FUNCTION_DIR
-USER root
 
 RUN apt-get update
 RUN apt-get -y install locales && \
@@ -13,62 +14,32 @@ ENV TZ JST-9
 ENV TERM xterm
 
 RUN apt-get install -y \
-    libsndfile1 \
-    ffmpeg \
-    &&\
+    g++ \
+    make \
+    cmake \
+    unzip \
+    libcurl4-openssl-dev \
+    libsm6 \
+    libxrender1 \
+    libxtst6 \
+    ffmpeg && \
     apt-get autoremove -y &&\
     apt-get clean &&\
     rm -rf /usr/local/src/*
 
 # ==================================================================
-# pytorch
-# ------------------------------------------------------------------
-RUN pip install -U pip &&\
-    pip install --no-cache-dir \
-    torch==1.8.1+cpu \
-    torchvision==0.9.1+cpu \
-    -f https://download.pytorch.org/whl/torch_stable.html
-
+# Libs
 # ==================================================================
-# other libs
-# ------------------------------------------------------------------
 RUN pip install --no-cache-dir \
-    tensorboardX \
-    librosa \
-    ffmpeg \
-    pyyaml \
-    pandas \
-    tqdm \
-    mutagen \
-    librosa \
-    addict
+    -r ./requirements_cpu.txt \
+    awslambdaric \
+    boto3
 
 # ==================================================================
-# source
+# AWS Lambda (copied from https://qiita.com/yohei7328/items/df7ebaa4544621e16c2b)
 # ==================================================================
-RUN mkdir -p ${FUNCTION_DIR}
-COPY ./ ${FUNCTION_DIR}
-
-# ==================================================================
-# add aws lambda
-# ==================================================================
-#!/bin/sh
-RUN mkdir -p /aws-lambda && \
-    curl -Lo /aws-lambda/aws-lambda-rie \
-    https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie && \
-    chmod +x /aws-lambda/aws-lambda-rie
-
-# ==================================================================
-# add https://qiita.com/gorogoroyasu/items/2039273e7c04365f3da8
-# ==================================================================
-RUN pip install \
-    --target ${FUNCTION_DIR} \
-    awslambdaric
-WORKDIR ${FUNCTION_DIR}
-RUN pip install boto3
-ENTRYPOINT [ "/usr/local/bin/python", "-m", "awslambdaric" ]
-
-# ==================================================================
-# PID1 command
-# ==================================================================
-CMD ["app.handler"]
+ADD https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie \
+    /usr/bin/aws-lambda-rie
+RUN chmod 755 /usr/bin/aws-lambda-rie
+COPY entry.sh "/entry.sh"
+RUN chmod 755 /entry.sh

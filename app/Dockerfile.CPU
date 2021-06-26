@@ -1,5 +1,8 @@
+# Define custom function directory
+ARG FUNCTION_DIR="/functions/"
 FROM python:3
-USER root
+# Include global arg in this stage of the build
+ARG FUNCTION_DIR
 
 RUN apt-get update
 RUN apt-get -y install locales && \
@@ -11,45 +14,26 @@ ENV TZ JST-9
 ENV TERM xterm
 
 RUN apt-get install -y \
-    libsndfile1 \
-    ffmpeg \
-    &&\
+    ffmpeg &&\
     apt-get autoremove -y &&\
     apt-get clean &&\
     rm -rf /usr/local/src/*
 
 # ==================================================================
-# pytorch
-# ------------------------------------------------------------------
-RUN pip install -U pip &&\
-    pip install --no-cache-dir \
-    torch==1.8.1+cpu \
-    torchvision==0.9.1+cpu \
-    -f https://download.pytorch.org/whl/torch_stable.html
+# Sourcecode
+# ==================================================================
+RUN mkdir -p ${FUNCTION_DIR}
+COPY ./ ${FUNCTION_DIR}
+WORKDIR ${FUNCTION_DIR}
 
 # ==================================================================
-# other libs
+# Libs
 # ------------------------------------------------------------------
 RUN pip install --no-cache-dir \
-    tensorboardX \
-    librosa \
-    ffmpeg \
-    pyyaml \
-    pandas \
-    tqdm \
-    mutagen \
-    librosa \
-    addict \
-    hydra-core \
-    mlflow \
-    torchlibrosa
-
-# ==================================================================
-# source
-# ==================================================================
-COPY ./ /app/
+    -r ./requirements_cpu.txt
 
 # ==================================================================
 # PID1 command
 # ==================================================================
+
 CMD ["tail", "-f", "/dev/null"]
