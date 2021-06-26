@@ -56,8 +56,8 @@ class MlflowWriter():
     def log_param(self, key, value):
         self.client.log_param(self.run_id, key, value)
 
-    def log_metric(self, key, value):
-        self.client.log_metric(self.run_id, key, value)
+    def log_metric(self, key, value, epoch):
+        self.client.log_metric(self.run_id, key, value, epoch)
 
     def log_artifact(self, local_path):
         self.client.log_artifact(self.run_id, local_path)
@@ -86,8 +86,8 @@ def update_av_meters(av_meters, meters, sizes):
 def update_writers(tb_writer, ml_writer, av_meters, train_or_test, epoch):
 
     def add(key, value):
-        tb_writer.add_scalar(key, value)
-        ml_writer.log_metric(key, value)
+        tb_writer.add_scalar(key, value, epoch)
+        ml_writer.log_metric(key, value, epoch)
 
     # add(f'{train_or_test}/total_acc', av_meters['total_acc'].avg)
     add(f'{train_or_test}/dif_acc', av_meters['dif_acc'].avg)
