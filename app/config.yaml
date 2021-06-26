@@ -1,3 +1,5 @@
+seed: 0
+
 version:
   data: v0.1
   code: v0.1
@@ -8,12 +10,13 @@ common:
   arch          : resnet50
   sound_dir     : ../dataset/sounds
   mfcc_dir      : ../dataset/mfcc
-  model_dir     : ./app/models
-  annotation_dir: ./app/annotation
-  datalist_path : ./app/annotation/youtube.csv
-  allpair_path  : ./app/annotation/all_pair.csv
+  model_dir     : ./models
+  annotation_dir: ./annotation
+  datalist_path : ./annotation/youtube.csv
+  allpair_path  : ./annotation/all_pair.csv
 
 learning:
+  k_fold    : 3
   split_id  : 0
   batch_size: 2
   n_worker  : 2
@@ -21,13 +24,12 @@ learning:
   epochs    : 3
   lr        : 0.0001
   margin    : 1.0
-  seed      : 0
   save_ths  : 3
-  log_dir   : ./app/learning/logs
+  log_dir   : ./learning/logs
 
 inference:
   batch_size: 16
   n_worker  : 2
-  seed      : 0
   window_wid: 2
-  log_dir   : ./app/inference/logs
+  log_dir   : ./inference/logs
+  enable_multiprocessing: False

@@ -15,7 +15,7 @@ class Config():
         @return
             cnf: OmegaDict
         """
-        conf_dir = os.path.join(os.getcwd(), "app/")
+        conf_dir = os.path.join(os.getcwd(), "./")
         if not os.path.isdir(conf_dir):
             print(f"Can not find file: {conf_dir}.")
             sys.exit(-1)
