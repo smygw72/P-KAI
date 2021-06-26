@@ -1,8 +1,6 @@
 import os
-import random
 from pytz import timezone
 from datetime import datetime
-import numpy as np
 from tqdm import tqdm
 import hydra
 import mlflow
@@ -15,9 +13,9 @@ from data import get_dataloader
 from metric import cal_metrics
 from log import AverageMeter, MlflowWriter, update_av_meters, update_writers
 
-import _paths
 from config import CONFIG
 from network.interface import get_model
+from utils.commom import set_seed
 
 if torch.cuda.is_available():
     device = torch.device('cuda')
@@ -72,7 +70,7 @@ def test(model, test_loader, av_meters):
 
 
 def main():
-    set_seed(CONFIG.learning.seed)
+    set_seed(CONFIG.seed)
 
     # timestamp
     utc_now = datetime.now(timezone('UTC'))
@@ -82,7 +80,7 @@ def main():
     # log
     version = f'{CONFIG.version.data}-{CONFIG.version.code}-{CONFIG.version.param}'
 
-    mlflow.set_tracking_uri(os.getcwd() + "/app/mlruns")
+    mlflow.set_tracking_uri(os.getcwd() + "/mlruns")
     ml_writer = MlflowWriter(version)
     ml_writer.log_params_from_omegaconf_dict(CONFIG)
 
@@ -138,13 +136,6 @@ def main():
     ml_writer.set_terminated()
 
 
-def set_seed(seed):
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True
-
-
 if __name__ == "__main__":
+    import _paths
     main()

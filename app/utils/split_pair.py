@@ -1,19 +1,11 @@
 import os
 import random
 import csv
-import numpy as np
 import pandas as pd
 
 import _paths
 from config import CONFIG
-
-k = 3  # k-folds cross validation
-seed = 0  # 再現性確保
-
-
-def set_seed(seed):
-    random.seed(seed)
-    np.random.seed(seed)
+from utils.common import set_seed
 
 
 def get_ids():
@@ -32,7 +24,10 @@ def get_pairs():
 
 
 def main(*args, **kwargs):
-    set_seed(seed)
+
+    k = CONFIG.learning.k_fold
+
+    set_seed(CONFIG.seed)
 
     all_ids = get_ids()
     id1s, id2s, labels = get_pairs()

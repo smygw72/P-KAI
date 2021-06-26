@@ -6,7 +6,6 @@ from PIL import Image
 import librosa
 import torchlibrosa as tl
 
-import _paths
 from config import CONFIG
 
 
@@ -103,4 +102,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    import _paths
     main()
