@@ -1,14 +1,21 @@
 # How to run
 ## Setup with Colaboratory
 See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJfEsj_?usp=sharing)
+
 ## Setup with Docker
-1. Run shell script.
+0. (Option) Install Docker.
 ```
-bash setup_cpu.sh
+bash setup.sh
 ```
-2. Execute CMD in the container (Example is as follows).
+1. Build image and create container.
 ```
-docker container exec psa_cpu sh -c "python /app/inference/main.py"
+(for any env.) docker build -f Dockerfile.CPU -t psa_cpu .
+(for AWS Lambda) docker-compose -f docker-compose.lambda.yml up -d --build
+```
+2. Run container.
+```
+(for any env.) docker container exec psa_cpu sh -c "python /app/inference/main.py"
+(for AWS Lambda) curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{"dummy": "a"}'
 ```
 
 ## Manual setup
@@ -16,7 +23,7 @@ docker container exec psa_cpu sh -c "python /app/inference/main.py"
 ```
 python -m venv venv
 source venv/bin/activate
-pip install -r ./app/requirements_{cpu/gpu}.txt
+pip install -r ./app/requirements_cpu.txt
 ```
 2. Download dataset from Youtube.
 ```
@@ -54,6 +61,10 @@ python ./app/utils/split_pair.py
 - ダウンロード
 - トリミング
 - アノテーション用ファイル(all_pair.csv)の作成
+- アノテーション(3パターン)
+    - id1 > id2: 1
+    - id1 < id2: -1
+    - id1 = id2: 0
 - 学習/テストのデータ分割
 - 前処理
     - [Piano Skills Assessment (arXiv'21)](https://arxiv.org/abs/2101.04884)
@@ -66,11 +77,7 @@ python ./app/utils/split_pair.py
 
 ## Todo
 ### must
-- アノテーション(3パターン)
-    - id1 > id2: 1
-    - id1 < id2: -1
-    - id1 = id2: 0
-- 本番環境移行
+- 本番環境(AWS lambda)へのデプロイ
 ### option
 - データ拡張
     - [SpecAugmentation](https://arxiv.org/pdf/1904.08779.pdf)
