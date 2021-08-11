@@ -51,7 +51,8 @@ class MlflowWriter():
     def log_torch_model(self, model):
         with mlflow.start_run(self.run_id):
             mlflow.pytorch.log_state_dict(
-                model.to('cpu').state_dict(), 'models')
+                model.to('cpu').state_dict(), 'models'
+            )
 
     def log_param(self, key, value):
         self.client.log_param(self.run_id, key, value)

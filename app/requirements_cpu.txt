@@ -9,7 +9,6 @@ pyyaml
 pandas
 tqdm
 mutagen
-librosa
 addict
 hydra-core
 mlflow

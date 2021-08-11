@@ -42,6 +42,7 @@ def handler(event, context):
 
     # exec model
     score = exec_model(audioBody)
+    # score = 1
 
     # responce body
     data = {

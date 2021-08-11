@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 import librosa
-import torchlibrosa as tl
+# import torchlibrosa as tl
 
 from config import CONFIG
 
@@ -29,7 +29,7 @@ def get_info():
     return ids, lengths
 
 
-def augmnent_noise():
+def augment_noise():
     pass  # TODO
 
 
