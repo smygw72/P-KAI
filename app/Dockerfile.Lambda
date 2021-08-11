@@ -31,7 +31,7 @@ RUN apt-get install -y \
     rm -rf /usr/local/src/*
 
 # ==================================================================
-# Sourcecode
+# Source
 # ==================================================================
 WORKDIR ${FUNCTION_DIR}
 COPY . .
@@ -40,9 +40,7 @@ COPY . .
 # Libs
 # ==================================================================
 RUN pip install --no-cache-dir \
-    -r ./requirements_cpu.txt \
-    awslambdaric \
-    boto3
+    -r ./requirements_lambda.txt
 
 # ==================================================================
 # AWS Lambda (copied from https://qiita.com/yohei7328/items/df7ebaa4544621e16c2b)
@@ -55,5 +53,7 @@ RUN chmod 755 /usr/bin/aws-lambda-rie
 # https://stackoverflow.com/questions/59290386/runtimeerror-at-cannot-cache-function-shear-dense-no-locator-available-fo
 ENV NUMBA_CACHE_DIR /tmp
 
-ENTRYPOINT [ "/usr/local/bin/python", "-m", "awslambdaric" ]
+EXPOSE 9000
+
+ENTRYPOINT [ "./entry.sh" ]
 CMD ["app.handler"]
