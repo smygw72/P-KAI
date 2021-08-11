@@ -1,25 +1,37 @@
 # How to run
-## Setup with Colaboratory
+## Google Colaboratory (supports training, inference, and visualization)
 See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJfEsj_?usp=sharing)
 
-## Setup with Docker
+## Docker (supports inference with cpu)
 0. (Option) Install Docker.
 ```
 bash setup.sh
 ```
 1. Build image and create container.
 ```
-(for any env.) docker build -f Dockerfile.CPU -t psa_cpu .
-(for AWS Lambda) docker-compose -f docker-compose.lambda.yml up -d --build
+docker build -f Dockerfile.CPU -t psa_cpu .
 ```
 2. Run container.
 ```
-(for any env.) docker container exec psa_cpu sh -c "python /app/inference/main.py"
-(for AWS Lambda) curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{"dummy": "a"}'
+docker container exec psa_cpu sh -c "python /app/inference/main.py"
+```
+
+## AWS Lambda (supports inference with cpu)
+0. (Option) Install Docker.
+```
+bash setup.sh
+```
+1. Build and push image to AWS ECR.
+```
+./deploy.sh
+```
+2. Sending request to the container.
+```
+curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{}'
 ```
 
 ## Manual setup
-1. Make python environment.
+1. Create python environment.
 ```
 python -m venv venv
 source venv/bin/activate
@@ -29,21 +41,21 @@ pip install -r ./app/requirements_cpu.txt
 ```
 python ./app/utils/download.py
 ```
-3. Make MFCC image as model input.
+3. Create MFCC images as model inputs.
 ```
 python ./app/utils/make_mfcc.py
 ```
-4. Learn model. (todo)
+4. Learn model.
 ```
 python ./app/learning/main.py
 ```
-5. Use model. (todo)
+5. Use model.
 ```
 python ./app/inference/main.py
 ```
 # How to update dataset
 1. Update Youtube.csv
-2. Make all_pair.csv file
+2. Create all_pair.csv file
 ```
 python ./app/utils/make_pair.py
 ```
@@ -51,7 +63,7 @@ python ./app/utils/make_pair.py
 ```
 python ./app/utils/annotate.py
 ```
-4. Make train/test split file based on k-fold cross validation
+4. Split all pairs into train/test and based on k-fold cross validation
 ```
 python ./app/utils/split_pair.py
 ```
