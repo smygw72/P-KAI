@@ -100,7 +100,7 @@ def main():
     train_loader = get_dataloader('train')
     test_loader = get_dataloader('test')
 
-    model = get_model(CONFIG.common.arch).to(device)
+    model = get_model(CONFIG.common.arch, pretrained=True).to(device)
     optimizer = optim.Adam(model.parameters(), lr=CONFIG.learning.lr)
     scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
 

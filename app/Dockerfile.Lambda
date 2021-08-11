@@ -3,6 +3,7 @@ ARG FUNCTION_DIR="/functions/"
 FROM python:3.8.5
 # Include global arg in this stage of the build
 ARG FUNCTION_DIR
+# USER root
 
 RUN apt-get update
 RUN apt-get -y install locales && \
@@ -13,6 +14,7 @@ ENV LC_ALL ja_JP.UTF-8
 ENV TZ JST-9
 ENV TERM xterm
 
+
 RUN apt-get install -y \
     g++ \
     make \
@@ -22,6 +24,7 @@ RUN apt-get install -y \
     libsm6 \
     libxrender1 \
     libxtst6 \
+    libsndfile1 \
     ffmpeg && \
     apt-get autoremove -y &&\
     apt-get clean &&\
@@ -30,9 +33,8 @@ RUN apt-get install -y \
 # ==================================================================
 # Sourcecode
 # ==================================================================
-RUN mkdir -p ${FUNCTION_DIR}
-COPY ./ ${FUNCTION_DIR}
 WORKDIR ${FUNCTION_DIR}
+COPY . .
 
 # ==================================================================
 # Libs
@@ -48,5 +50,10 @@ RUN pip install --no-cache-dir \
 ADD https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie \
     /usr/bin/aws-lambda-rie
 RUN chmod 755 /usr/bin/aws-lambda-rie
-COPY entry.sh "/entry.sh"
-RUN chmod 755 /entry.sh
+
+# Setting chache output for librosa (numba)
+# https://stackoverflow.com/questions/59290386/runtimeerror-at-cannot-cache-function-shear-dense-no-locator-available-fo
+ENV NUMBA_CACHE_DIR /tmp
+
+ENTRYPOINT [ "/usr/local/bin/python", "-m", "awslambdaric" ]
+CMD ["app.handler"]

@@ -92,9 +92,8 @@ def main(sound_path=None) -> float:
     length = mutagen_length(sound_path)
 
     version = f'{CONFIG.version.data}-{CONFIG.version.code}-{CONFIG.version.param}'
-    writer = SummaryWriter(f'{CONFIG.inference.log_dir}/{version}/{file_name}')
 
-    model = get_model(CONFIG.common.arch).to(device)
+    model = get_model(CONFIG.common.arch, pretrained=False).to(device)
     model_path = f'{CONFIG.common.model_dir}/{version}/model.pth'
     model.load_state_dict(torch.load(model_path))
     model.eval()
@@ -116,13 +115,15 @@ def main(sound_path=None) -> float:
         # batch processing
         outputs = gpu_inference(model, sound_path, n_mfcc)
 
-    for i in range(len(outputs)):
-        writer.add_scalar("timeline", outputs[i], i)
+    if CONFIG.inference.log.save is True:
+        writer = SummaryWriter(f'{CONFIG.inference.log.dir}/{version}/{file_name}')
+        for i in range(len(outputs)):
+            writer.add_scalar("timeline", outputs[i], i)
+        writer.close()
 
     score_avg = sum(outputs) / len(outputs)
     print(f"average score: {score_avg}")
 
-    writer.close()
     end_time = time.time()
     sec_per_frame = (end_time - start_time) / n_mfcc
     print(f"elapsed time: {sec_per_frame}")
