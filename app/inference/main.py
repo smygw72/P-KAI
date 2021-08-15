@@ -1,24 +1,28 @@
 import os
 import warnings
-import random
-from multiprocessing import Pool, cpu_count
+# import random
+from multiprocessing import cpu_count  # Pool is restricted
 import time
-import numpy as np
+# import numpy as np
 from tqdm import tqdm
 from mutagen.mp3 import MP3
 import torch
 from torchvision import transforms
 from tensorboardX import SummaryWriter
 
+from pool import Pool
+import _paths
 from config import CONFIG
 from network.interface import get_model
 from utils.make_mfcc import spec_to_image, get_melspectrogram_db
 from utils.common import set_seed
 
-if torch.cuda.is_available():
-    device = torch.device('cuda')
-else:
-    device = torch.device('cpu')
+
+# global variables
+model = None
+sound_path = None
+device = torch.device('cuda') \
+    if torch.cuda.is_available() else torch.device('cpu')
 
 
 def mutagen_length(path):
@@ -30,7 +34,7 @@ def mutagen_length(path):
         return None
 
 
-def cpu_inference(model, sound_path, i):
+def cpu_inference(i):
     start_segment = i * CONFIG.inference.window_wid
     spec = get_melspectrogram_db(
         sound_path,
@@ -52,7 +56,7 @@ def cpu_inference(model, sound_path, i):
     return score
 
 
-def gpu_inference(model, sound_path, n_mfcc):
+def gpu_inference(n_mfcc):
     inputs = torch.Tensor()
     outputs = torch.Tensor()
 
@@ -80,19 +84,23 @@ def gpu_inference(model, sound_path, n_mfcc):
     return outputs.squeeze().tolist()
 
 
-def main(sound_path=None) -> float:
+def main(path=None) -> float:
     start_time = time.time()
     warnings.filterwarnings('ignore')
     set_seed(CONFIG.seed)
 
-    if sound_path is None:
+    global sound_path
+    if path is None:
         sound_path = './inference/test.mp3'
+    else:
+        sound_path = path
 
     file_name = os.path.splitext(os.path.basename(sound_path))[0]
     length = mutagen_length(sound_path)
 
     version = f'{CONFIG.version.data}-{CONFIG.version.code}-{CONFIG.version.param}'
 
+    global model
     model = get_model(CONFIG.common.arch, pretrained=False).to(device)
     model_path = f'{CONFIG.common.model_dir}/{version}/model.pth'
     model.load_state_dict(torch.load(model_path))
@@ -103,20 +111,21 @@ def main(sound_path=None) -> float:
         # parallel learning
         if CONFIG.inference.enable_multiprocessing is True:
             model.share_memory()
-            p = Pool(cpu_count())
-            args = [(model, sound_path, i) for i in range(n_mfcc)]
-            outputs = p.starmap(cpu_inference, tqdm(args, total=n_mfcc))
+            p = Pool(cpu_count() - 1)
+            args = [i for i in range(n_mfcc)]
+            outputs = p.map(cpu_inference, args)
         else:
             outputs = []
             for i in tqdm(range(n_mfcc)):
-                outputs.append(cpu_inference(model, sound_path, i))
+                outputs.append(cpu_inference(i))
 
     elif device == torch.device('cuda'):
         # batch processing
-        outputs = gpu_inference(model, sound_path, n_mfcc)
+        outputs = gpu_inference(n_mfcc)
 
     if CONFIG.inference.log.save is True:
-        writer = SummaryWriter(f'{CONFIG.inference.log.dir}/{version}/{file_name}')
+        writer = SummaryWriter(
+            f'{CONFIG.inference.log.dir}/{version}/{file_name}')
         for i in range(len(outputs)):
             writer.add_scalar("timeline", outputs[i], i)
         writer.close()
