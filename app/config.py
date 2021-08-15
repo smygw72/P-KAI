@@ -1,7 +1,7 @@
 # copy from https://zenn.dev/kwashizzz/articles/ml-hydra-param
 import sys
 import os
-from hydra import compose, initialize_config_dir
+from hydra.experimental import compose, initialize_config_dir
 
 
 class Config():
