@@ -8,8 +8,8 @@ version:
 common:
   input_size    : 224
   arch          : resnet50
-  sound_dir     : ../dataset/sounds
-  mfcc_dir      : ../dataset/mfcc
+  sound_dir     : ../../dataset/sounds
+  mfcc_dir      : ../../dataset/mfcc
   model_dir     : ./models
   annotation_dir: ./annotation
   datalist_path : ./annotation/youtube.csv

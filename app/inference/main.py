@@ -85,6 +85,7 @@ def gpu_inference(n_mfcc):
 
 
 def main(path=None) -> float:
+
     start_time = time.time()
     warnings.filterwarnings('ignore')
     set_seed(CONFIG.seed)
