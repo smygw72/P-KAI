@@ -1,4 +1,4 @@
-import main as inference
+import inference
 
 from config import CONFIG
 
