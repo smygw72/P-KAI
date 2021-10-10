@@ -24,12 +24,9 @@ device = torch.device('cuda') \
 
 
 def mutagen_length(path):
-    try:
-        audio = MP3(path)
-        length = audio.info.length
-        return length
-    except Exception:
-        return None
+    audio = MP3(path)
+    length = audio.info.length
+    return length
 
 
 def cpu_inference(i):
