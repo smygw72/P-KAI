@@ -8,7 +8,7 @@ from tqdm import tqdm
 from mutagen.mp3 import MP3
 import torch
 from torchvision import transforms
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
 from pool import Pool
 import _paths
