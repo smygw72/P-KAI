@@ -26,6 +26,7 @@ learning:
   margin    : 1.0
   save_ths  : 3
   log_dir   : ./learning_logs
+  use_amp   : False
 
 inference:
   batch_size: 16
