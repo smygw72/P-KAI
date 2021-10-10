@@ -25,7 +25,7 @@ learning:
   lr        : 0.0001
   margin    : 1.0
   save_ths  : 3
-  log_dir   : ./learning/logs
+  log_dir   : ./learning_logs
 
 inference:
   batch_size: 16
@@ -33,5 +33,5 @@ inference:
   window_wid: 2
   log:
     save  : False
-    dir   : ./inference/logs
+    dir   : ./inference_logs
   enable_multiprocessing: False

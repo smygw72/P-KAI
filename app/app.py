@@ -11,9 +11,13 @@ def handler(event, context):
 
     print("******lambda event happended******")
 
+    # print(event)
+    # sound_path = event['body']['path']
+    # print(sound_path)
+
     # # base64 decode
     # jsons = base64.b64decode(event['body-json']).split(b'\r\n')
-    # # print(base64.b64decode(event['body-json']))
+    # print(base64.b64decode(event['body-json'])
 
     # # get filename
     # filename = repr(jsons[1])
@@ -38,10 +42,11 @@ def handler(event, context):
     #     Key=filename
     # )
 
-    audioBody = None
+    # audioBody = None
 
     # exec model
-    score = exec_model(audioBody)
+    sound_path = None
+    score = exec_model(sound_path)
     # score = 1
 
     # responce body
@@ -57,6 +62,6 @@ def handler(event, context):
     }
 
 
-def exec_model(audio):
-    score = inference()
+def exec_model(sound_path):
+    score = inference(sound_path)
     return score

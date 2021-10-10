@@ -2,7 +2,6 @@ import os
 import subprocess
 import pandas as pd
 
-import _paths
 from config import CONFIG
 
 

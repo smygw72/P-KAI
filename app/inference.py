@@ -1,9 +1,9 @@
 import os
 import warnings
-# import random
+import random
 from multiprocessing import cpu_count  # Pool is restricted
 import time
-# import numpy as np
+import numpy as np
 from tqdm import tqdm
 from mutagen.mp3 import MP3
 import torch
@@ -11,11 +11,9 @@ from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 
 from pool import Pool
-import _paths
 from config import CONFIG
 from network.interface import get_model
-from utils.make_mfcc import spec_to_image, get_melspectrogram_db
-from utils.common import set_seed
+from make_mfcc import spec_to_image, get_melspectrogram_db
 
 
 # global variables
@@ -92,7 +90,7 @@ def main(path=None) -> float:
 
     global sound_path
     if path is None:
-        sound_path = './inference/test.mp3'
+        sound_path = 'test.mp3'
     else:
         sound_path = path
 
@@ -140,6 +138,13 @@ def main(path=None) -> float:
     return score_avg
 
 
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+
+
 if __name__ == "__main__":
-    import _paths
     main()

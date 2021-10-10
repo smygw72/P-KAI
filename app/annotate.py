@@ -4,7 +4,6 @@ import csv
 import pandas as pd
 import networkx as nx
 
-import _paths
 from config import CONFIG
 
 

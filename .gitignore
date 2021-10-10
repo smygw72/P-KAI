@@ -1,6 +1,6 @@
 .vscode/
-app/learning/logs
-app/inference/logs
+app/learning_logs
+app/inference_logs
 app/models
 cloudflared
 *.tgz

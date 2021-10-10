@@ -1,4 +1,6 @@
 import os
+import random
+import numpy as np
 from pytz import timezone
 from datetime import datetime
 from tqdm import tqdm
@@ -10,14 +12,12 @@ from torch.optim.lr_scheduler import StepLR
 from torch.cuda.amp import GradScaler, autocast
 from torch.utils.tensorboard import SummaryWriter
 
-import _paths
 from data import get_dataloader
 from metric import cal_metrics
 from log import AverageMeter, MlflowWriter, update_av_meters, update_writers
 
-from config import CONFIG
 from network.interface import get_model
-from utils.commom import set_seed
+from config import CONFIG
 
 if torch.cuda.is_available():
     device = torch.device('cuda')
@@ -138,6 +138,13 @@ def main():
     ml_writer.set_terminated()
 
 
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+
+
 if __name__ == "__main__":
-    import _paths
     main()

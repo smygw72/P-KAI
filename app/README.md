@@ -13,7 +13,7 @@ docker build -f Dockerfile.CPU -t psa_cpu .
 ```
 2. Run container.
 ```
-docker container exec psa_cpu sh -c "python /app/inference/main.py"
+docker container exec psa_cpu sh -c "python /app/inference.py"
 ```
 
 ## AWS Lambda (supports inference with cpu)
@@ -39,33 +39,33 @@ pip install -r ./app/requirements_cpu.txt
 ```
 2. Download dataset from Youtube.
 ```
-python ./app/utils/download.py
+python ./app/download.py
 ```
 3. Create MFCC images as model inputs.
 ```
-python ./app/utils/make_mfcc.py
+python ./app/make_mfcc.py
 ```
 4. Learn model.
 ```
-python ./app/learning/main.py
+python ./app/learning.py
 ```
 5. Use model.
 ```
-python ./app/inference/main.py
+python ./app/inference.py
 ```
 # How to update dataset
 1. Update Youtube.csv
 2. Create all_pair.csv file
 ```
-python ./app/utils/make_pair.py
+python ./app/make_pair.py
 ```
 3. Fill a label column (0/1/-1 instead of 'X') in all_pair.csv. You can use semi-automatic labeling with stdin.
 ```
-python ./app/utils/annotate.py
+python ./app/annotate.py
 ```
 4. Split all pairs into train/test and based on k-fold cross validation
 ```
-python ./app/utils/split_pair.py
+python ./app/split_pair.py
 ```
 
 

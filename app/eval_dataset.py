@@ -1,6 +1,5 @@
 import main as inference
 
-import _paths
 from config import CONFIG
 
 

@@ -1,6 +1,5 @@
 import torch
 
-import _paths
 from config import CONFIG
 
 
