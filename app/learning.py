@@ -33,8 +33,8 @@ def inference(model, minibatch):
     sup_input = sup_input.view(-1, 1, input_size, input_size)
     inf_input = inf_input.view(-1, 1, input_size, input_size)
 
-    sup_output = model(sup_input).to('cpu')
-    inf_output = model(inf_input).to('cpu')
+    sup_output = model(sup_input)
+    inf_output = model(inf_input)
 
     sup_output = sup_output.view(-1, CONFIG.learning.n_sample)
     inf_output = inf_output.view(-1, CONFIG.learning.n_sample)
@@ -45,15 +45,21 @@ def train(model, train_loader, optimizer, av_meters):
     for value in av_meters.values():
         value.reset()
 
+    use_amp = CONFIG.learning.use_amp
+    scaler = GradScaler(enabled=use_amp)
+
     model.train()
     for i, minibatch in enumerate(tqdm(train_loader)):
         optimizer.zero_grad()
-        sup_output, inf_output = inference(model, minibatch)
+        with autocast(enabled=use_amp):
+            sup_output, inf_output = inference(model, minibatch)
+            label_sim = minibatch[2].to(device)
 
-        label_sim = minibatch[2]
-        meters, sizes = cal_metrics(sup_output, inf_output, label_sim)
-        meters['total_loss'].backward()
-        optimizer.step()
+            meters, sizes = cal_metrics(sup_output, inf_output, label_sim)
+            scaler.scale(meters['total_loss']).backward()
+            scaler.step(optimizer)
+            scaler.update()
+
         update_av_meters(av_meters, meters, sizes)
 
 
