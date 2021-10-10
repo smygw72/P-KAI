@@ -7,8 +7,10 @@ import mlflow
 import torch
 import torch.optim as optim
 from torch.optim.lr_scheduler import StepLR
-from tensorboardX import SummaryWriter
+from torch.cuda.amp import GradScaler, autocast
+from torch.utils.tensorboard import SummaryWriter
 
+import _paths
 from data import get_dataloader
 from metric import cal_metrics
 from log import AverageMeter, MlflowWriter, update_av_meters, update_writers
