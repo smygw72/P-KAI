@@ -1,4 +1,4 @@
-import os
+import datetime
 import json
 import boto3
 import subprocess
@@ -25,8 +25,10 @@ def handler(event, context):
     print(bucket)
     print(key)
 
-    tmp_path = '/tmp/' + key
-    os.makedirs(tmp_path, exist_ok=True)
+    time = datetime.datetime.now()
+    timestamp = time.strftime('%Y-%m-%d_%H:%M:%S')
+
+    tmp_path = f'/tmp/{timestamp}.mp3'
 
     bucket = s3.Bucket(bucket)
     bucket.download_file(key, tmp_path)
