@@ -3,7 +3,7 @@
 REGION='ap-northeast-1'
 AWS_ACCOUNT_ID='655146334141'
 LOCAL_CONTAINER='psa_lambda'
-ECR_CONTAINER='container_lambda_test'
+ECR_CONTAINER='pkai-container'
 
 # 1. Build image
 # docker-compose -f docker-compose.lambda.yml up -d --build
