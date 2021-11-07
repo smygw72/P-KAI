@@ -1,53 +1,38 @@
+import os
 import json
 import boto3
-import base64
-import re
-import random
+import subprocess
 
-from inference.main import main as inference
+from inference import main as inference
+
+
+def split_s3_path(s3_path):
+    path_parts = s3_path.replace("s3://", "").split("/")
+    bucket = path_parts.pop(0)
+    key = "/".join(path_parts)
+    return bucket, key
 
 
 def handler(event, context):
 
     print("******lambda event happended******")
 
-    # print(event)
-    # sound_path = event['body']['path']
-    # print(sound_path)
+    print(event)
+    path = event['path']
 
-    # # base64 decode
-    # jsons = base64.b64decode(event['body-json']).split(b'\r\n')
-    # print(base64.b64decode(event['body-json'])
+    s3 = boto3.resource('s3')
+    bucket, key = split_s3_path(path)
+    print(bucket)
+    print(key)
 
-    # # get filename
-    # filename = repr(jsons[1])
-    # filename = re.search(r'filename=".*"', filename).group()
-    # filename = filename.replace('filename=', '')
-    # filename = filename.replace('"', '')
+    tmp_path = '/tmp/' + key
+    os.makedirs(tmp_path, exist_ok=True)
 
-    # # get audio binary data
-    # boundary = jsons[0].replace(b'-', b'')
-    # audioBody = jsons[4]
-    # for i in range(5, len(jsons)):
-    #     if jsons[i].find(boundary) != -1:
-    #         break
-    #     else:
-    #         audioBody = audioBody + b'\r\n' + jsons[i]
+    bucket = s3.Bucket(bucket)
+    bucket.download_file(key, tmp_path)
+    print(subprocess.run(["ls", "-l", "/tmp"], stdout=subprocess.PIPE))
 
-    # # s3 update
-    # s3 = boto3.resource('s3')
-    # bucket = s3.Bucket('test-multipart-request')
-    # bucket.put_object(
-    #     Body=audioBody,
-    #     Key=filename
-    # )
-
-    # audioBody = None
-
-    # exec model
-    sound_path = None
-    score = exec_model(sound_path)
-    # score = 1
+    score = exec_model(tmp_path)
 
     # responce body
     data = {
