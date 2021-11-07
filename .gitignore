@@ -1,7 +1,7 @@
 .vscode/
-app/learning_logs
-app/inference_logs
-app/models
+learning_logs
+inference_logs
+models
 cloudflared
 *.tgz
 mlruns
