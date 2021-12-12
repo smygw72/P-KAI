@@ -1,5 +1,5 @@
 # P-KAI (Piano-Karaoke AI)
-P-KAI is CNN-based model with metric learning that calculates your piano skill from an audio(.mp3).
+P-KAI is a CNN-based model that calculates your piano skill from an audio(.mp3).
 Web service is [here](https://feature.d3c5bfncikrlyq.amplifyapp.com).
 
 ## How to run
@@ -75,11 +75,6 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 　4. Split all pairs into train/test and based on k-fold cross validation
 
     python split_pair.py
-
-## Performance note for each version
-
-- 0.1: ResNet50 + marginal loss (acc: X)
-- 0.2: XXXXXXXXXXX (acc: X)
 
 ## Reference
 

@@ -1,14 +1,10 @@
-seed: 0
+seed                : 0
+dataset             : psa
 
 common:
   input_size        : 224
   arch              : resnet50
-  sound_dir         : ../dataset/elise/sounds
-  mfcc_dir          : ../dataset/elise/mfcc
   model_dir         : ./models
-  annotation_dir    : ./annotation
-  datalist_path     : ./annotation/youtube.csv
-  allpair_path      : ./annotation/all_pair.csv
 
 learning:
   k_fold            : 3

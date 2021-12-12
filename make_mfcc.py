@@ -16,7 +16,7 @@ def convert2sec(s):
 
 
 def get_info():
-    id_df = pd.read_csv(CONFIG.common.datalist_path, header=0)
+    id_df = pd.read_csv(f'./annotation/{CONFIG.dataset}/youtube.csv', header=0)
     ids = id_df['ID'].tolist()
 
     start_times = id_df['start_time'].tolist()
@@ -76,8 +76,8 @@ def main() -> None:
     ids, lengths = get_info()
 
     for (id, length) in zip(ids, lengths):
-        sound_file_path = f'{CONFIG.common.sound_dir}/{id}.mp3'
-        output_dir = f'{CONFIG.common.mfcc_dir}/{id}'
+        sound_file_path = f'../dataset/sounds/{id}.mp3'
+        output_dir = f'../dataset/mfcc/{id}'
         os.makedirs(output_dir, exist_ok=True)
 
         # non-overlapping windows

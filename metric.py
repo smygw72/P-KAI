@@ -56,8 +56,11 @@ def cal_metrics(sup_output, inf_output, label_sim):
     inf_score = torch.mean(inf_output, dim=1)
 
     dif_acc = get_dif_acc(sup_score[~label_sim],
-                          inf_score[~label_sim], dif_size)
-    sim_acc = get_sim_acc(sup_score[label_sim], inf_score[label_sim], sim_size)
+                          inf_score[~label_sim],
+                          dif_size)
+    sim_acc = get_sim_acc(sup_score[label_sim],
+                          inf_score[label_sim],
+                          sim_size)
     total_acc = (dif_size * dif_acc + sim_size * sim_acc) / total_size
 
     meters = {

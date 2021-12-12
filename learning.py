@@ -86,10 +86,10 @@ def main():
     timestamp = datetime.strftime(jst_now, '%m-%d-%H-%M-%S')
 
     mlflow.set_tracking_uri(os.getcwd() + "/mlruns")
-    ml_writer = MlflowWriter(imestamp)
+    ml_writer = MlflowWriter(f'{CONFIG.dataset}/{timestamp}')
     ml_writer.log_params_from_omegaconf_dict(CONFIG)
 
-    tb_writer = SummaryWriter(f'{CONFIG.learning.log.dir}/{timestamp}')
+    tb_writer = SummaryWriter(f'{CONFIG.learning.log.dir}/{CONFIG.dataset}/{timestamp}')
 
     av_meters = {
         'dif_loss': AverageMeter(),

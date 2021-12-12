@@ -6,7 +6,7 @@ from config import CONFIG
 
 def main(*args, **kwargs):
     pair_list = []
-    df = pd.read_csv(CONFIG.common.datalist_path, header=0)
+    df = pd.read_csv(f'./annotation/{CONFIG.dataset}/youtube.csv', header=0)
     ids = df["ID"]
 
     for i, id1 in enumerate(ids):
@@ -16,7 +16,7 @@ def main(*args, **kwargs):
 
     print(len(pair_list))
 
-    with open(CONFIG.common.allpair_path, mode='r') as f:
+    with open(f'./annotation/{CONFIG.dataset}/all_pair.csv', mode='r') as f:
         reader = csv.reader(f)
         old_list = []
         for row in reader:
@@ -25,7 +25,7 @@ def main(*args, **kwargs):
             old_row = {'id1': old_id1, 'id2': old_id2}
             old_list.append(old_row)
 
-    with open(CONFIG.common.allpair_path, mode='a') as f:
+    with open(f'./annotation/{CONFIG.dataset}/all_pair.csv', mode='a') as f:
         writer = csv.writer(f)
 
         if len(old_list) == 0:
