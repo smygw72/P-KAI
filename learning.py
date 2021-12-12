@@ -85,15 +85,11 @@ def main():
     jst_now = utc_now.astimezone(timezone('Asia/Tokyo'))
     timestamp = datetime.strftime(jst_now, '%m-%d-%H-%M-%S')
 
-    # log
-    version = f'{CONFIG.version.data}-{CONFIG.version.code}-{CONFIG.version.param}'
-
     mlflow.set_tracking_uri(os.getcwd() + "/mlruns")
-    ml_writer = MlflowWriter(version)
+    ml_writer = MlflowWriter(imestamp)
     ml_writer.log_params_from_omegaconf_dict(CONFIG)
 
-    tb_writer = SummaryWriter(
-        f'{CONFIG.learning.log_dir}/{version}/{timestamp}')
+    tb_writer = SummaryWriter(f'{CONFIG.learning.log.dir}/{timestamp}')
 
     av_meters = {
         'dif_loss': AverageMeter(),
@@ -109,7 +105,12 @@ def main():
     test_loader = get_dataloader('test')
 
     model = get_model(CONFIG.common.arch, pretrained=True).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=CONFIG.learning.lr)
+    initial_lr = CONFIG.learning.optimizer.initial_lr
+    if CONFIG.learning.optimizer.algorithm == 'Adam':
+        optimizer = optim.Adam(model.parameters(), lr=initial_lr)
+    elif CONFIG.learning.optimizer.algorithm == 'SGD':
+        optimizer = optim.SGD(model.parameters(), lr=initial_lr)
+
     scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
 
     best_loss = float('inf')
@@ -130,7 +131,7 @@ def main():
         print(f' test  loss : {test_loss}')
 
         # save best model (without optimizer)
-        if best_loss < test_loss:
+        if best_loss > test_loss:
             count += 1
             if count >= CONFIG.learning.save_ths:
                 best_loss = test_loss

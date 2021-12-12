@@ -1,10 +1,14 @@
-# How to run
+# P-KAI (Piano-Karaoke AI)
+P-KAI is CNN-based model with metric learning that calculates your piano skill from an audio(.mp3).
+Web service is [here](https://feature.d3c5bfncikrlyq.amplifyapp.com).
 
-## Google Colaboratory (supports training, inference, and visualization)
+## How to run
+
+### Google Colaboratory (supports training, inference, and visualization)
 
 See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJfEsj_?usp=sharing)
 
-## Docker (supports inference with cpu)
+### Docker (supports inference with cpu)
 
 　0. (Option) Install Docker.
 
@@ -18,7 +22,7 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 
     docker container exec psa_cpu sh -c "python inference.py"
 
-## AWS Lambda (supports inference with cpu)
+### AWS Lambda (supports inference with cpu)
 
 　0. (Option) Install Docker.
 
@@ -32,7 +36,7 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 
     curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{}'
 
-## Manual setup
+### Manual setup
 
 　1. Create python environment.
 
@@ -56,7 +60,7 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 
     python inference.py
 
-# How to update dataset
+## How to update dataset
 
 　1. Update Youtube.csv
 

@@ -94,18 +94,16 @@ def main(path=None) -> float:
     file_name = os.path.splitext(os.path.basename(sound_path))[0]
     length = mutagen_length(sound_path)
 
-    version = f'{CONFIG.version.data}-{CONFIG.version.code}-{CONFIG.version.param}'
-
     global model
     model = get_model(CONFIG.common.arch, pretrained=False).to(device)
-    model_path = f'{CONFIG.common.model_dir}/{version}/model.pth'
+    model_path = f'{CONFIG.common.model_dir}/model.pth'
     model.load_state_dict(torch.load(model_path))
     model.eval()
 
     n_mfcc = int(length / CONFIG.inference.window_wid)
     if device == torch.device('cpu'):
         # parallel learning
-        if CONFIG.inference.enable_multiprocessing is True:
+        if CONFIG.inference.enable_multiproc is True:
             model.share_memory()
             p = Pool(cpu_count() - 1)
             args = [i for i in range(n_mfcc)]
@@ -120,8 +118,7 @@ def main(path=None) -> float:
         outputs = gpu_inference(n_mfcc)
 
     if CONFIG.inference.log.save is True:
-        writer = SummaryWriter(
-            f'{CONFIG.inference.log.dir}/{version}/{file_name}')
+        writer = SummaryWriter(f'{CONFIG.inference.log.dir}/{file_name}')
         for i in range(len(outputs)):
             writer.add_scalar("timeline", outputs[i], i)
         writer.close()
