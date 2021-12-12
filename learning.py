@@ -56,7 +56,7 @@ def train(model, train_loader, optimizer, av_meters):
             label_sim = minibatch[2].to(device)
 
             meters, sizes = cal_metrics(sup_output, inf_output, label_sim)
-            scaler.scale(meters['total_loss'].avg).backward()
+            scaler.scale(meters['total_loss']).backward()
             scaler.step(optimizer)
             scaler.update()
 
