@@ -1,8 +1,8 @@
 seed                : 0
-architecture        : resnet50
+model               : resnet50
 
 data:
-  target            : psa
+  target            : elise
   img_size          : 224
   mfcc_window       : 2
 

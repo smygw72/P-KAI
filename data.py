@@ -70,7 +70,7 @@ def sampling(id):
     segment_len = int(n_file / n_sample)
 
     mfcc_tensor = torch.Tensor(
-        n_sample, 1, CONFIG.img_size, CONFIG.img_size
+        n_sample, 1, CONFIG.data.img_size, CONFIG.data.img_size
     )
 
     for i in range(n_sample):

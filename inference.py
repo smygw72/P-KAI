@@ -95,7 +95,7 @@ def main(path=None) -> float:
     length = mutagen_length(sound_path)
 
     global model
-    model = get_model(CONFIG.common.arch, pretrained=False).to(device)
+    model = get_model(CONFIG.arch, pretrained=False).to(device)
     model_path = f'./model/model.pth'
     model.load_state_dict(torch.load(model_path))
     model.eval()

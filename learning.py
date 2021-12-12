@@ -105,7 +105,7 @@ def main():
     train_loader = get_dataloader('train')
     test_loader = get_dataloader('test')
 
-    model = get_model(CONFIG.common.arch, pretrained=True).to(device)
+    model = get_model(CONFIG.model, pretrained=True).to(device)
     initial_lr = CONFIG.learning.optimizer.initial_lr
     if CONFIG.learning.optimizer.algorithm == 'Adam':
         optimizer = optim.Adam(model.parameters(), lr=initial_lr)
