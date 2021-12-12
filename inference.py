@@ -42,7 +42,7 @@ def cpu_inference(i):
 
     transform = transforms.Compose([
         transforms.Resize(
-            (CONFIG.common.input_size, CONFIG.common.input_size)),
+            (CONFIG.data.img_size, CONFIG.data.img_size)),
     ])
 
     input_tensor = transform(input_tensor)
@@ -66,7 +66,7 @@ def gpu_inference(n_mfcc):
         input_tensor = input_tensor.unsqueeze(0).unsqueeze(0)
         transform = transforms.Compose([
             transforms.Resize(
-                (CONFIG.common.input_size, CONFIG.common.input_size)),
+                (CONFIG.data.img_size, CONFIG.data.img_size)),
         ])
         input_tensor = transform(input_tensor)
         inputs = torch.cat([inputs, input_tensor], dim=0)
@@ -96,7 +96,7 @@ def main(path=None) -> float:
 
     global model
     model = get_model(CONFIG.common.arch, pretrained=False).to(device)
-    model_path = f'{CONFIG.common.model_dir}/model.pth'
+    model_path = f'./model/model.pth'
     model.load_state_dict(torch.load(model_path))
     model.eval()
 

@@ -29,7 +29,7 @@ def inference(model, minibatch):
     sup_input = minibatch[0].to(device, dtype=torch.float32)
     inf_input = minibatch[1].to(device, dtype=torch.float32)
 
-    input_size = CONFIG.common.input_size
+    input_size = CONFIG.data.img_size
     sup_input = sup_input.view(-1, 1, input_size, input_size)
     inf_input = inf_input.view(-1, 1, input_size, input_size)
 
@@ -56,7 +56,7 @@ def train(model, train_loader, optimizer, av_meters):
             label_sim = minibatch[2].to(device)
 
             meters, sizes = cal_metrics(sup_output, inf_output, label_sim)
-            scaler.scale(meters['total_loss']).backward()
+            scaler.scale(meters['total_loss'].avg).backward()
             scaler.step(optimizer)
             scaler.update()
 
@@ -79,6 +79,7 @@ def test(model, test_loader, av_meters):
 
 def main():
     set_seed(CONFIG.seed)
+    torch.autograd.set_detect_anomaly(True)
 
     # timestamp
     utc_now = datetime.now(timezone('UTC'))
@@ -86,10 +87,10 @@ def main():
     timestamp = datetime.strftime(jst_now, '%m-%d-%H-%M-%S')
 
     mlflow.set_tracking_uri(os.getcwd() + "/mlruns")
-    ml_writer = MlflowWriter(f'{CONFIG.dataset}/{timestamp}')
+    ml_writer = MlflowWriter(f'{CONFIG.data.target}/{timestamp}')
     ml_writer.log_params_from_omegaconf_dict(CONFIG)
 
-    tb_writer = SummaryWriter(f'{CONFIG.learning.log.dir}/{CONFIG.dataset}/{timestamp}')
+    tb_writer = SummaryWriter(f'{CONFIG.learning.log.dir}/{CONFIG.data.target}/{timestamp}')
 
     av_meters = {
         'dif_loss': AverageMeter(),

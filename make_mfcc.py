@@ -16,7 +16,7 @@ def convert2sec(s):
 
 
 def get_info():
-    id_df = pd.read_csv(f'./annotation/{CONFIG.dataset}/youtube.csv', header=0)
+    id_df = pd.read_csv(f'./annotation/{CONFIG.data.target}/youtube.csv', header=0)
     ids = id_df['ID'].tolist()
 
     start_times = id_df['start_time'].tolist()
@@ -82,7 +82,7 @@ def main() -> None:
 
         # non-overlapping windows
         # NOTE: 本当に3秒だけでスキルを判定できる？要検討
-        window_width = 2
+        window_width = CONFIG.data.mfcc_window
 
         i = 0
         while i * window_width < length:

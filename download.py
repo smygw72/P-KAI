@@ -46,7 +46,7 @@ def download(row, output_dir):
 
 
 def main(*args, **kwargs):
-    df = pd.read_csv(f'./annotation/{CONFIG.dataset}/youtube.csv', header=0)
+    df = pd.read_csv(f'./annotation/{CONFIG.data.target}/youtube.csv', header=0)
     df.drop_duplicates(subset='ID', inplace=True)
     os.makedirs(f'../dataset/sounds', exist_ok=True)
 

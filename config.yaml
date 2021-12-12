@@ -1,10 +1,10 @@
 seed                : 0
-dataset             : psa
+architecture        : resnet50
 
-common:
-  input_size        : 224
-  arch              : resnet50
-  model_dir         : ./models
+data:
+  target            : psa
+  img_size          : 224
+  mfcc_window       : 2
 
 learning:
   k_fold            : 3
@@ -12,7 +12,7 @@ learning:
   batch_size        : 16
   n_worker          : 2
   n_sample          : 10
-  epochs            : 100
+  epochs            : 300
   optimizer:
     algorithm       : 'Adam'
     initial_lr      : 0.1

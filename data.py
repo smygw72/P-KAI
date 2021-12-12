@@ -56,7 +56,7 @@ class PairDataSet(Dataset):
         return sup, inf, label_sim
 
     def _parse_list(self):
-        file_path = f'./annotation/{CONFIG.dataset}/{CONFIG.learning.split_id}/{self.train_or_test}_pair.csv'
+        file_path = f'./annotation/{CONFIG.data.target}/{CONFIG.learning.split_id}/{self.train_or_test}_pair.csv'
         for row in open(file_path):
             record = PairRecord(row.strip().split(','))
             if record.label != 'X':
@@ -70,7 +70,7 @@ def sampling(id):
     segment_len = int(n_file / n_sample)
 
     mfcc_tensor = torch.Tensor(
-        n_sample, 1, CONFIG.common.input_size, CONFIG.common.input_size
+        n_sample, 1, CONFIG.img_size, CONFIG.img_size
     )
 
     for i in range(n_sample):
@@ -88,7 +88,7 @@ def sampling(id):
 def get_img(path):
     transform = transforms.Compose([
         transforms.Resize(
-            (CONFIG.common.input_size, CONFIG.common.input_size)),
+            (CONFIG.data.img_size, CONFIG.data.img_size)),
         transforms.ToTensor(),
     ])
     img = Image.open(path)
