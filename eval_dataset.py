@@ -1,5 +1,4 @@
 import inference
-
 from config import CONFIG
 
 

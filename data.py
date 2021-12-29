@@ -66,17 +66,17 @@ class PairDataSet(Dataset):
 def sampling(id):
     files = os.listdir(f'../dataset/mfcc/{id}/')
     n_file = len(files)
-    n_sample = CONFIG.learning.n_sample
-    segment_len = int(n_file / n_sample)
+    n_frame = CONFIG.learning.sampling.n_frame
+    segment_len = int(n_file / n_frame)
 
     mfcc_tensor = torch.Tensor(
-        n_sample, 1, CONFIG.data.img_size, CONFIG.data.img_size
+        n_frame, 1, CONFIG.data.img_size, CONFIG.data.img_size
     )
 
-    for i in range(n_sample):
+    for i in range(n_frame):
         start_idx = i * segment_len
         end_idx = (i + 1) * segment_len - 1
-        if i == (n_sample - 1):
+        if i == (n_frame - 1):
             end_idx = n_file - 1
         idx = random.randint(start_idx, end_idx)
         path = f'../dataset/mfcc/{id}/{files[idx]}'
