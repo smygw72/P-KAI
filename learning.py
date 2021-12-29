@@ -13,32 +13,26 @@ from torch.cuda.amp import GradScaler, autocast
 from torch.utils.tensorboard import SummaryWriter
 
 from data import get_dataloader
-from metric import cal_metrics
+from metric import get_metrics
 from log import AverageMeter, MlflowWriter, update_av_meters, update_writers
 
-from network.interface import get_model
+from network.model import get_model
 from config import CONFIG
 
-if torch.cuda.is_available():
-    device = torch.device('cuda')
-else:
-    device = torch.device('cpu')
-
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 def inference(model, minibatch):
-    sup_input = minibatch[0].to(device, dtype=torch.float32)
-    inf_input = minibatch[1].to(device, dtype=torch.float32)
+    sup_in = minibatch[0].to(device, dtype=torch.float32)
+    inf_in = minibatch[1].to(device, dtype=torch.float32)
 
-    input_size = CONFIG.data.img_size
-    sup_input = sup_input.view(-1, 1, input_size, input_size)
-    inf_input = inf_input.view(-1, 1, input_size, input_size)
+    img_size = CONFIG.data.img_size
+    sup_in = sup_in.view(-1, 1, img_size, img_size)
+    inf_in = inf_in.view(-1, 1, img_size, img_size)
 
-    sup_output = model(sup_input)
-    inf_output = model(inf_input)
+    sup_outs = model(sup_in)
+    inf_outs = model(inf_in)
 
-    sup_output = sup_output.view(-1, CONFIG.learning.n_sample)
-    inf_output = inf_output.view(-1, CONFIG.learning.n_sample)
-    return sup_output, inf_output
+    return sup_outs, inf_outs
 
 
 def train(model, train_loader, optimizer, av_meters):
@@ -52,10 +46,10 @@ def train(model, train_loader, optimizer, av_meters):
     for i, minibatch in enumerate(tqdm(train_loader)):
         optimizer.zero_grad()
         with autocast(enabled=use_amp):
-            sup_output, inf_output = inference(model, minibatch)
+            sup_outs, inf_outs = inference(model, minibatch)
             label_sim = minibatch[2].to(device)
 
-            meters, sizes = cal_metrics(sup_output, inf_output, label_sim)
+            meters, sizes = get_metrics(sup_outs, inf_outs, label_sim)
             scaler.scale(meters['total_loss']).backward()
             scaler.step(optimizer)
             scaler.update()
@@ -70,11 +64,15 @@ def test(model, test_loader, av_meters):
     model.eval()
     with torch.no_grad():
         for i, minibatch in enumerate(tqdm(test_loader)):
-            sup_output, inf_output = inference(model, minibatch)
+            sup_outs, inf_outs = inference(model, minibatch)
 
             label_sim = minibatch[2]
-            meters, sizes = cal_metrics(sup_output, inf_output, label_sim)
+            meters, sizes = get_metrics(sup_outs, inf_outs, label_sim)
             update_av_meters(av_meters, meters, sizes)
+
+            if CONFIG.model.architecture != 'PDR':
+                visualize_attention(sup_outs)
+                visualize_attention(inf_outs)
 
 
 def main():
@@ -105,7 +103,7 @@ def main():
     train_loader = get_dataloader('train')
     test_loader = get_dataloader('test')
 
-    model = get_model(CONFIG.model, pretrained=True).to(device)
+    model = get_model().to(device)
     initial_lr = CONFIG.learning.optimizer.initial_lr
     if CONFIG.learning.optimizer.algorithm == 'Adam':
         optimizer = optim.Adam(model.parameters(), lr=initial_lr)
@@ -144,6 +142,12 @@ def main():
     tb_writer.close()
     ml_writer.log_torch_model(best_model)
     ml_writer.set_terminated()
+
+
+def visualize_attention(outs):
+    rx_good, ax_good, att_good, rx_bad, ax_bad, att_bad
+    att_good, att_bad = outs[2], outs[5]
+    # TODO
 
 
 def set_seed(seed):
