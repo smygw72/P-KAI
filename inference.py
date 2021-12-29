@@ -19,8 +19,7 @@ from make_mfcc import spec_to_image, get_melspectrogram_db
 # global variables
 model = None
 sound_path = None
-device = torch.device('cuda') \
-    if torch.cuda.is_available() else torch.device('cpu')
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 
 def mutagen_length(path):
@@ -95,7 +94,7 @@ def main(path=None) -> float:
     length = mutagen_length(sound_path)
 
     global model
-    model = get_model(CONFIG.arch, pretrained=False).to(device)
+    model = get_model().to(device)
     model_path = f'./model/model.pth'
     model.load_state_dict(torch.load(model_path))
     model.eval()

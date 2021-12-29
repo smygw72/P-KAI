@@ -1,5 +1,17 @@
 seed                : 0
-model               : resnet50
+
+model:
+  base              : resnet18
+  pretrained        : True
+  architecture      : APR        # [PDR, APR, APR_TCN, TCN_APR]
+  disable_bad       : True
+  disable_attention : False
+  tcn:
+    levels          : 4
+    n_unit          : 25
+    kernel_size     : 4
+    dropout         : 0.05
+
 
 data:
   target            : elise
@@ -9,14 +21,19 @@ data:
 learning:
   k_fold            : 3
   split_id          : 0
-  batch_size        : 16
+  batch_size        : 2
   n_worker          : 2
-  n_sample          : 10
+  sampling:
+    method          : dense # [dense, sparse]
+    n_frame         : 10
   epochs            : 300
+  loss:
+    method          : marginal_loss # [marginal_loss, softplus]
+    margin          : 1.0
+    enable_sim_loss : False
   optimizer:
     algorithm       : 'Adam'
     initial_lr      : 0.1
-  margin            : 1.0
   save_ths          : 3
   log:
     save            : True
