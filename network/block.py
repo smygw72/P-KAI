@@ -6,12 +6,6 @@ def conv3x3(in_planes, out_planes, stride=1):
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
                      padding=1, bias=False)
 
-def min_max(input):
-    min= torch.min(input)
-    max= torch.max(input)
-    output = (input - min) / (max - min)
-    return output
-
 class BasicBlock(nn.Module):
     expansion = 1
     channel_num = 128

@@ -2,114 +2,275 @@ import torch.nn as nn
 
 from config import CONFIG
 from network.block import BasicBlock, Bottleneck
-from network.resnet import resnet34, resnet50
+from network.resnet import resnet18, resnet34, resnet50, resnet101, resnet152
 from network.attention_branch import AttentionBranch
 from network.ranking_branch import RankingBranch
-from network.tcn import TCN
+from network.tcn import TemporalConvNet
 
+arch = CONFIG.model.architecture
+base_model = CONFIG.model.base
+pretrained = CONFIG.model.pretrained
+
+batch_size = CONFIG.learning.batch_size
+n_frame = CONFIG.learning.sampling.n_frame
+
+# TCN argument
+tcn_levels = CONFIG.model.tcn.levels
+kernel_size = CONFIG.model.tcn.kernel_size
+n_unit = CONFIG.model.tcn.n_unit
+hidden_channels = [n_unit] * tcn_levels
+dropout = CONFIG.model.tcn.dropout
 
 def get_model():
-    if CONFIG.model.architecture == 'PDR':
+    if arch == 'PDR':
         return PDR()
-    elif CONFIG.model.architecture == 'APR':
+    elif arch == 'APR':
         return APR()
-    elif CONFIG.model.architecture == 'APR_TCN':
+    elif arch == 'APR_TCN':
         return APR_TCN()
-    elif CONFIG.model.architecture == 'TCN_APR':
+    elif arch == 'TCN_APR':
         return TCN_APR()
 
 def get_resnet():
-    pretrained = CONFIG.model.pretrained
-    if CONFIG.model.base == 'resnet18':
+    if base_model == 'resnet18':
         block = BasicBlock
         layers = [2, 2, 2, 2]
         model = resnet18(block, layers, pretrained)
-    elif CONFIG.model.base == 'resnet34':
+        base_out_channel = 256
+        rb_out_channel = 512
+    elif base_model == 'resnet34':
         block = BasicBlock
         layers = [3, 4, 6, 3]
         model = resnet34(block, layers, pretrained)
-    elif CONFIG.model.base == 'resnet50':
+        base_out_channel = 256
+        rb_out_channel = 512
+    elif base_model == 'resnet50':
         block = Bottleneck
         layers = [3, 4, 6, 3]
         model = resnet50(block, layers, pretrained)
-    elif CONFIG.model.base == 'resnet101':
+        base_out_channel = 1024
+        rb_out_channel = 2048
+    elif base_model == 'resnet101':
         block = Bottleneck
         layers = [3, 4, 23, 3]
         model = resnet101(block, layers, pretrained)
-    elif CONFIG.model.base == 'resnet152':
+        base_out_channel = 1024
+        rb_out_channel = 2048
+    elif base_model == 'resnet152':
         block = Bottleneck
         layers = [3, 8, 36, 3]
         model = resnet152(block, layers, pretrained)
+        base_out_channel = 1024
+        rb_out_channel = 2048
     model.conv1 = nn.Conv2d(
         1, 64, kernel_size=7, stride=2, padding=3, bias=False
     )
-    return model, block, layers
+    return model, block, layers, base_out_channel, rb_out_channel
 
 
 # Pairwise Deep Ranking
 class PDR(nn.Module):
     def __init__(self):
         super(PDR, self).__init__()
-        self.base_model, block, layers = get_resnet()
-        self.ranking_branch = RankingBranch(block, layers)
+        self.base_model, block, layers, base_out_channel, __ = get_resnet()
+        self.ranking_branch = RankingBranch(block, layers, base_out_channel)
+        self.new_fc = nn.Linear(512 * block.expansion, 1)
+        self.Tanh = nn.Tanh()
 
     def forward(self, x):
+        # (B*L, C=1, H=224, W=224) -> (B*L, C, H=14, W=14)
         x = self.base_model(x)
+        # (B*L, C, H=14, W=14) -> (B*L, C, H=1, W=1)
         x = self.ranking_branch(x)
-        return x, None, None, None, None, None
+        # (B*L, C, H=1, W=1) -> (B*L, C)
+        x = x.squeeze()
+        # (B*L, C) -> (B*L, 1)
+        x = self.new_fc(x)
+        x = self.Tanh(x)
+        # (B*L, C) -> (B, L)
+        x = x.view(batch_size, n_frame)
+        return [x, None, None, None, None, None]
 
 # Attention Pairwiser Ranking
 # refer to https://github.com/mosa-mprg/attention_pairwise_ranking/blob/master/resnet.py
 class APR(nn.Module):
     def __init__(self):
         super(APR, self).__init__()
-        self.base_model, block, layers = get_resnet()
+        self.base_model, block, layers, base_out_channel, __ = get_resnet()
         self.attention_branch = AttentionBranch(block, layers)
-        self.ranking_branch = RankingBranch(block, layers)
+        self.ranking_branch = RankingBranch(block, layers, base_out_channel)
+        self.new_fc = nn.Linear(512 * block.expansion, 1)
+        self.Tanh = nn.Tanh()
 
     def forward(self, x):
+        # (B*L, C=1, H=224, W=224) -> (B*L, C, H=14, W=14)
         x = self.base_model(x)
+
+        # (B*L, C, H=14, W=14) ->
+        # ax_good, ax_bad: (B*L, C=1, H=1, W=1)
+        # att_good att_bad: (B*L, C=1, H=14, W=14)
         ax_good, att_good, ax_bad, att_bad = self.attention_branch(x)
+
         x_good = x * att_good
         x_bad = x * att_bad
+
+        # (B*L, C, H=14, W=14) -> (B*L, C, H=1, W=1)
         rx_good = self.ranking_branch(x_good)
         rx_bad = self.ranking_branch(x_bad)
-        return rx_good, ax_good, att_good, rx_bad, ax_bad, att_bad
+
+        # (B*L, C, H=1, W=1) -> (B*L, C)
+        rx_good = rx_good.squeeze()
+        rx_bad = rx_bad.squeeze()
+
+        # (B*L, C) -> (B*L, C=1)
+        rx_good = self.new_fc(rx_good)
+        rx_bad = self.new_fc(rx_bad)
+        rx_good = self.Tanh(rx_good)
+        rx_bad = self.Tanh(rx_bad)
+
+        # (B*L, C=1) -> (B, L)
+        rx_good = rx_good.view(batch_size, n_frame)
+        rx_bad = rx_bad.view(batch_size, n_frame)
+        ax_good = ax_good.view(batch_size, n_frame)
+        ax_bad = ax_bad.view(batch_size, n_frame)
+
+        # (B*L, C=1, H=14, W=14) -> (B, L, C=1, H=14, W=14)
+        att_good = att_good.view(batch_size, n_frame, 1, 14, 14)
+        att_bad = att_bad.view(batch_size, n_frame, 1, 14, 14)
+
+        return [rx_good, ax_good, att_good, rx_bad, ax_bad, att_bad]
 
 # Our model #1
 class APR_TCN(nn.Module):
     def __init__(self):
         super(APR_TCN, self).__init__()
-        self.base_model, block, layers = get_resnet()
+        self.base_model, block, layers, base_out_channel, rb_out_channel = get_resnet()
         self.attention_branch = AttentionBranch(block, layers)
-        self.ranking_branch = RankingBranch(block, layers)
-        self.tcn = TCN()
+        self.ranking_branch = RankingBranch(block, layers, base_out_channel)
+        self.tcn = TemporalConvNet(rb_out_channel, hidden_channels, kernel_size, dropout)
+        self.new_fc = nn.Linear(hidden_channels[-1], 1)
+        self.Tanh = nn.Tanh()
 
     def forward(self, x):
+        # (B*L, C_in=1, H=224, W=224) -> (B*L, C_out, H=14, W=14)
         x = self.base_model(x)
+
+        # (B*L, C, H=14, W=14) ->
+        # ax_good, ax_bad: (B*L, C=1, H=1, W=1)
+        # att_good att_bad: (B*L, C=1, H=14, W=14)
         ax_good, att_good, ax_bad, att_bad = self.attention_branch(x)
+        att_height, att_width = att_good.size(2), att_good.size(3)
+
         x_good = x * att_good
         x_bad = x * att_bad
-        x_good = self.tcn(x_good)
-        x_bad = self.tcn(x_bad)
+
+        # (B*L, C, H=14, W=14) -> (B*L, C, H=1, W=1)
         rx_good = self.ranking_branch(x_good)
         rx_bad = self.ranking_branch(x_bad)
-        return rx_good, ax_good, att_good, rx_bad, ax_bad, att_bad
+
+        # (B*L, C, H=1, W=1) -> (B, L, C)
+        rx_good = rx_good.view(batch_size, n_frame, -1)
+        rx_bad = rx_bad.view(batch_size, n_frame, -1)
+
+        # (B, L, C) -> (B, C, L)
+        rx_good = rx_good.transpose(2, 1)
+        rx_bad = rx_bad.transpose(2, 1)
+
+        rx_good = self.tcn(rx_good)
+        rx_bad = self.tcn(rx_bad)
+
+        # (B, C, L) -> (B, L, C)
+        rx_good = rx_good.transpose(2, 1)
+        rx_bad = rx_bad.transpose(2, 1)
+
+        # (B, L, C) -> (B*L, C)
+        rx_good = rx_good.reshape(batch_size * n_frame, -1)
+        rx_bad = rx_bad.reshape(batch_size * n_frame, -1)
+
+        # (B*L, C) -> (B*L, C=1)
+        rx_good = self.new_fc(rx_good)
+        rx_bad = self.new_fc(rx_bad)
+
+        # (B*L, C=1) -> (B, L)
+        rx_good = rx_good.view(batch_size, n_frame)
+        rx_bad = rx_bad.view(batch_size, n_frame)
+        ax_good = ax_good.view(batch_size, n_frame)
+        ax_bad = ax_bad.view(batch_size, n_frame)
+
+        # (B*L, C=1, H=14, W=14) -> (B, L, C=1, H=14, W=14)
+        att_good = att_good.view(batch_size, n_frame, 1, att_height, att_width)
+        att_bad = att_bad.view(batch_size, n_frame, 1, att_height, att_width)
+
+        return [rx_good, ax_good, att_good, rx_bad, ax_bad, att_bad]
 
 # Our model #2
 class TCN_APR(nn.Module):
     def __init__(self):
         super(TCN_APR, self).__init__()
-        self.base_model, block, layers = get_resnet()
+        self.base_model, block, layers, base_out_channel, rb_out_channel = get_resnet()
+        hidden_channels[-1] = base_out_channel
+        self.tcn = TemporalConvNet(base_out_channel, hidden_channels, kernel_size, dropout)
         self.attention_branch = AttentionBranch(block, layers)
-        self.ranking_branch = RankingBranch(block, layers)
+        self.ranking_branch = RankingBranch(block, layers, base_out_channel)
+        self.new_fc = nn.Linear(rb_out_channel, 1)
+        self.Tanh = nn.Tanh()
 
     def forward(self, x):
+        # (B*L, C_in=1, H=224, W=224) -> (B*L, C_out, H=14, W=14)
         x = self.base_model(x)
+
+        # (B*L, C, H=14, W=14) -> (B, L, C, H*W)
+        height, width = x.size(2), x.size(3)
+        channel = x.size(1)
+        x = x.view(batch_size, n_frame, channel, -1)
+
+        # (B, L, C, H*W) -> (B, H*W, C, L)
+        x = x.transpose(3, 1)
+
+        # (B, H*W, C, L) -> (B*H*W, C, L)
+        x = x.reshape(batch_size*height*width, channel, n_frame)
+
+        # (B*H*W, C_in, L) -> (B, H*W, C_out, L)
         x = self.tcn(x)
+
+        # (B*H*W, C, L) -> (B, H*W, C, L)
+        x = x.view(batch_size, height*width, -1, n_frame)
+
+        # (B, H*W, C, L) -> (B, L, C, H*W)
+        x = x.transpose(3, 1)
+
+        # (B, L, C, H*W) -> (B*L, C, H, W)
+        x = x.reshape(batch_size*n_frame, -1, height, width)
+
+        # (B*L, C, H=14, W=14) ->
+        # ax_good, ax_bad: (B*L, C=1, H=1, W=1)
+        # att_good att_bad: (B*L, C=1, H=14, W=14)
         ax_good, att_good, ax_bad, att_bad = self.attention_branch(x)
         x_good = x * att_good
         x_bad = x * att_bad
+
+        # (B*L, C_in, H=14, W=14) -> (B*L, C_out, H=1, W=1)
         rx_good = self.ranking_branch(x_good)
         rx_bad = self.ranking_branch(x_bad)
-        return rx_good, ax_good, att_good, rx_bad, ax_bad, att_bad
+
+        # (B*L, C, H=1, W=1) -> (B*L, C)
+        rx_good = rx_good.squeeze()
+        rx_bad = rx_bad.squeeze()
+
+        # (B*L, C_in) -> (B*L, C_out=1)
+        rx_good = self.new_fc(rx_good)
+        rx_bad = self.new_fc(rx_bad)
+        rx_good = self.Tanh(rx_good)
+        rx_bad = self.Tanh(rx_bad)
+
+        # (B*L, C=1) -> (B, L)
+        rx_good = rx_good.view(batch_size, n_frame)
+        rx_bad = rx_bad.view(batch_size, n_frame)
+        ax_good = ax_good.view(batch_size, n_frame)
+        ax_bad = ax_bad.view(batch_size, n_frame)
+
+        # (B*L, C=1, H=14, W=14) -> (B, L, C=1, H=14, W=14)
+        att_good = att_good.view(batch_size, n_frame, 1, 14, 14)
+        att_bad = att_bad.view(batch_size, n_frame, 1, 14, 14)
+
+        return [rx_good, ax_good, att_good, rx_bad, ax_bad, att_bad]

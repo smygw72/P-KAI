@@ -3,20 +3,15 @@ import torch.nn as nn
 
 
 class RankingBranch(nn.Module):
-    def __init__(self, block, layers, num_classes=1):
+    def __init__(self, block, layers, in_channel):
         super(RankingBranch, self).__init__()
-        self.inplanes = 1024
+        self.inplanes = in_channel
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2, down_size=False)
         self.avgpool = nn.AvgPool2d(7, stride=1)
-        self.new_fc = nn.Linear(512 * block.expansion, num_classes)
-        self.Tanh = nn.Tanh()
 
     def forward(self, x):
         x = self.layer4(x)
         x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
-        x = self.new_fc(x)
-        x = self.Tanh(x)
         return x
 
     def _make_layer(self, block, planes, blocks, stride=1, down_size=True):
