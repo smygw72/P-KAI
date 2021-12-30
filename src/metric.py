@@ -3,7 +3,7 @@ import torch.nn as nn
 
 from config.config import CONFIG
 
-
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 softplus = nn.Softplus()
 
 
@@ -73,7 +73,7 @@ def _APR_acc(sup_outs_dif, sup_outs_sim, inf_outs_dif, inf_outs_sim):
 
 def _get_dif_loss(dif1, dif2):
     if len(dif1) == 0:
-        return torch.zeros(1)
+        return torch.zeros(1).to(device)
     if CONFIG.learning.loss.method == 'marginal_loss':
         loss = CONFIG.learning.loss.margin - dif1 + dif2
         loss *= torch.gt(loss, torch.zeros_like(loss))
@@ -85,7 +85,7 @@ def _get_dif_loss(dif1, dif2):
 
 def _get_sim_loss(sim1, sim2):
     if len(sim1) == 0:
-        return torch.zeros(1)
+        return torch.zeros(1).to(device)
     loss = torch.abs(sim1 - sim2) - CONFIG.learning.loss.margin
     loss *= torch.gt(loss, torch.zeros_like(loss))
     loss_avg = torch.mean(loss)
@@ -94,14 +94,14 @@ def _get_sim_loss(sim1, sim2):
 
 def _get_dif_acc(dif1, dif2):
     if len(dif1) == 0:
-        return torch.sum(torch.zeros(1))
+        return torch.zeros(1).to(device)
     dif_acc = torch.mean(torch.gt(dif1, dif2).float())
     return dif_acc
 
 
 def _get_sim_acc(sim1, sim2):
     if (len(sim1) == 0) or (CONFIG.learning.loss.enable_sim_loss is True):
-        return torch.sum(torch.zeros(1))
+        return torch.zeros(1).to(device)
     # TODO: similarity version
     sim_acc = torch.mean(torch.zeros(1))
     return sim_acc
