@@ -63,8 +63,9 @@ class PairDataSet(Dataset):
                 self.pair_list.append(record)
 
 
-def sampling(id):
-    files = os.listdir(f'../dataset/mfcc/{id}/')
+def sampling(sound_id):
+    sound_dir = f'../dataset/mfcc/{sound_id}/'
+    files = os.listdir(sound_dir)
     n_file = len(files)
     n_frame = CONFIG.learning.sampling.n_frame
     segment_len = int(n_file / n_frame)
@@ -73,14 +74,21 @@ def sampling(id):
         n_frame, 1, CONFIG.data.img_size, CONFIG.data.img_size
     )
 
-    for i in range(n_frame):
-        start_idx = i * segment_len
-        end_idx = (i + 1) * segment_len - 1
-        if i == (n_frame - 1):
-            end_idx = n_file - 1
-        idx = random.randint(start_idx, end_idx)
-        path = f'../dataset/mfcc/{id}/{files[idx]}'
-        mfcc_tensor[i] = get_img(path)
+    if CONFIG.learning.sampling.method == 'sparse':
+        for i in range(n_frame):
+            start_idx = i * segment_len
+            end_idx = (i + 1) * segment_len - 1
+            if i == (n_frame - 1):
+                end_idx = n_file - 1
+            idx = random.randint(start_idx, end_idx)
+            path = f'{sound_dir}/{files[idx]}'
+            mfcc_tensor[i] = get_img(path)
+    elif CONFIG.learning.sampling.method == 'dense':
+        start_idx = random.randint(0, n_file - n_frame)
+        for i in range(n_frame):
+            idx = start_idx + i
+            path = f'{sound_dir}/{files[idx]}'
+            mfcc_tensor[i] = get_img(path)
 
     return mfcc_tensor
 
