@@ -111,8 +111,12 @@ class APR(nn.Module):
         # att_good att_bad: (B*L, C=1, H=14, W=14)
         ax_good, att_good, ax_bad, att_bad = self.attention_branch(x)
 
-        x_good = x * att_good
-        x_bad = x * att_bad
+        if CONFIG.model.disable_attention is False:
+            x_good = x * att_good
+            x_bad = x * att_bad
+        else:
+            x_good = x
+            x_bad = x
 
         # (B*L, C, H=14, W=14) -> (B*L, C, H=1, W=1)
         rx_good = self.ranking_branch(x_good)
@@ -161,8 +165,12 @@ class APR_TCN(nn.Module):
         ax_good, att_good, ax_bad, att_bad = self.attention_branch(x)
         att_height, att_width = att_good.size(2), att_good.size(3)
 
-        x_good = x * att_good
-        x_bad = x * att_bad
+        if CONFIG.model.disable_attention is False:
+            x_good = x * att_good
+            x_bad = x * att_bad
+        else:
+            x_good = x
+            x_bad = x
 
         # (B*L, C, H=14, W=14) -> (B*L, C, H=1, W=1)
         rx_good = self.ranking_branch(x_good)
@@ -246,8 +254,13 @@ class TCN_APR(nn.Module):
         # ax_good, ax_bad: (B*L, C=1, H=1, W=1)
         # att_good att_bad: (B*L, C=1, H=14, W=14)
         ax_good, att_good, ax_bad, att_bad = self.attention_branch(x)
-        x_good = x * att_good
-        x_bad = x * att_bad
+
+        if CONFIG.model.disable_attention is False:
+            x_good = x * att_good
+            x_bad = x * att_bad
+        else:
+            x_good = x
+            x_bad = x
 
         # (B*L, C_in, H=14, W=14) -> (B*L, C_out, H=1, W=1)
         rx_good = self.ranking_branch(x_good)
