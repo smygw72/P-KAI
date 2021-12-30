@@ -12,7 +12,7 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 
 　0. (Option) Install Docker.
 
-    bash setup.sh
+    bash setup_linux.sh
 
 　1. Build image and create container.
 
@@ -26,7 +26,7 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 
 　0. (Option) Install Docker.
 
-    bash setup.sh
+    bash setup_linux.sh
 
 　1. Build and push image to AWS ECR.
 
@@ -79,9 +79,10 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 ## Reference
 
 - Architecture
-    - [Who's Better? Who's Best? Pairwise Deep Ranking for Skill Determination (CVPR'18)](https://arxiv.org/abs/1703.09913)
+    - Pairwise Deep Ranking: [Who's Better? Who's Best? Pairwise Deep Ranking for Skill Determination (CVPR'18)](https://arxiv.org/abs/1703.09913)
+    - Attention Pairwise Ranking: [code](https://github.com/mosa-mprg/attention_pairwise_ranking)
 - Dataset
     - [ParitoshParmar/Piano-Skills-Assessment](https://github.com/ParitoshParmar/Piano-Skills-Assessment)
 - Preprocessing
-    -  [Piano Skills Assessment (arXiv'21)](https://arxiv.org/abs/2101.04884)
+    - [Piano Skills Assessment (arXiv'21)](https://arxiv.org/abs/2101.04884)
     - [Audio Classification using Librosa and Pytorch (blog)](https://medium.com/@hasithsura/audio-classification-d37a82d6715)
