@@ -1,5 +1,5 @@
 import inference
-from config import CONFIG
+from config.config import CONFIG
 
 
 def main():

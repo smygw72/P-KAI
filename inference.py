@@ -10,11 +10,11 @@ import torch
 from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 
-from pool import Pool
-from config import CONFIG
-from network.interface import get_model
-from make_mfcc import spec_to_image, get_melspectrogram_db
-
+from config.config import CONFIG
+from preprocessing.make_mfcc import spec_to_image, get_melspectrogram_db
+from src.pool import Pool
+from src.network.interface import get_model
+from src.utils import set_seed
 
 # global variables
 model = None
@@ -86,7 +86,7 @@ def main(path=None) -> float:
 
     global sound_path
     if path is None:
-        sound_path = 'test.mp3'
+        sound_path = './misc/test.mp3'
     else:
         sound_path = path
 
@@ -129,14 +129,6 @@ def main(path=None) -> float:
     sec_per_frame = (end_time - start_time) / n_mfcc
     print(f"elapsed time: {sec_per_frame}")
     return score_avg
-
-
-def set_seed(seed):
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True
 
 
 if __name__ == "__main__":

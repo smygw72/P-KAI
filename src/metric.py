@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from config import CONFIG
+from config.config import CONFIG
 
 
 softplus = nn.Softplus()

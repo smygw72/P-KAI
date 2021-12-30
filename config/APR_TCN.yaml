@@ -1,0 +1,50 @@
+seed                : 0
+
+model:
+  base              : resnet18
+  pretrained        : True
+  architecture      : APR_TCN        # [PDR, APR, APR_TCN, TCN_APR]
+  disable_bad       : False
+  disable_attention : False
+  tcn:
+    levels          : 4
+    n_unit          : 250
+    kernel_size     : 4
+    dropout         : 0.05
+
+
+data:
+  target            : psa
+  img_size          : 224
+  mfcc_window       : 0.5
+
+learning:
+  k_fold            : 3
+  split_id          : 0
+  batch_size        : 8
+  n_worker          : 2
+  sampling:
+    method          : dense # [dense, sparse]
+    n_frame         : 16
+  epochs            : 300
+  loss:
+    method          : marginal_loss # [marginal_loss, softplus]
+    margin          : 1.0
+    enable_sim_loss : False
+  optimizer:
+    algorithm       : 'Adam'
+    initial_lr      : 0.1
+  save_ths          : 3
+  log:
+    save            : True
+    dir             : ./learning_logs
+  use_amp           : True
+
+inference:
+  batch_size        : 16
+  n_worker          : 2
+  window_wid        : 2
+  log:
+    save            : False
+    dir             : ./inference_logs
+  enable_multiproc  : False

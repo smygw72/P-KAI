@@ -5,7 +5,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
-from config import CONFIG
+from config.config import CONFIG
 
 
 class PairRecord(object):

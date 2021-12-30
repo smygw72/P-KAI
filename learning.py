@@ -12,12 +12,12 @@ from torch.optim.lr_scheduler import StepLR
 from torch.cuda.amp import GradScaler, autocast
 from torch.utils.tensorboard import SummaryWriter
 
-from data import get_dataloader
-from metric import get_metrics
-from log import AverageMeter, MlflowWriter, update_av_meters, update_writers
+from src.data import get_dataloader
+from src.metric import get_metrics
+from src.log import AverageMeter, MlflowWriter, update_av_meters, update_writers
 
-from network.model import get_model
-from config import CONFIG
+from src.network.model import get_model
+from config.config import CONFIG
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 

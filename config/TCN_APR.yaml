@@ -3,7 +3,7 @@ seed                : 0
 model:
   base              : resnet18
   pretrained        : True
-  architecture      : APR        # [PDR, APR, APR_TCN, TCN_APR]
+  architecture      : TCN_APR        # [PDR, APR, APR_TCN, TCN_APR]
   disable_bad       : False
   disable_attention : False
   tcn:
@@ -12,20 +12,19 @@ model:
     kernel_size     : 4
     dropout         : 0.05
 
-
 data:
-  target            : elise
+  target            : psa
   img_size          : 224
   mfcc_window       : 0.5
 
 learning:
   k_fold            : 3
   split_id          : 0
-  batch_size        : 8
+  batch_size        : 2
   n_worker          : 2
   sampling:
     method          : dense # [dense, sparse]
-    n_frame         : 128
+    n_frame         : 16
   epochs            : 300
   loss:
     method          : marginal_loss # [marginal_loss, softplus]

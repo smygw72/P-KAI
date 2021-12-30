@@ -7,7 +7,7 @@ from PIL import Image
 import librosa
 # import torchlibrosa as tl
 
-from config import CONFIG
+from config.config import CONFIG
 
 
 def convert2sec(s):

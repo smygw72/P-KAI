@@ -2,7 +2,7 @@ import os
 import subprocess
 import pandas as pd
 
-from config import CONFIG
+from config.config import CONFIG
 
 
 def trim(row, output_dir):

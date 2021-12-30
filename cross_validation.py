@@ -1,5 +1,5 @@
 
-from config import CONFIG
+from config.config import CONFIG
 from learning import main as learn
 
 if __name__=='__main__':

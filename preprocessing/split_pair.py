@@ -3,8 +3,8 @@ import random
 import csv
 import pandas as pd
 
-from config import CONFIG
-from utils import set_seed
+from config.config import CONFIG
+from src.utils import set_seed
 
 
 def get_ids():

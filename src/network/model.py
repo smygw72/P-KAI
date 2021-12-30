@@ -1,11 +1,11 @@
 import torch.nn as nn
 
-from config import CONFIG
-from network.block import BasicBlock, Bottleneck
-from network.resnet import resnet18, resnet34, resnet50, resnet101, resnet152
-from network.attention_branch import AttentionBranch
-from network.ranking_branch import RankingBranch
-from network.tcn import TemporalConvNet
+from config.config import CONFIG
+from src.network.block import BasicBlock, Bottleneck
+from src.network.resnet import resnet18, resnet34, resnet50, resnet101, resnet152
+from src.network.attention_branch import AttentionBranch
+from src.network.ranking_branch import RankingBranch
+from src.network.tcn import TemporalConvNet
 
 arch = CONFIG.model.architecture
 base_model = CONFIG.model.base
