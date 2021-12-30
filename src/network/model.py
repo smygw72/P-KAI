@@ -98,8 +98,10 @@ class APR(nn.Module):
         super(APR, self).__init__()
         self.base_model, block, layers, base_out_channel, __ = get_resnet()
         self.attention_branch = AttentionBranch(block, layers)
-        self.ranking_branch = RankingBranch(block, layers, base_out_channel)
-        self.new_fc = nn.Linear(512 * block.expansion, 1)
+        self.ranking_branch_good = RankingBranch(block, layers, base_out_channel)
+        self.ranking_branch_bad = RankingBranch(block, layers, base_out_channel)
+        self.new_fc_good = nn.Linear(512 * block.expansion, 1)
+        self.new_fc_bad = nn.Linear(512 * block.expansion, 1)
         self.Tanh = nn.Tanh()
 
     def forward(self, x):
@@ -119,16 +121,16 @@ class APR(nn.Module):
             x_bad = x
 
         # (B*L, C, H=14, W=14) -> (B*L, C, H=1, W=1)
-        rx_good = self.ranking_branch(x_good)
-        rx_bad = self.ranking_branch(x_bad)
+        rx_good = self.ranking_branch_good(x_good)
+        rx_bad = self.ranking_branch_bad(x_bad)
 
         # (B*L, C, H=1, W=1) -> (B*L, C)
         rx_good = rx_good.squeeze()
         rx_bad = rx_bad.squeeze()
 
         # (B*L, C) -> (B*L, C=1)
-        rx_good = self.new_fc(rx_good)
-        rx_bad = self.new_fc(rx_bad)
+        rx_good = self.new_fc_good(rx_good)
+        rx_bad = self.new_fc_bad(rx_bad)
         rx_good = self.Tanh(rx_good)
         rx_bad = self.Tanh(rx_bad)
 
@@ -150,9 +152,11 @@ class APR_TCN(nn.Module):
         super(APR_TCN, self).__init__()
         self.base_model, block, layers, base_out_channel, rb_out_channel = get_resnet()
         self.attention_branch = AttentionBranch(block, layers)
-        self.ranking_branch = RankingBranch(block, layers, base_out_channel)
+        self.ranking_branch_good = RankingBranch(block, layers, base_out_channel)
+        self.ranking_branch_bad = RankingBranch(block, layers, base_out_channel)
         self.tcn = TemporalConvNet(rb_out_channel, hidden_channels, kernel_size, dropout)
-        self.new_fc = nn.Linear(hidden_channels[-1], 1)
+        self.new_fc_good = nn.Linear(hidden_channels[-1], 1)
+        self.new_fc_bad = nn.Linear(hidden_channels[-1], 1)
         self.Tanh = nn.Tanh()
 
     def forward(self, x):
@@ -173,8 +177,8 @@ class APR_TCN(nn.Module):
             x_bad = x
 
         # (B*L, C, H=14, W=14) -> (B*L, C, H=1, W=1)
-        rx_good = self.ranking_branch(x_good)
-        rx_bad = self.ranking_branch(x_bad)
+        rx_good = self.ranking_branch_good(x_good)
+        rx_bad = self.ranking_branch_bad(x_bad)
 
         # (B*L, C, H=1, W=1) -> (B, L, C)
         rx_good = rx_good.view(batch_size, n_frame, -1)
@@ -196,8 +200,8 @@ class APR_TCN(nn.Module):
         rx_bad = rx_bad.reshape(batch_size * n_frame, -1)
 
         # (B*L, C) -> (B*L, C=1)
-        rx_good = self.new_fc(rx_good)
-        rx_bad = self.new_fc(rx_bad)
+        rx_good = self.new_fc_good(rx_good)
+        rx_bad = self.new_fc_bad(rx_bad)
 
         # (B*L, C=1) -> (B, L)
         rx_good = rx_good.view(batch_size, n_frame)
@@ -219,8 +223,10 @@ class TCN_APR(nn.Module):
         hidden_channels[-1] = base_out_channel
         self.tcn = TemporalConvNet(base_out_channel, hidden_channels, kernel_size, dropout)
         self.attention_branch = AttentionBranch(block, layers)
-        self.ranking_branch = RankingBranch(block, layers, base_out_channel)
-        self.new_fc = nn.Linear(rb_out_channel, 1)
+        self.ranking_branch_good = RankingBranch(block, layers, base_out_channel)
+        self.ranking_branch_bad = RankingBranch(block, layers, base_out_channel)
+        self.new_fc_good = nn.Linear(rb_out_channel, 1)
+        self.new_fc_bad = nn.Linear(rb_out_channel, 1)
         self.Tanh = nn.Tanh()
 
     def forward(self, x):
@@ -263,16 +269,16 @@ class TCN_APR(nn.Module):
             x_bad = x
 
         # (B*L, C_in, H=14, W=14) -> (B*L, C_out, H=1, W=1)
-        rx_good = self.ranking_branch(x_good)
-        rx_bad = self.ranking_branch(x_bad)
+        rx_good = self.ranking_branch_good(x_good)
+        rx_bad = self.ranking_branch_bad(x_bad)
 
         # (B*L, C, H=1, W=1) -> (B*L, C)
         rx_good = rx_good.squeeze()
         rx_bad = rx_bad.squeeze()
 
         # (B*L, C_in) -> (B*L, C_out=1)
-        rx_good = self.new_fc(rx_good)
-        rx_bad = self.new_fc(rx_bad)
+        rx_good = self.new_fc_good(rx_good)
+        rx_bad = self.new_fc_bad(rx_bad)
         rx_good = self.Tanh(rx_good)
         rx_bad = self.Tanh(rx_bad)
 
