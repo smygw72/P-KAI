@@ -1,5 +1,6 @@
 # copy from https://medium.com/@hasithsura/audio-classification-d37a82d6715
 import os
+import warnings
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -33,31 +34,15 @@ def augment_noise():
     pass  # TODO
 
 
-def get_melspectrogram_db(file_path,
-                          offset=0,
-                          duration=None,
-                          sr=None,
-                          n_fft=2048,
-                          hop_length=512,
-                          n_mels=128,
-                          fmin=20,
-                          fmax=8300,
-                          top_db=80):
+def get_melspectrogram_db(
+    file_path, offset=0, duration=None, sr=None, n_fft=2048,
+    hop_length=512, n_mels=128, fmin=20, fmax=8300, top_db=80):
 
-    wav, sr = librosa.load(file_path, sr=sr, offset=offset, duration=duration)
-    if wav.shape[0] < 5 * sr:
-        wav = np.pad(wav,
-                     int(np.ceil((5 * sr - wav.shape[0]) / 2)),
-                     mode='reflect')
-    else:
-        wav = wav[:5 * sr]
-    spec = librosa.feature.melspectrogram(wav,
-                                          sr=sr,
-                                          n_fft=n_fft,
-                                          hop_length=hop_length,
-                                          n_mels=n_mels,
-                                          fmin=fmin,
-                                          fmax=fmax)
+    wav, sr = librosa.load(file_path, offset=offset, duration=duration)
+
+    spec = librosa.feature.melspectrogram(
+        wav, sr=sr, n_fft=n_fft, hop_length=hop_length,
+        n_mels=n_mels, fmin=fmin, fmax=fmax)
     spec_db = librosa.power_to_db(spec, top_db=top_db)
     return spec_db
 
@@ -72,10 +57,12 @@ def spec_to_image(spec, eps=1e-6):
     return spec_scaled
 
 
-def main() -> None:
+def main():
     ids, lengths = get_info()
+    warnings.filterwarnings('ignore')
 
     for (id, length) in zip(ids, lengths):
+        print(f'ID: {id}')
         sound_file_path = f'../dataset/sounds/{id}.mp3'
         output_dir = f'../dataset/mfcc/{id}'
         os.makedirs(output_dir, exist_ok=True)
