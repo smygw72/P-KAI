@@ -5,7 +5,7 @@ from config.config import CONFIG
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 softplus = nn.Softplus()
-
+arch = CONFIG.model.architecture
 
 def _split_dif_sim(outs, label_sim):
     outs_dif = outs.copy()
@@ -17,7 +17,7 @@ def _split_dif_sim(outs, label_sim):
     return outs_dif, outs_sim
 
 
-def _mean_scores(outs):
+def mean_scores(outs):
     for i in [0, 1, 3, 4]:  # {rx/ax}_{good/bad}
         if outs[i] is not None:
           outs[i] = torch.mean(outs[i], dim=1)
@@ -55,19 +55,17 @@ def _APR_loss(sup_outs_dif, sup_outs_sim, inf_outs_dif, inf_outs_sim):
     return dif_loss, sim_loss
 
 
-def _PDR_acc(sup_outs_dif, sup_outs_sim, inf_outs_dif, inf_outs_sim):
-    dif_acc = _get_dif_acc(sup_outs_dif[0], inf_outs_dif[0])
-    sim_acc = _get_sim_acc(sup_outs_sim[0], inf_outs_sim[0])
-    return dif_acc, sim_acc
-
-
-def _APR_acc(sup_outs_dif, sup_outs_sim, inf_outs_dif, inf_outs_sim):
-    if CONFIG.model.disable_bad is False: # Equation (4) in APR paper.
-        dif_acc = _get_dif_acc(sup_outs_dif[0], inf_outs_dif[3])
-        sim_acc = _get_sim_acc(sup_outs_sim[0], inf_outs_sim[3])
+def _get_acc(sup_outs_dif, sup_outs_sim, inf_outs_dif, inf_outs_sim):
+    if (arch == 'PDR') or (CONFIG.model.disable_bad is True):
+        sup_score = sup_outs_dif[0]
+        inf_score = inf_outs_dif[0]
     else:
-        dif_acc = _get_dif_acc(sup_outs_dif[0], inf_outs_dif[0])
-        sim_acc = _get_sim_acc(sup_outs_sim[0], inf_outs_sim[0])
+        sup_score = sup_outs_dif[0] - sup_outs_dif[3]
+        inf_score = inf_outs_dif[0] - inf_outs_dif[3]
+
+    dif_acc = _get_dif_acc(sup_score, inf_score)
+    sim_acc = _get_sim_acc(sup_score, inf_score)
+
     return dif_acc, sim_acc
 
 
@@ -76,7 +74,8 @@ def _get_dif_loss(dif1, dif2):
         return torch.zeros(1).to(device)
     if CONFIG.learning.loss.method == 'marginal_loss':
         loss = CONFIG.learning.loss.margin - dif1 + dif2
-        loss *= torch.gt(loss, torch.zeros_like(loss))
+        is_positive = torch.gt(loss, 0.0)
+        loss = loss * is_positive
     elif CONFIG.learning.loss.method == 'softplus':
         loss = softplus(-dif1 + dif2)
     loss_avg = torch.mean(loss)
@@ -87,7 +86,8 @@ def _get_sim_loss(sim1, sim2):
     if len(sim1) == 0:
         return torch.zeros(1).to(device)
     loss = torch.abs(sim1 - sim2) - CONFIG.learning.loss.margin
-    loss *= torch.gt(loss, torch.zeros_like(loss))
+    is_positive = torch.gt(loss, 0.0)
+    loss = loss * is_positive
     loss_avg = torch.mean(loss)
     return loss_avg
 
@@ -124,14 +124,13 @@ def get_metrics(sup_outs, inf_outs, label_sim):
     total_loss = dif_loss + sim_loss
 
     # average frame-by-frame scores for each video
-    sup_outs_dif = _mean_scores(sup_outs_dif)
-    inf_outs_dif = _mean_scores(inf_outs_dif)
-    sup_outs_sim = _mean_scores(sup_outs_sim)
-    inf_outs_sim = _mean_scores(inf_outs_sim)
+    sup_outs_dif = mean_scores(sup_outs_dif)
+    inf_outs_dif = mean_scores(inf_outs_dif)
+    sup_outs_sim = mean_scores(sup_outs_sim)
+    inf_outs_sim = mean_scores(inf_outs_sim)
 
     # accuracy
-    acc_func = _PDR_acc if arch == 'PDR' else _APR_acc
-    dif_acc, sim_acc = acc_func(sup_outs_dif, sup_outs_sim, inf_outs_dif, inf_outs_sim)
+    dif_acc, sim_acc = _get_acc(sup_outs_dif, sup_outs_sim, inf_outs_dif, inf_outs_sim)
     total_acc = (dif_size * dif_acc + sim_size * sim_acc) / total_size
 
     meters = {
