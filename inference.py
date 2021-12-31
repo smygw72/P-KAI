@@ -14,6 +14,7 @@ from config.config import CONFIG
 from preprocessing.make_mfcc import spec_to_image, get_melspectrogram_db
 from src.pool import Pool
 from src.network.interface import get_model
+from src.metric import mean_scores
 from src.utils import set_seed
 
 # global variables
@@ -28,53 +29,65 @@ def mutagen_length(path):
     return length
 
 
-def cpu_inference(i):
-    start_segment = i * CONFIG.inference.window_wid
+def get_mfcc(i):
+    start_segment = i * CONFIG.data.mfcc_window
     spec = get_melspectrogram_db(
         sound_path,
         offset=start_segment,
-        duration=CONFIG.inference.window_wid
+        duration=CONFIG.data.mfcc_window
     )
-    input_arr = spec_to_image(spec)
-    input_tensor = torch.from_numpy(input_arr).float()
-    input_tensor = input_tensor.unsqueeze(0).unsqueeze(0)
-
+    mfcc = spec_to_image(spec)
+    mfcc = torch.from_numpy(mfcc).float()
+    mfcc = mfcc.unsqueeze(0).unsqueeze(0)
     transform = transforms.Compose([
         transforms.Resize(
             (CONFIG.data.img_size, CONFIG.data.img_size)),
     ])
+    mfcc = transform(mfcc)
+    return mfcc
 
-    input_tensor = transform(input_tensor)
+
+def cpu_inference(i):
+    mfcc = get_mfcc(i)
     with torch.no_grad():
-        score = model(input_tensor.to(device)).to('cpu').item()
+        outs = model(mfccs).detach()
+        outs = mean_scores(outs)
+        if CONFIG.model.architecture != 'PDR':
+            score = outs[0] - outs[3]
+            visualize_attention(outs)
+        else:
+            score = outs[0]
+
     return score
 
 
 def gpu_inference(n_mfcc):
-    inputs = torch.Tensor()
-    outputs = torch.Tensor()
-
+    mfccs = torch.Tensor()
     for i in tqdm(range(n_mfcc)):
-        start_segment = i * CONFIG.inference.window_wid
+        mfcc = get_mfcc(i)
+        mfccs = torch.cat([mfccs, mfcc], dim=0)
 
-        spec = get_melspectrogram_db(sound_path,
-                                     offset=start_segment,
-                                     duration=CONFIG.inference.window_wid)
-        input_arr = spec_to_image(spec)
-        input_tensor = torch.from_numpy(input_arr)  # 2D tensor
-        input_tensor = input_tensor.unsqueeze(0).unsqueeze(0)
-        transform = transforms.Compose([
-            transforms.Resize(
-                (CONFIG.data.img_size, CONFIG.data.img_size)),
-        ])
-        input_tensor = transform(input_tensor)
-        inputs = torch.cat([inputs, input_tensor], dim=0)
+    dataset = torch.utils.TensorDataset(mfccs)
+    dataloader = DataLoader(
+        dataset,
+        batch_size=CONFIG.inference.batch_size,
+        shuffle=False,
+        num_workers=CONFIG.inference.n_worker,
+        pin_memory=True
+    )
 
-        if (len(inputs) == CONFIG.inference.batch_size) or (i == n_mfcc - 1):
-            inputs = inputs.to(device)
-            output = model(inputs).detach().to('cpu')
-            outputs = torch.cat([outputs, output], dim=0)
-            inputs = torch.Tensor()  # make empty
+    scores = torch.Tensor()
+    with torch.no_grad():
+        for mfcc in dataloader:
+            outs = model(mfccs.to(device)).detach().to('cpu')
+            outs = mean_scores(outs)
+            if CONFIG.model.architecture != 'PDR':
+                score = outs[0] - outs[3]
+                visualize_attention(outs)
+            else:
+                score = outs[0]
+            scores = torch.cat([scores, score], dim=0)
+
     return outputs.squeeze().tolist()
 
 
@@ -99,7 +112,7 @@ def main(path=None) -> float:
     model.load_state_dict(torch.load(model_path))
     model.eval()
 
-    n_mfcc = int(length / CONFIG.inference.window_wid)
+    n_mfcc = int(length / CONFIG.data.mfcc_window)
     if device == torch.device('cpu'):
         # parallel learning
         if CONFIG.inference.enable_multiproc is True:
@@ -129,6 +142,11 @@ def main(path=None) -> float:
     sec_per_frame = (end_time - start_time) / n_mfcc
     print(f"elapsed time: {sec_per_frame}")
     return score_avg
+
+
+def visualize_attention(outs):
+    att_good, att_bad = outs[2], outs[5]
+    # TODO
 
 
 if __name__ == "__main__":
