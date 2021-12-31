@@ -74,7 +74,7 @@ def _get_dif_loss(dif1, dif2):
         return torch.zeros(1).to(device)
     if CONFIG.learning.loss.method == 'marginal_loss':
         loss = CONFIG.learning.loss.margin - dif1 + dif2
-        is_positive = torch.gt(loss, 0.0)
+        is_positive = torch.gt(loss, 0.0).float()
         loss = loss * is_positive
     elif CONFIG.learning.loss.method == 'softplus':
         loss = softplus(-dif1 + dif2)
@@ -86,8 +86,8 @@ def _get_sim_loss(sim1, sim2):
     if len(sim1) == 0:
         return torch.zeros(1).to(device)
     loss = torch.abs(sim1 - sim2) - CONFIG.learning.loss.margin
-    is_positive = torch.gt(loss, 0.0)
-    loss = loss * is_positive
+    is_positive = torch.gt(loss, 0.0).float()
+    loss = loss * is_positive.float()
     loss_avg = torch.mean(loss)
     return loss_avg
 
