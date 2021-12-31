@@ -43,7 +43,6 @@ learning:
 inference:
   batch_size        : 16
   n_worker          : 2
-  window_wid        : 2
   log:
     save            : False
     dir             : ./inference_logs

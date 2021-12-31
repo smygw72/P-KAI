@@ -12,7 +12,6 @@ model:
     kernel_size     : 4
     dropout         : 0.05
 
-
 data:
   target            : psa
   img_size          : 224
@@ -43,7 +42,6 @@ learning:
 inference:
   batch_size        : 16
   n_worker          : 2
-  window_wid        : 2
   log:
     save            : False
     dir             : ./inference_logs
