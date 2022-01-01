@@ -1,11 +1,8 @@
 .vscode/
 learning_logs
 inference_logs
-models
 cloudflared
 *.tgz
-mlruns
-outputs
 
 ## Python
 # Byte-compiled / optimized / DLL files
