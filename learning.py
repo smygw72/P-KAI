@@ -50,8 +50,8 @@ def train(model, train_loader, optimizer, av_meters):
 
     # Save previous model/optimizer for avoiding NaN loss/parameter
     # https://qiita.com/syoamakase/items/a9b3146e09f9fcafbb66
-    prev_model = model
-    prev_optimizer = optimizer
+    prev_model = model.state_dict()
+    prev_optimizer = optimizer.state_dict()
 
     model.train()
     for minibatch in tqdm(train_loader):
@@ -60,11 +60,11 @@ def train(model, train_loader, optimizer, av_meters):
 
         meters, sizes = get_metrics(sup_outs, inf_outs, label_sim)
         if torch.isnan(meters['total_loss']):
-            model = prev_model
+            model.load_state_dict(prev_model)
             optimizer = init_optimizer(model)
-            optimizer.load_state_dict(prev_optimizer.state_dict())
-        prev_model = copy.deepcopy(model)
-        prev_optimizer = copy.deepcopy(optimizer)
+            optimizer.load_state_dict(prev_optimizer)
+        prev_model = copy.deepcopy(model.state_dict())
+        prev_optimizer = copy.deepcopy(optimizer.state_dict())
         optimizer.zero_grad()
         scaler.scale(meters['total_loss']).backward()
 
