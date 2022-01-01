@@ -12,7 +12,6 @@ model:
     kernel_size     : 4
     dropout         : 0.05
 
-
 data:
   target            : elise
   img_size          : 224
@@ -34,6 +33,7 @@ learning:
   optimizer:
     algorithm       : 'Adam'
     initial_lr      : 0.1
+  clip_gradient     : 1.0
   save_ths          : 3
   use_amp           : True
   evaluate_dataset  : False
