@@ -13,7 +13,7 @@ model:
     dropout         : 0.05
 
 data:
-  target            : psa
+  target            : elise
   img_size          : 224
   mfcc_window       : 0.5
 
@@ -34,15 +34,15 @@ learning:
     algorithm       : 'Adam'
     initial_lr      : 0.1
   save_ths          : 3
-  log:
-    save            : True
-    dir             : ./learning_logs
   use_amp           : True
+  evaluate_dataset  : False
+  resume:
+    enable          : False
+    log_dir         : './learning_logs/psa/PDR/12-31-21-19-26'
 
 inference:
   batch_size        : 16
   n_worker          : 2
-  log:
-    save            : False
-    dir             : ./inference_logs
+  save_log          : False
   enable_multiproc  : False
+  model_dir         : './learning_logs/psa/PDR/12-31-21-19-26'
