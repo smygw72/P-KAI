@@ -123,8 +123,8 @@ def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float
         state_dict_path = f'{log_dir}/state_dict.pt'    # 学習結果評価時
     checkpoint = torch.load(state_dict_path)
     model.load_state_dict(checkpoint['best_model'])
-    print(f'Best epoch: {checkpoint['best_epoch']}')
-    print(f'Best loss : {checkpoint['best_loss']}')
+    print(f'Best epoch: {checkpoint["best_epoch"]}')
+    print(f'Best loss : {checkpoint["best_loss"]}')
     model.eval()
 
     n_mfcc = int(length / CONFIG.data.mfcc_window)
