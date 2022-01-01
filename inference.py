@@ -13,13 +13,13 @@ from torch.utils.tensorboard import SummaryWriter
 from config.config import CONFIG
 from preprocessing.make_mfcc import spec_to_image, get_melspectrogram_db
 from src.pool import Pool
-from src.network.interface import get_model
+from src.network.model import get_model
 from src.metric import mean_scores
 from src.utils import set_seed
 
 # global variables
 model = None
-sound_path = None
+file_path = None
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 
@@ -32,7 +32,7 @@ def mutagen_length(path):
 def get_mfcc(i):
     start_segment = i * CONFIG.data.mfcc_window
     spec = get_melspectrogram_db(
-        sound_path,
+        file_path,
         offset=start_segment,
         duration=CONFIG.data.mfcc_window
     )
@@ -91,25 +91,40 @@ def gpu_inference(n_mfcc):
     return outputs.squeeze().tolist()
 
 
-def main(path=None) -> float:
+def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float:
 
     start_time = time.time()
     warnings.filterwarnings('ignore')
     set_seed(CONFIG.seed)
 
-    global sound_path
-    if path is None:
-        sound_path = './misc/test.mp3'
+    if learning_log_dir is None:
+        utc_now = datetime.now(timezone('UTC'))
+        jst_now = utc_now.astimezone(timezone('Asia/Tokyo'))
+        timestamp = datetime.strftime(jst_now, '%m-%d-%H-%M-%S')
+        log_dir = f'./inference_logs/{timestamp}'
     else:
-        sound_path = path
+        log_dir = learning_log_dir
 
-    file_name = os.path.splitext(os.path.basename(sound_path))[0]
-    length = mutagen_length(sound_path)
+    global file_path
+    if file_path is None:
+        file_path = './misc/test.mp3'
+    else:
+        file_path = sound_path
+
+    file_name = os.path.splitext(os.path.basename(file_path))[0]
+    length = mutagen_length(file_path)
 
     global model
     model = get_model().to(device)
-    model_path = f'./model/model.pth'
-    model.load_state_dict(torch.load(model_path))
+
+    if learning_log_dir is None:
+        state_dict_path = f'{CONFIG.inference.model_dir}/state_dict.pt'       # lambda運用時
+    else:
+        state_dict_path = f'{log_dir}/state_dict.pt'    # 学習結果評価時
+    checkpoint = torch.load(state_dict_path)
+    model.load_state_dict(checkpoint['best_model'])
+    print(f'Best epoch: {checkpoint['best_epoch']}')
+    print(f'Best loss : {checkpoint['best_loss']}')
     model.eval()
 
     n_mfcc = int(length / CONFIG.data.mfcc_window)
@@ -126,11 +141,10 @@ def main(path=None) -> float:
                 outputs.append(cpu_inference(i))
 
     elif device == torch.device('cuda'):
-        # batch processing
         outputs = gpu_inference(n_mfcc)
 
-    if CONFIG.inference.log.save is True:
-        writer = SummaryWriter(f'{CONFIG.inference.log.dir}/{file_name}')
+    if CONFIG.inference.save_log is True:
+        writer = SummaryWriter(f'{log_dir}/{train_or_test}/{file_name}')
         for i in range(len(outputs)):
             writer.add_scalar("timeline", outputs[i], i)
         writer.close()
