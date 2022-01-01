@@ -3,5 +3,4 @@ youtube-dl
 mutagen
 torchlibrosa
 hydra-core
-mlflow
 torchlibrosa
