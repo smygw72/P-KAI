@@ -5,6 +5,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
+from src.utils import seed_worker
 from config.config import CONFIG
 
 
@@ -114,11 +115,13 @@ def get_dataloader(train_or_test):
         dataset = PairDataSet('test')
         shuffle = False
 
-    data_loader = DataLoader(
+    dataloader = DataLoader(
         dataset,
         batch_size=CONFIG.learning.batch_size,
         shuffle=shuffle,
         num_workers=CONFIG.learning.n_worker,
+        worker_init_fn=seed_worker,
         pin_memory=True
     )
-    return data_loader
+    return dataloader
+
