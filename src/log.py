@@ -34,7 +34,7 @@ def update_av_meters(av_meters, meters, sizes):
     av_meters['total_acc'].update(meters['total_acc'].item(), total_size)
 
 
-def update_writers(tb_writer, ml_writer, av_meters, train_or_test, epoch):
+def update_writers(tb_writer, av_meters, train_or_test, epoch):
 
     def add(key, value):
         tb_writer.add_scalar(key, value, epoch)
