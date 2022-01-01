@@ -96,7 +96,6 @@ def main():
     set_seed(CONFIG.seed)
     # torch.autograd.set_detect_anomaly(True)
 
-    # timestamp
     global log_dir
     utc_now = datetime.now(timezone('UTC'))
     jst_now = utc_now.astimezone(timezone('Asia/Tokyo'))
@@ -173,9 +172,16 @@ def init_optimizer(model, initial_lr=None):
     if optimizer_algorithm == 'Adam':
         # eps needs to be set for stability
         # https://discuss.pytorch.org/t/adam-optimizer-fp16-autocast/101814
-        optimizer = optim.Adam(model.parameters(), lr=initial_lr, eps=1e-4)
+        if initial_lr is not None:
+            optimizer = optim.Adam(model.parameters(), lr=initial_lr, eps=1e-4)
+        else:
+            optimizer = optim.Adam(model.parameters())
     elif optimizer_algorithm == 'SGD':
-        optimizer = optim.SGD(model.parameters(), lr=initial_lr)
+        if initial_lr is not None:
+            optimizer = optim.SGD(model.parameters(), lr=initial_lr)
+        else:
+            optimizer = optim.SGD(model.parameters())
+
     return optimizer
 
 
