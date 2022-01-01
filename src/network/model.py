@@ -12,7 +12,6 @@ arch = CONFIG.model.architecture
 base_model = CONFIG.model.base
 pretrained = CONFIG.model.pretrained
 
-batch_size = CONFIG.learning.batch_size
 n_frame = CONFIG.learning.sampling.n_frame
 
 # TCN argument
@@ -79,6 +78,7 @@ class PDR(nn.Module):
         self.Tanh = nn.Tanh()
 
     def forward(self, x):
+        batch_size = int(x.size(0) / n_frame)
         # (B*L, C=1, H=224, W=224) -> (B*L, C, H=14, W=14)
         x = self.base_model(x)
         # (B*L, C, H=14, W=14) -> (B*L, C, H=1, W=1)
@@ -87,7 +87,7 @@ class PDR(nn.Module):
         x = x.squeeze()
         # (B*L, C) -> (B*L, 1)
         x = self.new_fc(x)
-        x = self.Tanh(x)
+        # x = self.Tanh(x)
         # (B*L, C) -> (B, L)
         x = x.view(batch_size, n_frame)
         return [x, None, None, None, None, None]
@@ -106,6 +106,9 @@ class APR(nn.Module):
         self.Tanh = nn.Tanh()
 
     def forward(self, x):
+
+        batch_size = int(x.size(0) / n_frame)
+
         # (B*L, C=1, H=224, W=224) -> (B*L, C, H=14, W=14)
         x = self.base_model(x)
 
@@ -132,8 +135,8 @@ class APR(nn.Module):
         # (B*L, C) -> (B*L, C=1)
         rx_good = self.new_fc_good(rx_good)
         rx_bad = self.new_fc_bad(rx_bad)
-        rx_good = self.Tanh(rx_good)
-        rx_bad = self.Tanh(rx_bad)
+        # rx_good = self.Tanh(rx_good)
+        # rx_bad = self.Tanh(rx_bad)
 
         # (B*L, C=1) -> (B, L)
         rx_good = rx_good.view(batch_size, n_frame)
@@ -161,6 +164,9 @@ class APR_TCN(nn.Module):
         self.Tanh = nn.Tanh()
 
     def forward(self, x):
+
+        batch_size = int(x.size(0) / n_frame)
+
         # (B*L, C_in=1, H=224, W=224) -> (B*L, C_out, H=14, W=14)
         x = self.base_model(x)
 
@@ -231,6 +237,9 @@ class TCN_APR(nn.Module):
         self.Tanh = nn.Tanh()
 
     def forward(self, x):
+
+        batch_size = int(x.size(0) / n_frame)
+
         # (B*L, C_in=1, H=224, W=224) -> (B*L, C_out, H=14, W=14)
         x = self.base_model(x)
 
@@ -280,8 +289,8 @@ class TCN_APR(nn.Module):
         # (B*L, C_in) -> (B*L, C_out=1)
         rx_good = self.new_fc_good(rx_good)
         rx_bad = self.new_fc_bad(rx_bad)
-        rx_good = self.Tanh(rx_good)
-        rx_bad = self.Tanh(rx_bad)
+        # rx_good = self.Tanh(rx_good)
+        # rx_bad = self.Tanh(rx_bad)
 
         # (B*L, C=1) -> (B, L)
         rx_good = rx_good.view(batch_size, n_frame)
