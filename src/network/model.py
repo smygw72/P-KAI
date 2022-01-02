@@ -21,7 +21,7 @@ n_unit = CONFIG.model.tcn.n_unit
 hidden_channels = [n_unit] * tcn_levels
 dropout = CONFIG.model.tcn.dropout
 
-def get_model():
+def _get_network():
     if arch == 'PDR':
         return PDR()
     elif arch == 'APR':
@@ -66,6 +66,29 @@ def get_resnet():
         1, 64, kernel_size=7, stride=2, padding=3, bias=False
     )
     return model, block, layers, base_out_channel, rb_out_channel
+
+
+class MyModel(nn.Module):
+    def __init__(self):
+        super(MyModel, self).__init__()
+        if arch == 'PDR':
+            self.network = PDR()
+        elif arch == 'APR':
+            self.network = APR()
+        elif arch == 'APR_TCN':
+            self.network = APR_TCN()
+        elif arch == 'TCN_APR':
+            self.network = TCN_APR()
+
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+
+    def forward(self, x):
+        return self.network(x)
 
 
 # Pairwise Deep Ranking

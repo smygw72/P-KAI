@@ -18,7 +18,7 @@ from src.data import get_dataloader
 from src.metric import get_metrics
 from src.log import AverageMeter, update_av_meters, update_writers
 from src.utils import set_seed
-from src.network.model import get_model
+from src.network.model import MyModel
 from config.config import CONFIG
 from eval_dataset import main as eval_dataset
 
@@ -94,7 +94,7 @@ def test(model, test_loader, av_meters):
 
 def main():
     set_seed(CONFIG.seed)
-    # torch.autograd.set_detect_anomaly(True)
+    torch.autograd.set_detect_anomaly(True)
 
     global log_dir
     utc_now = datetime.now(timezone('UTC'))
@@ -119,7 +119,7 @@ def main():
     train_loader = get_dataloader('train')
     test_loader = get_dataloader('test')
 
-    model = get_model()
+    model = MyModel()
     initial_lr = CONFIG.learning.optimizer.initial_lr
     optimizer = init_optimizer(model, initial_lr)
     scheduler = StepLR(optimizer, step_size=50, gamma=0.1)
