@@ -13,7 +13,7 @@ from torch.utils.tensorboard import SummaryWriter
 from config.config import CONFIG
 from preprocessing.make_mfcc import spec_to_image, get_melspectrogram_db
 from src.pool import Pool
-from src.network.model import get_model
+from src.network.model import MyModel
 from src.metric import mean_scores
 from src.utils import set_seed
 
@@ -115,7 +115,7 @@ def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float
     length = mutagen_length(file_path)
 
     global model
-    model = get_model().to(device)
+    model = MyModel().to(device)
 
     if learning_log_dir is None:
         state_dict_path = f'{CONFIG.inference.model_dir}/state_dict.pt'       # lambda運用時
