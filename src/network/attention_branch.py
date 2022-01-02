@@ -18,13 +18,6 @@ class SingleBranch(nn.Module):
         self.bn_att6 = nn.BatchNorm2d(block.channel_num)
         self.att_wgp = nn.Conv2d(block.channel_num, 1, kernel_size=14, padding=0, bias=False)
 
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-            elif isinstance(m, nn.BatchNorm2d):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
-                
     def forward(self, x):
         ax = self.relu(self.bn_att4(self.att_conv4(x)))
         ax = self.relu(self.bn_att6(self.att_conv6(ax)))
