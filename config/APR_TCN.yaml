@@ -8,12 +8,12 @@ model:
   disable_attention : False
   tcn:
     levels          : 2
-    n_unit          : 250
+    n_unit          : 256
     kernel_size     : 4
     dropout         : 0.05
 
 data:
-  target            : elise
+  target            : psa
   img_size          : 224
   mfcc_window       : 0.5
 
@@ -35,8 +35,11 @@ learning:
     initial_lr      : 0.1
   clip_gradient     : 1.0
   save_ths          : 3
-  use_amp           : True
+  use_amp           : False
   eval_dataset      : False
+  augmentation:
+    add_noise       : True
+    time_masking    : True
   resume:
     enable          : False
     log_dir         : './learning_logs/psa/PDR/12-31-21-19-26'
