@@ -4,9 +4,17 @@ from PIL import Image
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
+from torchaudio.transforms import TimeMasking
 
 from src.utils import seed_worker
 from config.config import CONFIG
+
+
+transform = transforms.Compose([
+    transforms.Resize(
+        (CONFIG.data.img_size, CONFIG.data.img_size)),
+    transforms.ToTensor(),
+])
 
 
 class PairRecord(object):
@@ -27,9 +35,10 @@ class PairRecord(object):
 
 
 class PairDataSet(Dataset):
-    def __init__(self, train_or_test):
+    def __init__(self, train_or_test, augment=False):
         self.train_or_test = train_or_test
         self.pair_list = []
+        self.augment = augment
         self._parse_list()
 
     def __len__(self):
@@ -51,8 +60,14 @@ class PairDataSet(Dataset):
             inf_id = record.id2
             label_sim = True
 
-        sup = sampling(sup_id)
-        inf = sampling(inf_id)
+        sup = _sampling(sup_id)
+        inf = _sampling(inf_id)
+
+        # data augmentation
+        if self.augment is True:
+            if CONFIG.learning.augmentation.time_masking is True:
+                sup = TimeMasking(sup)
+                inf = TimeMasking(inf)
 
         return sup, inf, label_sim
 
@@ -64,7 +79,7 @@ class PairDataSet(Dataset):
                 self.pair_list.append(record)
 
 
-def sampling(sound_id):
+def _sampling(sound_id):
     sound_dir = f'../dataset/mfcc/{sound_id}/'
     files = os.listdir(sound_dir)
     n_file = len(files)
@@ -83,36 +98,25 @@ def sampling(sound_id):
                 end_idx = n_file - 1
             idx = random.randint(start_idx, end_idx)
             path = f'{sound_dir}/{files[idx]}'
-            mfcc_tensor[i] = get_img(path)
+            mfcc_img = Image.open(path)
+            mfcc_tensor[i] = transform(mfcc_img)
     elif CONFIG.learning.sampling.method == 'dense':
         start_idx = random.randint(0, n_file - n_frame)
         for i in range(n_frame):
             idx = start_idx + i
             path = f'{sound_dir}/{files[idx]}'
-            mfcc_tensor[i] = get_img(path)
-
+            mfcc_img = Image.open(path)
+            mfcc_tensor[i] = transform(mfcc_img)
     return mfcc_tensor
-
-
-def get_img(path):
-    transform = transforms.Compose([
-        transforms.Resize(
-            (CONFIG.data.img_size, CONFIG.data.img_size)),
-        transforms.ToTensor(),
-    ])
-    img = Image.open(path)
-    img_tensor = transform(img)
-
-    return img_tensor
 
 
 def get_dataloader(train_or_test):
 
     if train_or_test == 'train':
-        dataset = PairDataSet('train')
+        dataset = PairDataSet('train', augment=False)
         shuffle = True
     else:
-        dataset = PairDataSet('test')
+        dataset = PairDataSet('test', augment=False)
         shuffle = False
 
     dataloader = DataLoader(
@@ -124,4 +128,3 @@ def get_dataloader(train_or_test):
         pin_memory=True
     )
     return dataloader
-
