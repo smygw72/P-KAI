@@ -147,31 +147,33 @@ class APR(nn.Module):
             x_good = x
             x_bad = x
 
+        # good network
         # (B*L, C, H=14, W=14) -> (B*L, C, H=1, W=1)
         rx_good = self.ranking_branch_good(x_good)
-        rx_bad = self.ranking_branch_bad(x_bad)
-
         # (B*L, C, H=1, W=1) -> (B*L, C)
         rx_good = rx_good.squeeze()
-        rx_bad = rx_bad.squeeze()
-
         # (B*L, C) -> (B*L, C=1)
         rx_good = self.new_fc_good(rx_good)
-        rx_bad = self.new_fc_bad(rx_bad)
         # rx_good = self.Tanh(rx_good)
-        # rx_bad = self.Tanh(rx_bad)
-
         # (B*L, C=1) -> (B, L)
         rx_good = rx_good.view(batch_size, n_frame)
-        rx_bad = rx_bad.view(batch_size, n_frame)
         ax_good = ax_good.view(batch_size, n_frame)
-        ax_bad = ax_bad.view(batch_size, n_frame)
-
         # (B*L, C=1, H=14, W=14) -> (B, L, C=1, H=14, W=14)
         att_good = att_good.view(batch_size, n_frame, 1, 14, 14)
-        att_bad = att_bad.view(batch_size, n_frame, 1, 14, 14)
 
-        return [rx_good, ax_good, att_good, rx_bad, ax_bad, att_bad]
+        # bad network
+        if CONFIG.model.disable_bad is False:
+            rx_bad = self.ranking_branch_bad(x_bad)
+            rx_bad = rx_bad.squeeze()
+            rx_bad = self.new_fc_bad(rx_bad)
+            # rx_bad = self.Tanh(rx_bad)
+            rx_bad = rx_bad.view(batch_size, n_frame)
+            ax_bad = ax_bad.view(batch_size, n_frame)
+            att_bad = att_bad.view(batch_size, n_frame, 1, 14, 14)
+            return [rx_good, ax_good, att_good, rx_bad, ax_bad, att_bad]
+        else:
+            return [rx_good, ax_good, att_good, None, None, None]
+
 
 # Our model #1
 class APR_TCN(nn.Module):
@@ -208,42 +210,38 @@ class APR_TCN(nn.Module):
 
         # (B*L, C, H=14, W=14) -> (B*L, C, H=1, W=1)
         rx_good = self.ranking_branch_good(x_good)
-        rx_bad = self.ranking_branch_bad(x_bad)
-
         # (B*L, C, H=1, W=1) -> (B, L, C)
         rx_good = rx_good.view(batch_size, n_frame, -1)
-        rx_bad = rx_bad.view(batch_size, n_frame, -1)
-
         # (B, L, C) -> (B, C, L)
         rx_good = rx_good.transpose(2, 1)
-        rx_bad = rx_bad.transpose(2, 1)
-
         rx_good = self.tcn(rx_good)
-        rx_bad = self.tcn(rx_bad)
-
         # (B, C, L) -> (B, L, C)
         rx_good = rx_good.transpose(2, 1)
-        rx_bad = rx_bad.transpose(2, 1)
-
         # (B, L, C) -> (B*L, C)
         rx_good = rx_good.reshape(batch_size * n_frame, -1)
-        rx_bad = rx_bad.reshape(batch_size * n_frame, -1)
-
         # (B*L, C) -> (B*L, C=1)
         rx_good = self.new_fc_good(rx_good)
-        rx_bad = self.new_fc_bad(rx_bad)
-
         # (B*L, C=1) -> (B, L)
         rx_good = rx_good.view(batch_size, n_frame)
-        rx_bad = rx_bad.view(batch_size, n_frame)
         ax_good = ax_good.view(batch_size, n_frame)
-        ax_bad = ax_bad.view(batch_size, n_frame)
-
         # (B*L, C=1, H=14, W=14) -> (B, L, C=1, H=14, W=14)
         att_good = att_good.view(batch_size, n_frame, 1, att_height, att_width)
-        att_bad = att_bad.view(batch_size, n_frame, 1, att_height, att_width)
 
-        return [rx_good, ax_good, att_good, rx_bad, ax_bad, att_bad]
+        # bad network
+        if CONFIG.model.disable_bad is False:
+            rx_bad = self.ranking_branch_bad(x_bad)
+            rx_bad = rx_bad.view(batch_size, n_frame, -1)
+            rx_bad = rx_bad.transpose(2, 1)
+            rx_bad = self.tcn(rx_bad)
+            rx_bad = rx_bad.transpose(2, 1)
+            rx_bad = rx_bad.reshape(batch_size * n_frame, -1)
+            rx_bad = self.new_fc_bad(rx_bad)
+            rx_bad = rx_bad.view(batch_size, n_frame)
+            ax_bad = ax_bad.view(batch_size, n_frame)
+            att_bad = att_bad.view(batch_size, n_frame, 1, att_height, att_width)
+            return [rx_good, ax_good, att_good, rx_bad, ax_bad, att_bad]
+        else:
+            return [rx_good, ax_good, att_good, None, None, None]
 
 # Our model #2
 class TCN_APR(nn.Module):

@@ -34,23 +34,19 @@ def _APR_loss(sup_outs_dif, sup_outs_sim, inf_outs_dif, inf_outs_sim):
 
     dif_loss_rx_good = _get_dif_loss(sup_outs_dif[0], inf_outs_dif[0])
     dif_loss_ax_good = _get_dif_loss(sup_outs_dif[1], inf_outs_dif[1])
-    dif_loss_rx_bad = _get_dif_loss(sup_outs_dif[3], inf_outs_dif[3])
-    dif_loss_ax_bad = _get_dif_loss(sup_outs_dif[4], inf_outs_dif[4])
-
-    if CONFIG.model.disable_bad is False:
-        dif_loss = dif_loss_rx_good + dif_loss_ax_good + dif_loss_rx_bad + dif_loss_ax_bad
-    elif CONFIG.model.disable_bad is True:
-        dif_loss = dif_loss_rx_good + dif_loss_ax_good
-
     sim_loss_rx_good = _get_sim_loss(sup_outs_sim[0], inf_outs_sim[0])
     sim_loss_ax_good = _get_sim_loss(sup_outs_sim[1], inf_outs_sim[1])
-    sim_loss_rx_bad = _get_sim_loss(sup_outs_sim[3], inf_outs_sim[3])
-    sim_loss_ax_bad = _get_sim_loss(sup_outs_sim[4], inf_outs_sim[4])
+
+    dif_loss = dif_loss_rx_good + dif_loss_ax_good
+    sim_loss = sim_loss_rx_good + sim_loss_ax_good
 
     if CONFIG.model.disable_bad is False:
-        sim_loss = sim_loss_rx_good + sim_loss_ax_good + sim_loss_rx_bad + sim_loss_ax_bad
-    elif CONFIG.model.disable_bad is True:
-        sim_loss = sim_loss_rx_good + sim_loss_ax_good
+        dif_loss_rx_bad = _get_dif_loss(sup_outs_dif[3], inf_outs_dif[3])
+        dif_loss_ax_bad = _get_dif_loss(sup_outs_dif[4], inf_outs_dif[4])
+        sim_loss_rx_bad = _get_sim_loss(sup_outs_sim[3], inf_outs_sim[3])
+        sim_loss_ax_bad = _get_sim_loss(sup_outs_sim[4], inf_outs_sim[4])
+        dif_loss = dif_loss + dif_loss_rx_bad + dif_loss_ax_bad
+        sim_loss = sim_loss + sim_loss_rx_bad + sim_loss_ax_bad
 
     return dif_loss, sim_loss
 
@@ -100,10 +96,10 @@ def _get_dif_acc(dif1, dif2):
 
 
 def _get_sim_acc(sim1, sim2):
-    if (len(sim1) == 0) or (CONFIG.learning.loss.enable_sim_loss is True):
+    if len(sim1) == 0:
         return torch.zeros(1).to(device)
     # TODO: similarity version
-    sim_acc = torch.mean(torch.zeros(1))
+    sim_acc = torch.zeros(1).to(device)
     return sim_acc
 
 
@@ -121,7 +117,10 @@ def get_metrics(sup_outs, inf_outs, label_sim):
     # loss
     loss_func = _PDR_loss if arch == 'PDR' else _APR_loss
     dif_loss, sim_loss = loss_func(sup_outs_dif, sup_outs_sim, inf_outs_dif, inf_outs_sim)
-    total_loss = dif_loss + sim_loss
+    if CONFIG.learning.loss.enable_sim_loss:
+        total_loss = dif_loss + sim_loss
+    else:
+        total_loss = dif_loss
 
     # average frame-by-frame scores for each video
     sup_outs_dif = mean_scores(sup_outs_dif)
