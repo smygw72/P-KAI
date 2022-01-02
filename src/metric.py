@@ -4,7 +4,7 @@ import torch.nn as nn
 from config.config import CONFIG
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-softplus = nn.Softplus()
+softplus = nn.Softplus(threshold=20)
 arch = CONFIG.model.architecture
 
 def _split_dif_sim(outs, label_sim):
@@ -131,7 +131,9 @@ def get_metrics(sup_outs, inf_outs, label_sim):
 
     # accuracy
     dif_acc, sim_acc = _get_acc(sup_outs_dif, sup_outs_sim, inf_outs_dif, inf_outs_sim)
-    total_acc = (dif_size * dif_acc + sim_size * sim_acc) / total_size
+    # TODO: sim_accを実装
+    total_acc = dif_acc
+    # total_acc = (dif_size * dif_acc + sim_size * sim_acc) / total_size
 
     meters = {
         'dif_loss': dif_loss,
