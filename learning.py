@@ -11,10 +11,11 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import StepLR
 from torch.cuda.amp import GradScaler, autocast
 from torch.utils.tensorboard import SummaryWriter
+import optuna
 
 from src.data import get_dataloader
 from src.metric import get_metrics
-from src.log import AverageMeter, update_av_meters, update_writers
+from src.log import AverageMeter, update_av_meters, update_writers, writer_hparams
 from src.utils import set_seed, get_timestamp
 from src.network.model import MyModel
 from config.config import CONFIG
@@ -118,7 +119,11 @@ def main(split_id, log_dir=None) -> float:
     model = MyModel()
     initial_lr = CONFIG.learning.optimizer.initial_lr
     optimizer = init_optimizer(model, initial_lr)
-    scheduler = StepLR(optimizer, step_size=50, gamma=0.1)
+    scheduler = StepLR(
+        optimizer,
+        step_size=CONFIG.learning.optimizer.decrease_epoch,
+        gamma=CONFIG.learning.optimizer.gamma
+    )
 
     state = {
         'best_loss': float('inf'),
@@ -160,6 +165,7 @@ def main(split_id, log_dir=None) -> float:
         scheduler.step()
         torch.save(state, f'{log_dir}/state_dict.pt')
 
+    write_hparams(tb_writer, state)
     tb_writer.close()
     if CONFIG.learning.eval_dataset:
         eval_dataset(log_dir)
@@ -196,16 +202,50 @@ def cross_validation():
             log_dir = f'{target_dir}/split_id={split_id}'
             csv_writer.writerow([main(split_id, log_dir)])
 
+def objective(trial):
+    # model
+    CONFIG.model.base = trial.suggest_categorical('base_arch', ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'])
+    if CONFIG.model.architecture != 'PDR':
+        CONFIG.model.disable_bad = trial.suggest_categorical('disable_bad', [False, True])
+    if CONFIG.model.architecture in ['APR_TCN', 'TCN_APR']:
+        CONFIG.model.tcn.levels = trial.suggest_int('tcn_levels', 1, 6)
+        CONFIG.model.tcn.kernel_size = trial.suggest_int('tcn_ksize', 1, 6)
+        CONFIG.model.tcn.n_unit = trial.suggest_int('tcn_n_unit', 16, 2048)
+        CONFIG.model.tcn.dropout = trial.suggest_float('tcn_dropout', 0.0, 1.0)
+    # data
+    # CONFIG.data.mfcc_window = trial.suggest_float('batch_size', 0.1, 3.0)
+    # learning
+    CONFIG.learning.batch_size = trial.suggest_int('batch_size', 1, 512)
+    # sampling
+    CONFIG.learning.sampling.method = trial.suggest_categorical('sampling', ['sparse', 'dense'])
+    CONFIG.learning.sampling.n_frame = trial.suggest_int('n_frame', 1, 256)
+    # loss
+    CONFIG.learning.loss.method = trial.suggest_categorical('loss', ['marginal_loss', 'softplus'])
+    CONFIG.learning.loss.enable_sim_loss = trial.suggest_categorical('enable_simloss', [False, True])
+    # optimizer
+    CONFIG.learning.optimizer.algorithm = trial.suggest_categorical('optimizer', ['SGD', 'Adam'])
+    CONFIG.learning.optimizer.initial_lr = trial.suggest_loguniform('initial_lr', 1e-5, 1e-1)
+    CONFIG.learning.optimizer.decrease_epoch = trial.suggest_int('decrease_epoch', 10, 100)
+    CONFIG.learning.optimizer.gamma = trial.suggest_float('gamma', 0.1, 1.0)
+    CONFIG.learning.clip_gradient = trial.suggest_float('clip_gradient', 0.5, 3.0)
+    # augmentation
+    # CONFIG.learning.augmentation.add_noise = trial.suggest_categorical('add_noise',[False, True])
+    CONFIG.learning.augmentation.time_masking = trial.suggest_categorical('time_masking',[False, True])
+
+    return main(split_id=0)
 
 def hyperparameter_tuning():
-    pass
-
+    study = optuna.create_study(direction="maximize")
+    study.optimize(objective, n_trials=10)
+    print(f"Best trial config: {study.best_params}")
+    print(f"Best trial value: {study.best_value}")
 
 if __name__ == "__main__":
     try:
         # uncomment desirable one
+        hyperparameter_tuning()
         # main(split_id=0)
-        cross_validation()
+        # cross_validation()
     except Exception as e:
         print(traceback.format_exc())
         shutil.rmtree(log_dir)
