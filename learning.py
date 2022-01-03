@@ -91,6 +91,7 @@ def test(model, test_loader, av_meters):
 
 
 def main(split_id, log_dir=None) -> float:
+    return 0
     set_seed(CONFIG.seed)
     torch.autograd.set_detect_anomaly(True)
 
@@ -189,9 +190,6 @@ def cross_validation():
         for split_id in split_ids:
             log_dir = f'{target_dir}/split_id={split_id}'
             csv_writer.writerow([main(split_id, log_dir)])
-
-    print(f"****Average of total accuracy on 3-fold cross validation: {acc_avg}****")
-
 
 
 def hyperparameter_tuning():
