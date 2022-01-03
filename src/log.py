@@ -1,3 +1,5 @@
+from config import CONFIG
+
 class AverageMeter(object):
     """Compute and stores the average and current value"""
 
@@ -45,3 +47,10 @@ def update_writers(tb_writer, av_meters, train_or_test, epoch):
     add(f'{train_or_test}/total_loss', av_meters['total_loss'].avg)
     add(f'{train_or_test}/dif_loss', av_meters['dif_loss'].avg)
     add(f'{train_or_test}/sim_loss', av_meters['sim_loss'].avg)
+
+
+def write_hparams(tb_writer, state):
+    metric= {
+        'best_acc': state['best_acc']
+    }
+    tb_writer.add_hparams(CONFIG, metric)
