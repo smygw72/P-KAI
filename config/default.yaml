@@ -24,7 +24,7 @@ learning:
   sampling:
     method          : dense # [dense, sparse]
     n_frame         : 16
-  epochs            : 300
+  epochs            : 200
   loss:
     method          : marginal_loss # [marginal_loss, softplus]
     margin          : 1.0
@@ -32,10 +32,12 @@ learning:
   optimizer:
     algorithm       : 'Adam'
     initial_lr      : 0.1
+    decrease_epoch  : 20
+    gamma           : 0.5
   clip_gradient     : 1.0
   save_ths          : 3
   use_amp           : False
-  eval_dataset      : True
+  eval_dataset      : False
   augmentation:
     add_noise       : True
     time_masking    : True
