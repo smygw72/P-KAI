@@ -77,9 +77,9 @@ class PairDataSet(Dataset):
 def _sampling(sound_id):
     sound_dir = f'../dataset/mfcc/{sound_id}/'
     files = os.listdir(sound_dir)
+    files.sort()
     n_file = len(files)
     n_frame = CONFIG.learning.sampling.n_frame
-    segment_len = int(n_file / n_frame)
 
     mfcc_tensor = torch.Tensor(
         n_frame, 1, CONFIG.data.img_size, CONFIG.data.img_size
@@ -92,10 +92,11 @@ def _sampling(sound_id):
     ])
 
     if CONFIG.learning.sampling.method == 'sparse':
+        segment_len = int(n_file / n_frame)
         for i in range(n_frame):
             start_idx = i * segment_len
             end_idx = (i + 1) * segment_len - 1
-            if i == (n_frame - 1):
+            if end_idx > (n_frame - 1):
                 end_idx = n_file - 1
             idx = random.randint(start_idx, end_idx)
             path = f'{sound_dir}/{files[idx]}'
