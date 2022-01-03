@@ -91,7 +91,6 @@ def test(model, test_loader, av_meters):
 
 
 def main(split_id, log_dir=None) -> float:
-    return 0
     set_seed(CONFIG.seed)
     torch.autograd.set_detect_anomaly(True)
 
