@@ -83,6 +83,7 @@ class PairDataSet(Dataset):
 def _sampling(sound_id):
     sound_dir = f'../dataset/mfcc/{sound_id}/'
     files = os.listdir(sound_dir)
+    files.sort()
     n_file = len(files)
     n_frame = CONFIG.learning.sampling.n_frame
     segment_len = int(n_file / n_frame)
