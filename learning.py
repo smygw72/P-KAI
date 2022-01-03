@@ -171,9 +171,15 @@ def init_optimizer(model, initial_lr=None):
     if optimizer_algorithm == 'Adam':
         # eps needs to be set for stability
         # https://discuss.pytorch.org/t/adam-optimizer-fp16-autocast/101814
-        optimizer = optim.Adam(model.parameters(), lr=initial_lr, eps=1e-4)
+        if initial_lr is None:
+            optimizer = optim.Adam(model.parameters())
+        else:
+            optimizer = optim.Adam(model.parameters(), lr=initial_lr, eps=1e-4)
     elif optimizer_algorithm == 'SGD':
-        optimizer = optim.SGD(model.parameters(), lr=initial_lr)
+        if initial_lr is None:
+            optimizer = optim.SGD(model.parameters())
+        else:
+            optimizer = optim.SGD(model.parameters(), lr=initial_lr)
     return optimizer
 
 
