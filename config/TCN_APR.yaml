@@ -19,6 +19,7 @@ data:
 
 learning:
   k_fold            : 3
+  cross_validation  : False
   batch_size        : 2
   n_worker          : 2
   sampling:
