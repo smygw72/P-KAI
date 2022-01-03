@@ -8,7 +8,10 @@ pkglist=(
 ms-python.python
 tabnine.tabnine-vscode
 njpwerner.autodocstring
-oderwat.indent-rainbow
+kevinrose.vsc-python-indent
+ms-ceintl.vscode-language-pack-ja
+sbsnippets.pytorch-snippets
+mosapride.zenkaku
 )
 for i in ${pkglist[@]}; do
   code --install-extension $i
