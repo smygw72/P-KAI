@@ -3,6 +3,7 @@ learning_logs
 inference_logs
 cloudflared
 *.tgz
+optuna
 
 ## Python
 # Byte-compiled / optimized / DLL files
