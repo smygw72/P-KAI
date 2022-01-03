@@ -57,27 +57,31 @@ def train(model, train_loader, optimizer, av_meters):
     prev_optimizer = optimizer.state_dict()
 
     model.train()
-    for minibatch in tqdm(train_loader):
+    for i, minibatch in enumerate(tqdm(train_loader)):
         sup_outs, inf_outs = inference(model, minibatch)
         label_sim = minibatch[2].to(device)
 
         meters, sizes = get_metrics(sup_outs, inf_outs, label_sim)
+
         if torch.isnan(meters['total_loss']):
             model.load_state_dict(prev_model)
             optimizer = init_optimizer(model)
             optimizer.load_state_dict(prev_optimizer)
-        prev_model = copy.deepcopy(model.state_dict())
-        prev_optimizer = copy.deepcopy(optimizer.state_dict())
-        optimizer.zero_grad()
-        scaler.scale(meters['total_loss']).backward()
+        else:
+            prev_model = copy.deepcopy(model.state_dict())
+            prev_optimizer = copy.deepcopy(optimizer.state_dict())
+            loss = meters['total_loss'] / CONFIG.learning.accumulate_epoch
+            scaler.scale(loss).backward()
 
-        # gradient clipping
-        # https://pytorch.org/docs/master/notes/amp_examples.html#gradient-clipping
-        scaler.unscale_(optimizer)
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=CONFIG.learning.clip_gradient)
-
-        scaler.step(optimizer)
-        scaler.update()
+        # Accumulated gradients
+        if (i + 1) % CONFIG.learning.accumulate_epoch == 0:
+            # gradient clipping
+            # https://pytorch.org/docs/master/notes/amp_examples.html#gradient-clipping
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=CONFIG.learning.clip_gradient)
+            scaler.step(optimizer)
+            scaler.update()
+            optimizer.zero_grad()
 
         update_av_meters(av_meters, meters, sizes)
 
@@ -218,7 +222,7 @@ def init_optimizer(model, initial_lr=None):
 
 def objective(trial):
     # model
-    CONFIG.model.base = trial.suggest_categorical('base_arch', ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'])
+    # CONFIG.model.base = trial.suggest_categorical('base_arch', ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'])
     if CONFIG.model.architecture != 'PDR':
         CONFIG.model.disable_bad = trial.suggest_categorical('disable_bad', [False, True])
     if CONFIG.model.architecture in ['APR_TCN', 'TCN_APR']:
@@ -229,10 +233,10 @@ def objective(trial):
     # data
     # CONFIG.data.mfcc_window = trial.suggest_float('batch_size', 0.1, 3.0) # TODO
     # learning
-    CONFIG.learning.batch_size = trial.suggest_int('batch_size', 1, 64)
+    # CONFIG.learning.batch_size = trial.suggest_int('batch_size', 1, 64)
     # sampling
     CONFIG.learning.sampling.method = trial.suggest_categorical('sampling', ['sparse', 'dense'])
-    CONFIG.learning.sampling.n_frame = trial.suggest_int('n_frame', 1, 32)
+    # CONFIG.learning.sampling.n_frame = trial.suggest_int('n_frame', 1, 32)
     # loss
     CONFIG.learning.loss.method = trial.suggest_categorical('loss', ['marginal_loss', 'softplus'])
     CONFIG.learning.loss.enable_sim_loss = trial.suggest_categorical('enable_simloss', [False, True])
@@ -241,6 +245,7 @@ def objective(trial):
     CONFIG.learning.optimizer.initial_lr = trial.suggest_loguniform('initial_lr', 1e-5, 1e-1)
     # CONFIG.learning.optimizer.decrease_epoch = trial.suggest_int('decrease_epoch', 10, 100)
     # CONFIG.learning.optimizer.gamma = trial.suggest_float('gamma', 0.1, 1.0)
+    CONFIG.learning.accumulate_epoch = trial.suggest_int('clip_gradient', 1, 16)
     # CONFIG.learning.clip_gradient = trial.suggest_float('clip_gradient', 0.5, 3.0)
     # augmentation
     # CONFIG.learning.augmentation.add_noise = trial.suggest_categorical('add_noise',[False, True]) # TODO

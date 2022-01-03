@@ -1,9 +1,9 @@
 seed                : 0
 
 model:
-  base              : resnet34
+  base              : resnet152
   pretrained        : True
-  architecture      : PDR        # [PDR, APR, APR_TCN, TCN_APR]
+  architecture      : PDR           # [PDR, APR, APR_TCN, TCN_APR]
   disable_bad       : False
   disable_attention : False
   tcn:
@@ -20,10 +20,10 @@ data:
 learning:
   k_fold            : 3
   cross_validation  : False
-  batch_size        : 64
+  batch_size        : 8
   n_worker          : 2
   sampling:
-    method          : sparse # [dense, sparse]
+    method          : sparse        # [dense, sparse]
     n_frame         : 3
   epochs            : 150
   loss:
@@ -35,6 +35,7 @@ learning:
     initial_lr      : 0.1
     decrease_epoch  : 80
     gamma           : 0.5
+  accumulate_epoch  : 16            # equlats to batch_size
   clip_gradient     : 1.0
   save_ths          : 3
   use_amp           : False
