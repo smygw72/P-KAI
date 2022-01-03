@@ -35,9 +35,10 @@ class PairRecord(object):
 
 
 class PairDataSet(Dataset):
-    def __init__(self, train_or_test, augment=False):
+    def __init__(self, train_or_test, split_id, augment=False):
         self.train_or_test = train_or_test
         self.pair_list = []
+        self.split_id = split_id
         self.augment = augment
         self._parse_list()
 
@@ -72,7 +73,7 @@ class PairDataSet(Dataset):
         return sup, inf, label_sim
 
     def _parse_list(self):
-        file_path = f'./annotation/{CONFIG.data.target}/{CONFIG.learning.split_id}/{self.train_or_test}_pair.csv'
+        file_path = f'./annotation/{CONFIG.data.target}/{self.split_id}/{self.train_or_test}_pair.csv'
         for row in open(file_path):
             record = PairRecord(row.strip().split(','))
             if record.label != 'X':
@@ -110,13 +111,13 @@ def _sampling(sound_id):
     return mfcc_tensor
 
 
-def get_dataloader(train_or_test):
+def get_dataloader(train_or_test, split_id):
 
     if train_or_test == 'train':
-        dataset = PairDataSet('train', augment=False)
+        dataset = PairDataSet('train', split_id, augment=False)
         shuffle = True
     else:
-        dataset = PairDataSet('test', augment=False)
+        dataset = PairDataSet('test', split_id, augment=False)
         shuffle = False
 
     dataloader = DataLoader(

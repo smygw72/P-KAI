@@ -1,4 +1,6 @@
 import random
+from datetime import datetime
+from pytz import timezone
 import numpy as np
 import torch
 
@@ -16,3 +18,10 @@ def seed_worker(worker_id):
     worker_seed = torch.initial_seed() % 2**32
     np.random.seed(worker_seed)
     random.seed(worker_seed)
+
+
+def get_timestamp():
+    utc_now = datetime.now(timezone('UTC'))
+    jst_now = utc_now.astimezone(timezone('Asia/Tokyo'))
+    timestamp = datetime.strftime(jst_now, '%m-%d-%H-%M-%S')
+    return timestamp

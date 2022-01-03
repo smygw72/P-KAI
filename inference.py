@@ -3,7 +3,6 @@ import warnings
 import random
 from multiprocessing import cpu_count  # Pool is restricted
 import time
-import numpy as np
 from tqdm import tqdm
 from mutagen.mp3 import MP3
 import torch
@@ -15,7 +14,7 @@ from preprocessing.make_mfcc import spec_to_image, get_melspectrogram_db
 from src.pool import Pool
 from src.network.model import MyModel
 from src.metric import mean_scores
-from src.utils import set_seed
+from src.utils import set_seed, get_timestamp
 
 # global variables
 model = None
@@ -98,9 +97,7 @@ def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float
     set_seed(CONFIG.seed)
 
     if learning_log_dir is None:
-        utc_now = datetime.now(timezone('UTC'))
-        jst_now = utc_now.astimezone(timezone('Asia/Tokyo'))
-        timestamp = datetime.strftime(jst_now, '%m-%d-%H-%M-%S')
+        timestamp = get_timestamp()
         log_dir = f'./inference_logs/{timestamp}'
     else:
         log_dir = learning_log_dir

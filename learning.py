@@ -1,11 +1,9 @@
 import os
 import copy
+import csv
 import shutil
 import traceback
 import random
-import numpy as np
-from pytz import timezone
-from datetime import datetime
 from tqdm import tqdm
 import hydra
 import torch
@@ -17,7 +15,7 @@ from torch.utils.tensorboard import SummaryWriter
 from src.data import get_dataloader
 from src.metric import get_metrics
 from src.log import AverageMeter, update_av_meters, update_writers
-from src.utils import set_seed
+from src.utils import set_seed, get_timestamp
 from src.network.model import MyModel
 from config.config import CONFIG
 from eval_dataset import main as eval_dataset
@@ -92,18 +90,16 @@ def test(model, test_loader, av_meters):
             update_av_meters(av_meters, meters, sizes)
 
 
-def main():
+def main(split_id, log_dir=None) -> float:
     set_seed(CONFIG.seed)
     torch.autograd.set_detect_anomaly(True)
 
-    global log_dir
-    utc_now = datetime.now(timezone('UTC'))
-    jst_now = utc_now.astimezone(timezone('Asia/Tokyo'))
-    timestamp = datetime.strftime(jst_now, '%m-%d-%H-%M-%S')
-    log_dir = f'./learning_logs/{CONFIG.data.target}/{CONFIG.model.architecture}/{timestamp}'
-    os.makedirs(log_dir, exist_ok=True)
-    shutil.copy(f'./config/{CONFIG.model.architecture}.yaml', log_dir)
-
+    if log_dir is None:
+        timestamp = get_timestamp()
+        target_dir = f'./learning_logs/{CONFIG.data.target}/{CONFIG.model.architecture}/{timestamp}'
+        os.makedirs(target_dir, exist_ok=True)
+        shutil.copy(f'./config/{CONFIG.model.architecture}.yaml', target_dir)
+        log_dir = f'{target_dir}/split_id={split_id}'
     tb_writer = SummaryWriter(log_dir)
 
     av_meters = {
@@ -116,8 +112,8 @@ def main():
     }
 
     # dataset
-    train_loader = get_dataloader('train')
-    test_loader = get_dataloader('test')
+    train_loader = get_dataloader('train', split_id)
+    test_loader = get_dataloader('test', split_id)
 
     model = MyModel()
     initial_lr = CONFIG.learning.optimizer.initial_lr
@@ -128,6 +124,7 @@ def main():
         'best_loss': float('inf'),
         'best_model': model.cpu().state_dict(),
         'best_epoch': 0,
+        'best_accuracy': 0,
         'latest_model': model.cpu().state_dict(),
         'latest_epoch': 0,
         'latest_optimizer': optimizer.state_dict()
@@ -154,6 +151,7 @@ def main():
                 state['best_epoch'] = epoch
                 state['best_loss'] = test_loss
                 state['best_model'] = model.cpu().state_dict()
+                state['best_accuracy'] = av_meters['total_acc'].avg
         else:
             count = 0
         state['latest_model'] = model.cpu().state_dict()
@@ -165,6 +163,7 @@ def main():
     tb_writer.close()
     if CONFIG.learning.eval_dataset:
         eval_dataset(log_dir)
+    return state['best_accuracy']
 
 
 def init_optimizer(model, initial_lr=None):
@@ -172,22 +171,38 @@ def init_optimizer(model, initial_lr=None):
     if optimizer_algorithm == 'Adam':
         # eps needs to be set for stability
         # https://discuss.pytorch.org/t/adam-optimizer-fp16-autocast/101814
-        if initial_lr is not None:
-            optimizer = optim.Adam(model.parameters(), lr=initial_lr, eps=1e-4)
-        else:
-            optimizer = optim.Adam(model.parameters())
+        optimizer = optim.Adam(model.parameters(), lr=initial_lr, eps=1e-4)
     elif optimizer_algorithm == 'SGD':
-        if initial_lr is not None:
-            optimizer = optim.SGD(model.parameters(), lr=initial_lr)
-        else:
-            optimizer = optim.SGD(model.parameters())
-
+        optimizer = optim.SGD(model.parameters(), lr=initial_lr)
     return optimizer
+
+
+def cross_validation():
+    timestamp = get_timestamp()
+    target_dir = f'./learning_logs/{CONFIG.data.target}/{CONFIG.model.architecture}/{timestamp}'
+    os.makedirs(target_dir, exist_ok=True)
+    shutil.copy(f'./config/{CONFIG.model.architecture}.yaml', target_dir)
+
+    with open(f'{target_dir}/result.csv', 'w', newline='') as file:
+        csv_writer = csv.writer(file)
+        split_ids = [0, 1, 2]
+        for split_id in split_ids:
+            log_dir = f'{target_dir}/split_id={split_id}'
+            csv_writer.writerow([main(split_id, log_dir)])
+
+    print(f"****Average of total accuracy on 3-fold cross validation: {acc_avg}****")
+
+
+
+def hyperparameter_tuning():
+    pass
 
 
 if __name__ == "__main__":
     try:
-        main()
+        # uncomment desirable one
+        # main(split_id=0)
+        cross_validation()
     except Exception as e:
         print(traceback.format_exc())
         shutil.rmtree(log_dir)
