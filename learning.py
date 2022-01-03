@@ -259,7 +259,7 @@ def hyperparameter_tuning():
     # NOTE: default sampler is TPE
     study = optuna.create_study(
         direction="maximize",
-        pruner=optuna.pruners.HyperbandPruner
+        pruner=optuna.pruners.HyperbandPruner(min_resource=10)
     )
 
     study.optimize(objective, n_trials=20, gc_after_trial=True)
