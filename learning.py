@@ -186,7 +186,7 @@ def main(trial=None) -> float:
 
             # pruning
             if trial is not None:
-                trial.report(state['best_epoch'])
+                trial.report(state['best_epoch'], epoch)
                 if trial.should_prune():
                     raise optuna.TrialPruned()
 
@@ -222,7 +222,7 @@ def init_optimizer(model, initial_lr=None):
 
 def objective(trial):
     # model
-    # CONFIG.model.base = trial.suggest_categorical('base_arch', ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'])
+    CONFIG.model.base = trial.suggest_categorical('base_arch', ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'])
     if CONFIG.model.architecture != 'PDR':
         CONFIG.model.disable_bad = trial.suggest_categorical('disable_bad', [False, True])
     if CONFIG.model.architecture in ['APR_TCN', 'TCN_APR']:
