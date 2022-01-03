@@ -1,7 +1,7 @@
 seed                : 0
 
 model:
-  base              : resnet18
+  base              : resnet34
   pretrained        : True
   architecture      : PDR        # [PDR, APR, APR_TCN, TCN_APR]
   disable_bad       : False
@@ -19,7 +19,6 @@ data:
 
 learning:
   k_fold            : 3
-  split_id          : 0
   batch_size        : 64
   n_worker          : 2
   sampling:

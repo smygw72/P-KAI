@@ -4,7 +4,7 @@ model:
   base              : resnet18
   pretrained        : True
   architecture      : APR_TCN        # [PDR, APR, APR_TCN, TCN_APR]
-  disable_bad       : False
+  disable_bad       : True
   disable_attention : False
   tcn:
     levels          : 2
@@ -19,7 +19,6 @@ data:
 
 learning:
   k_fold            : 3
-  split_id          : 0
   batch_size        : 8
   n_worker          : 2
   sampling:
