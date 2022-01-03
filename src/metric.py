@@ -5,7 +5,6 @@ from config.config import CONFIG
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 softplus = nn.Softplus(threshold=20)
-arch = CONFIG.model.architecture
 
 def _split_dif_sim(outs, label_sim):
     outs_dif = outs.copy()
@@ -52,6 +51,8 @@ def _APR_loss(sup_outs_dif, sup_outs_sim, inf_outs_dif, inf_outs_sim):
 
 
 def _get_acc(sup_outs_dif, sup_outs_sim, inf_outs_dif, inf_outs_sim):
+    arch = CONFIG.model.architecture
+
     if (arch == 'PDR') or (CONFIG.model.disable_bad is True):
         sup_score = sup_outs_dif[0]
         inf_score = inf_outs_dif[0]

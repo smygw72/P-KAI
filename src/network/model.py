@@ -8,20 +8,9 @@ from src.network.attention_branch import AttentionBranch
 from src.network.ranking_branch import RankingBranch
 from src.network.tcn import TemporalConvNet
 
-arch = CONFIG.model.architecture
-base_model = CONFIG.model.base
-pretrained = CONFIG.model.pretrained
-
-n_frame = CONFIG.learning.sampling.n_frame
-
-# TCN argument
-tcn_levels = CONFIG.model.tcn.levels
-kernel_size = CONFIG.model.tcn.kernel_size
-n_unit = CONFIG.model.tcn.n_unit
-hidden_channels = [n_unit] * tcn_levels
-dropout = CONFIG.model.tcn.dropout
 
 def _get_network():
+    arch = CONFIG.model.architecture
     if arch == 'PDR':
         return PDR()
     elif arch == 'APR':
@@ -32,31 +21,34 @@ def _get_network():
         return TCN_APR()
 
 def get_resnet():
-    if base_model == 'resnet18':
+    base = CONFIG.model.base
+    pretrained = CONFIG.model.pretrained
+
+    if base == 'resnet18':
         block = BasicBlock
         layers = [2, 2, 2, 2]
         model = resnet18(block, layers, pretrained)
         base_out_channel = 256
         rb_out_channel = 512
-    elif base_model == 'resnet34':
+    elif base == 'resnet34':
         block = BasicBlock
         layers = [3, 4, 6, 3]
         model = resnet34(block, layers, pretrained)
         base_out_channel = 256
         rb_out_channel = 512
-    elif base_model == 'resnet50':
+    elif base == 'resnet50':
         block = Bottleneck
         layers = [3, 4, 6, 3]
         model = resnet50(block, layers, pretrained)
         base_out_channel = 1024
         rb_out_channel = 2048
-    elif base_model == 'resnet101':
+    elif base == 'resnet101':
         block = Bottleneck
         layers = [3, 4, 23, 3]
         model = resnet101(block, layers, pretrained)
         base_out_channel = 1024
         rb_out_channel = 2048
-    elif base_model == 'resnet152':
+    elif base == 'resnet152':
         block = Bottleneck
         layers = [3, 8, 36, 3]
         model = resnet152(block, layers, pretrained)
@@ -71,14 +63,7 @@ def get_resnet():
 class MyModel(nn.Module):
     def __init__(self):
         super(MyModel, self).__init__()
-        if arch == 'PDR':
-            self.network = PDR()
-        elif arch == 'APR':
-            self.network = APR()
-        elif arch == 'APR_TCN':
-            self.network = APR_TCN()
-        elif arch == 'TCN_APR':
-            self.network = TCN_APR()
+        self.network = _get_network()
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -99,9 +84,10 @@ class PDR(nn.Module):
         self.ranking_branch = RankingBranch(block, layers, base_out_channel)
         self.new_fc = nn.Linear(512 * block.expansion, 1)
         self.Tanh = nn.Tanh()
+        self.n_frame = CONFIG.learning.sampling.n_frame
 
     def forward(self, x):
-        batch_size = int(x.size(0) / n_frame)
+        batch_size = int(x.size(0) / self.n_frame)
         # (B*L, C=1, H=224, W=224) -> (B*L, C, H=14, W=14)
         x = self.base_model(x)
         # (B*L, C, H=14, W=14) -> (B*L, C, H=1, W=1)
@@ -112,7 +98,7 @@ class PDR(nn.Module):
         x = self.new_fc(x)
         # x = self.Tanh(x)
         # (B*L, C) -> (B, L)
-        x = x.view(batch_size, n_frame)
+        x = x.view(batch_size, self.n_frame)
         return [x, None, None, None, None, None]
 
 # Attention Pairwiser Ranking
@@ -127,10 +113,11 @@ class APR(nn.Module):
         self.new_fc_good = nn.Linear(512 * block.expansion, 1)
         self.new_fc_bad = nn.Linear(512 * block.expansion, 1)
         self.Tanh = nn.Tanh()
+        self.n_frame = CONFIG.learning.sampling.n_frame
 
     def forward(self, x):
 
-        batch_size = int(x.size(0) / n_frame)
+        batch_size = int(x.size(0) / self.n_frame)
 
         # (B*L, C=1, H=224, W=224) -> (B*L, C, H=14, W=14)
         x = self.base_model(x)
@@ -156,10 +143,10 @@ class APR(nn.Module):
         rx_good = self.new_fc_good(rx_good)
         # rx_good = self.Tanh(rx_good)
         # (B*L, C=1) -> (B, L)
-        rx_good = rx_good.view(batch_size, n_frame)
-        ax_good = ax_good.view(batch_size, n_frame)
+        rx_good = rx_good.view(batch_size, self.n_frame)
+        ax_good = ax_good.view(batch_size, self.n_frame)
         # (B*L, C=1, H=14, W=14) -> (B, L, C=1, H=14, W=14)
-        att_good = att_good.view(batch_size, n_frame, 1, 14, 14)
+        att_good = att_good.view(batch_size, self.n_frame, 1, 14, 14)
 
         # bad network
         if CONFIG.model.disable_bad is False:
@@ -167,9 +154,9 @@ class APR(nn.Module):
             rx_bad = rx_bad.squeeze()
             rx_bad = self.new_fc_bad(rx_bad)
             # rx_bad = self.Tanh(rx_bad)
-            rx_bad = rx_bad.view(batch_size, n_frame)
-            ax_bad = ax_bad.view(batch_size, n_frame)
-            att_bad = att_bad.view(batch_size, n_frame, 1, 14, 14)
+            rx_bad = rx_bad.view(batch_size, self.n_frame)
+            ax_bad = ax_bad.view(batch_size, self.n_frame)
+            att_bad = att_bad.view(batch_size, self.n_frame, 1, 14, 14)
             return [rx_good, ax_good, att_good, rx_bad, ax_bad, att_bad]
         else:
             return [rx_good, ax_good, att_good, None, None, None]
@@ -179,6 +166,14 @@ class APR(nn.Module):
 class APR_TCN(nn.Module):
     def __init__(self):
         super(APR_TCN, self).__init__()
+
+        self.n_frame = CONFIG.learning.sampling.n_frame
+        tcn_levels = CONFIG.model.tcn.levels
+        kernel_size = CONFIG.model.tcn.kernel_size
+        n_unit = CONFIG.model.tcn.n_unit
+        hidden_channels = [n_unit] * tcn_levels
+        dropout = CONFIG.model.tcn.dropout
+
         self.base_model, block, layers, base_out_channel, rb_out_channel = get_resnet()
         self.attention_branch = AttentionBranch(block, layers)
         self.ranking_branch_good = RankingBranch(block, layers, base_out_channel)
@@ -190,7 +185,7 @@ class APR_TCN(nn.Module):
 
     def forward(self, x):
 
-        batch_size = int(x.size(0) / n_frame)
+        batch_size = int(x.size(0) / self.n_frame)
 
         # (B*L, C_in=1, H=224, W=224) -> (B*L, C_out, H=14, W=14)
         x = self.base_model(x)
@@ -211,34 +206,34 @@ class APR_TCN(nn.Module):
         # (B*L, C, H=14, W=14) -> (B*L, C, H=1, W=1)
         rx_good = self.ranking_branch_good(x_good)
         # (B*L, C, H=1, W=1) -> (B, L, C)
-        rx_good = rx_good.view(batch_size, n_frame, -1)
+        rx_good = rx_good.view(batch_size, self.n_frame, -1)
         # (B, L, C) -> (B, C, L)
         rx_good = rx_good.transpose(2, 1)
         rx_good = self.tcn(rx_good)
         # (B, C, L) -> (B, L, C)
         rx_good = rx_good.transpose(2, 1)
         # (B, L, C) -> (B*L, C)
-        rx_good = rx_good.reshape(batch_size * n_frame, -1)
+        rx_good = rx_good.reshape(batch_size * self.n_frame, -1)
         # (B*L, C) -> (B*L, C=1)
         rx_good = self.new_fc_good(rx_good)
         # (B*L, C=1) -> (B, L)
-        rx_good = rx_good.view(batch_size, n_frame)
-        ax_good = ax_good.view(batch_size, n_frame)
+        rx_good = rx_good.view(batch_size, self.n_frame)
+        ax_good = ax_good.view(batch_size, self.n_frame)
         # (B*L, C=1, H=14, W=14) -> (B, L, C=1, H=14, W=14)
-        att_good = att_good.view(batch_size, n_frame, 1, att_height, att_width)
+        att_good = att_good.view(batch_size, self.n_frame, 1, att_height, att_width)
 
         # bad network
         if CONFIG.model.disable_bad is False:
             rx_bad = self.ranking_branch_bad(x_bad)
-            rx_bad = rx_bad.view(batch_size, n_frame, -1)
+            rx_bad = rx_bad.view(batch_size, self.n_frame, -1)
             rx_bad = rx_bad.transpose(2, 1)
             rx_bad = self.tcn(rx_bad)
             rx_bad = rx_bad.transpose(2, 1)
-            rx_bad = rx_bad.reshape(batch_size * n_frame, -1)
+            rx_bad = rx_bad.reshape(batch_size * self.n_frame, -1)
             rx_bad = self.new_fc_bad(rx_bad)
-            rx_bad = rx_bad.view(batch_size, n_frame)
-            ax_bad = ax_bad.view(batch_size, n_frame)
-            att_bad = att_bad.view(batch_size, n_frame, 1, att_height, att_width)
+            rx_bad = rx_bad.view(batch_size, self.n_frame)
+            ax_bad = ax_bad.view(batch_size, self.n_frame)
+            att_bad = att_bad.view(batch_size, self.n_frame, 1, att_height, att_width)
             return [rx_good, ax_good, att_good, rx_bad, ax_bad, att_bad]
         else:
             return [rx_good, ax_good, att_good, None, None, None]
@@ -247,6 +242,14 @@ class APR_TCN(nn.Module):
 class TCN_APR(nn.Module):
     def __init__(self):
         super(TCN_APR, self).__init__()
+
+        self.n_frame = CONFIG.learning.sampling.n_frame
+        tcn_levels = CONFIG.model.tcn.levels
+        kernel_size = CONFIG.model.tcn.kernel_size
+        n_unit = CONFIG.model.tcn.n_unit
+        hidden_channels = [n_unit] * tcn_levels
+        dropout = CONFIG.model.tcn.dropout
+
         self.base_model, block, layers, base_out_channel, rb_out_channel = get_resnet()
         hidden_channels[-1] = base_out_channel
         self.tcn = TemporalConvNet(base_out_channel, hidden_channels, kernel_size, dropout)
@@ -256,10 +259,12 @@ class TCN_APR(nn.Module):
         self.new_fc_good = nn.Linear(rb_out_channel, 1)
         self.new_fc_bad = nn.Linear(rb_out_channel, 1)
         self.Tanh = nn.Tanh()
+        self.n_frame = CONFIG.learning.sampling.n_frame
+
 
     def forward(self, x):
 
-        batch_size = int(x.size(0) / n_frame)
+        batch_size = int(x.size(0) / self.n_frame)
 
         # (B*L, C_in=1, H=224, W=224) -> (B*L, C_out, H=14, W=14)
         x = self.base_model(x)
@@ -267,25 +272,25 @@ class TCN_APR(nn.Module):
         # (B*L, C, H=14, W=14) -> (B, L, C, H*W)
         height, width = x.size(2), x.size(3)
         channel = x.size(1)
-        x = x.view(batch_size, n_frame, channel, -1)
+        x = x.view(batch_size, self.n_frame, channel, -1)
 
         # (B, L, C, H*W) -> (B, H*W, C, L)
         x = x.transpose(3, 1)
 
         # (B, H*W, C, L) -> (B*H*W, C, L)
-        x = x.reshape(batch_size*height*width, channel, n_frame)
+        x = x.reshape(batch_size*height*width, channel, self.n_frame)
 
         # (B*H*W, C_in, L) -> (B, H*W, C_out, L)
         x = self.tcn(x)
 
         # (B*H*W, C, L) -> (B, H*W, C, L)
-        x = x.view(batch_size, height*width, -1, n_frame)
+        x = x.view(batch_size, height*width, -1, self.n_frame)
 
         # (B, H*W, C, L) -> (B, L, C, H*W)
         x = x.transpose(3, 1)
 
         # (B, L, C, H*W) -> (B*L, C, H, W)
-        x = x.reshape(batch_size*n_frame, -1, height, width)
+        x = x.reshape(batch_size*self.n_frame, -1, height, width)
 
         # (B*L, C, H=14, W=14) ->
         # ax_good, ax_bad: (B*L, C=1, H=1, W=1)
@@ -314,13 +319,13 @@ class TCN_APR(nn.Module):
         # rx_bad = self.Tanh(rx_bad)
 
         # (B*L, C=1) -> (B, L)
-        rx_good = rx_good.view(batch_size, n_frame)
-        rx_bad = rx_bad.view(batch_size, n_frame)
-        ax_good = ax_good.view(batch_size, n_frame)
-        ax_bad = ax_bad.view(batch_size, n_frame)
+        rx_good = rx_good.view(batch_size, self.n_frame)
+        rx_bad = rx_bad.view(batch_size, self.n_frame)
+        ax_good = ax_good.view(batch_size, self.n_frame)
+        ax_bad = ax_bad.view(batch_size, self.n_frame)
 
         # (B*L, C=1, H=14, W=14) -> (B, L, C=1, H=14, W=14)
-        att_good = att_good.view(batch_size, n_frame, 1, 14, 14)
-        att_bad = att_bad.view(batch_size, n_frame, 1, 14, 14)
+        att_good = att_good.view(batch_size, self.n_frame, 1, 14, 14)
+        att_bad = att_bad.view(batch_size, self.n_frame, 1, 14, 14)
 
         return [rx_good, ax_good, att_good, rx_bad, ax_bad, att_bad]

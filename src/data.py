@@ -10,12 +10,6 @@ from src.utils import seed_worker
 from config.config import CONFIG
 
 
-transform = transforms.Compose([
-    transforms.Resize(
-        (CONFIG.data.img_size, CONFIG.data.img_size)),
-    transforms.ToTensor(),
-])
-
 
 class PairRecord(object):
     def __init__(self, row):
@@ -90,6 +84,12 @@ def _sampling(sound_id):
     mfcc_tensor = torch.Tensor(
         n_frame, 1, CONFIG.data.img_size, CONFIG.data.img_size
     )
+
+    transform = transforms.Compose([
+        transforms.Resize(
+            (CONFIG.data.img_size, CONFIG.data.img_size)),
+        transforms.ToTensor(),
+    ])
 
     if CONFIG.learning.sampling.method == 'sparse':
         for i in range(n_frame):
