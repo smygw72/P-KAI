@@ -15,7 +15,7 @@ import optuna
 
 from src.data import get_dataloader
 from src.metric import get_metrics
-from src.log import AverageMeter, update_av_meters, update_writers, writer_hparams
+from src.log import AverageMeter, update_av_meters, update_writers
 from src.utils import set_seed, get_timestamp
 from src.network.model import MyModel
 from config.config import CONFIG
@@ -101,7 +101,7 @@ def main(split_id, log_dir=None) -> float:
         os.makedirs(target_dir, exist_ok=True)
         shutil.copy(f'./config/{CONFIG.model.architecture}.yaml', target_dir)
         log_dir = f'{target_dir}/split_id={split_id}'
-    tb_writer = SummaryWriter(log_dir)
+    writer = SummaryWriter(log_dir)
 
     av_meters = {
         'dif_loss': AverageMeter(),
@@ -140,12 +140,12 @@ def main(split_id, log_dir=None) -> float:
         print(f'Epoch {epoch}')
 
         train(model, train_loader, optimizer, av_meters)
-        update_writers(tb_writer, av_meters, 'train', epoch)
+        update_writers(writer, av_meters, 'train', epoch)
         train_loss = av_meters["total_loss"].avg
         print(f' train loss : {train_loss}')
 
         test(model, test_loader, av_meters)
-        update_writers(tb_writer, av_meters, 'test', epoch)
+        update_writers(writer, av_meters, 'test', epoch)
         test_loss = av_meters["total_loss"].avg
         print(f' test  loss : {test_loss}')
 
@@ -165,8 +165,8 @@ def main(split_id, log_dir=None) -> float:
         scheduler.step()
         torch.save(state, f'{log_dir}/state_dict.pt')
 
-    write_hparams(tb_writer, state)
-    tb_writer.close()
+    writer.add_hparams(CONFIG, {'best_acc': state['best_acc']})
+    writer.close()
     if CONFIG.learning.eval_dataset:
         eval_dataset(log_dir)
     return state['best_accuracy']
@@ -239,6 +239,17 @@ def hyperparameter_tuning():
     study.optimize(objective, n_trials=10)
     print(f"Best trial config: {study.best_params}")
     print(f"Best trial value: {study.best_value}")
+
+    writer = SummaryWriter('./learning_logs/tuning/')
+    df = study.trials_dataframe()
+    df_records = df.to_dict(orient='records')
+    for i in range(len(df_records)):
+        df_records[i]['datetime_start'] = str(df_records[i]['datetime_start'])
+        df_records[i]['datetime_complete'] = str(df_records[i]['datetime_complete'])
+        value = df_records[i].pop('value')
+        value_dict = {'value': value}
+        writer.add_hparams(df_records[i], value_dict)
+    writer.close()
 
 if __name__ == "__main__":
     try:
