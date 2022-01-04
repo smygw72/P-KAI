@@ -4,6 +4,7 @@ inference_logs
 cloudflared
 *.tgz
 optuna
+model/*
 
 ## Python
 # Byte-compiled / optimized / DLL files
