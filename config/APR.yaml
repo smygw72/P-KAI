@@ -50,5 +50,4 @@ learning:
 inference:
   batch_size        : 128
   n_worker          : 2
-  save_log          : False
-  enable_multiproc  : False
+  save_log          : True
