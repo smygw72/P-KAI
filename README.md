@@ -1,6 +1,32 @@
 # P-KAI (Piano-Karaoke AI)
-P-KAI is a CNN-based model that calculates your piano skill from an audio(.mp3).
-Web service is [here](https://feature.d3c5bfncikrlyq.amplifyapp.com).
+
+## Overview
+
+P-KAI is a 2D-CNN that calculates your piano skill from an audio.
+This task is very difficult because the model needs to extract fine-grained features for skill assessment under a weakly supervised learning.
+
+## Model
+
+We implemented four kinds of model below.
+PDR and APR are 2D-CNN with time-series modeling called [TSN (Temporal Segment Network)](https://arxiv.org/abs/1608.00859).
+However we thought TSN is not sufficient to extract fine-grained features for skill assessment.
+Therefore, we considered APR with Temporal Convolutional Networks.
+
+- PDR (Pairwise Deep Ranking)
+- APR (Attention Pairwise Ranking)
+- APR with TCN (Temporal Convolutional Networks)
+  - APR_TCN: TCN after APR
+  - TCN_APR: TCN before APR
+
+## Dataset
+
+We used two kinds of small dataset (< 100) and a pairwise annotation representing which one is superior/inferior/equivalent for each pair.
+One dataset is from [PSA(Piano-Skill-Assessment)](https://github.com/ParitoshParmar/Piano-Skills-Assessment) and the other is our original dataset collected from Youtube.
+PSA contains 62 different songs and our dataset 32 same songs (”For Elise” by Beethoven).
+
+## Release
+
+Web service would be released [here](https://feature.d3c5bfncikrlyq.amplifyapp.com) (COMING SOON!!).
 
 ## How to run
 
@@ -54,11 +80,11 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 
 　4. Learn model.
 
-    python learning.py
+    python learning.py --config ./config/{PDR/APR/APR_TCN/TCN_APR}.yaml
 
 　5. Use model.
 
-    python inference.py
+    python inference.py --config <TRAINING LOG(learning_logs) DIRECTORY>/config.yaml")
 
 ## How to update dataset
 
@@ -79,10 +105,12 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 ## Reference
 
 - Architecture
-    - Pairwise Deep Ranking: [Who's Better? Who's Best? Pairwise Deep Ranking for Skill Determination (CVPR'18)](https://arxiv.org/abs/1703.09913)
-    - Attention Pairwise Ranking: [code](https://github.com/mosa-mprg/attention_pairwise_ranking)
+  - PDR: [Who's Better? Who's Best? Pairwise Deep Ranking for Skill Determination (CVPR'18)](https://arxiv.org/abs/1703.09913)
+  - APR: [Attention Pairwise Ranking (MIRU'20)](https://github.com/mosa-mprg/attention_pairwise_ranking)
+  - TCN: [An Empirical Evaluation of Generic Convolutional and Recurrent Networks for Sequence Modeling (arXiv'18)](https://github.com/locuslab/TCN)
+  - TSN: [Temporal Segment Networks: Towards Good Practices for Deep Action Recognition](https://arxiv.org/abs/1608.00859)
 - Dataset
-    - [ParitoshParmar/Piano-Skills-Assessment](https://github.com/ParitoshParmar/Piano-Skills-Assessment)
+  - [ParitoshParmar/Piano-Skills-Assessment](https://github.com/ParitoshParmar/Piano-Skills-Assessment)
 - Preprocessing
-    - [Piano Skills Assessment (arXiv'21)](https://arxiv.org/abs/2101.04884)
-    - [Audio Classification using Librosa and Pytorch (blog)](https://medium.com/@hasithsura/audio-classification-d37a82d6715)
+  - [Piano Skills Assessment (IEEE MMSP, 2021)](https://arxiv.org/abs/2101.04884)
+  - [Audio Classification using Librosa and Pytorch (blog)](https://medium.com/@hasithsura/audio-classification-d37a82d6715)
