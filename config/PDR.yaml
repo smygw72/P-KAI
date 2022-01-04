@@ -25,7 +25,7 @@ learning:
   sampling:
     method          : sparse        # [dense, sparse]
     n_frame         : 3
-  epochs            : 150
+  epochs            : 100
   loss:
     method          : marginal_loss # [marginal_loss, softplus]
     margin          : 1.0
