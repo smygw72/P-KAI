@@ -1,4 +1,5 @@
 seed                : 0
+debug               : False
 
 model:
   base              : resnet152

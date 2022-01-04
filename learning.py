@@ -20,7 +20,7 @@ import optuna
 from src.pairdata import get_dataloader
 from src.metric import get_metrics
 from src.log import AverageMeter, update_av_meters, update_writers
-from src.utils import set_seed, get_timestamp
+from src.utils import set_seed, get_timestamp, debug_setting
 from src.network.model import MyModel
 from config.config import get_config
 from eval_dataset import main as eval_dataset
@@ -101,7 +101,7 @@ def test(model, test_loader, av_meters):
 def main(trial=None) -> float:
 
     set_seed(cfg.seed)
-    torch.autograd.set_detect_anomaly(True)
+    debug_setting(cfg.debug)
 
     timestamp = get_timestamp()
     target_dir = f'./learning_logs/{cfg.data.target}/{cfg.model.architecture}/{timestamp}'
@@ -287,7 +287,7 @@ if __name__ == "__main__":
         print(cfg)
         # uncomment desirable one
         hyperparameter_tuning()
-        main()
+        # main()
     except Exception as e:
         print(traceback.format_exc())
         shutil.rmtree(log_dir)
