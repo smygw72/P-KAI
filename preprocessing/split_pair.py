@@ -3,19 +3,19 @@ import random
 import csv
 import pandas as pd
 
-from config.config import CONFIG
+from config.config import get_config
 from src.utils import set_seed
 
 
-def get_ids():
-    id_df = pd.read_csv(f'./annotation/{CONFIG.data.target}/youtube.csv', header=0)
+def get_ids(cfg):
+    id_df = pd.read_csv(f'./annotation/{cfg.data.target}/youtube.csv', header=0)
     all_ids = id_df['ID'].tolist()
     random.shuffle(all_ids)
     return all_ids
 
 
-def get_pairs():
-    pair_df = pd.read_csv(f'./annotation/{CONFIG.data.target}/all_pair.csv', header=0)
+def get_pairs(cfg):
+    pair_df = pd.read_csv(f'./annotation/{cfg.data.target}/all_pair.csv', header=0)
     id1s = pair_df['id1'].tolist()
     id2s = pair_df['id2'].tolist()
     labels = pair_df['label'].tolist()
@@ -24,17 +24,19 @@ def get_pairs():
 
 def main(*args, **kwargs):
 
-    k = CONFIG.learning.k_fold
+    cfg = get_config()
 
-    set_seed(CONFIG.seed)
+    k = cfg.learning.k_fold
 
-    all_ids = get_ids()
-    id1s, id2s, labels = get_pairs()
+    set_seed(cfg.seed)
+
+    all_ids = get_ids(cfg)
+    id1s, id2s, labels = get_pairs(cfg)
 
     subset_size = int(len(all_ids) / k)
 
     for i in range(k):
-        output_dir = f'./annotation/{CONFIG.data.target}/{i}'
+        output_dir = f'./annotation/{cfg.data.target}/{i}'
         os.makedirs(f'{output_dir}', exist_ok=True)
 
         # split id

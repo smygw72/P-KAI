@@ -2,7 +2,7 @@ import os
 import subprocess
 import pandas as pd
 
-from config.config import CONFIG
+from config.config import get_config
 
 
 def trim(row, output_dir):
@@ -46,7 +46,8 @@ def download(row, output_dir):
 
 
 def main(*args, **kwargs):
-    df = pd.read_csv(f'./annotation/{CONFIG.data.target}/youtube.csv', header=0)
+    cfg = get_config()
+    df = pd.read_csv(f'./annotation/{cfg.data.target}/youtube.csv', header=0)
     df.drop_duplicates(subset='ID', inplace=True)
     os.makedirs(f'../dataset/sounds', exist_ok=True)
 

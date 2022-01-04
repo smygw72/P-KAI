@@ -1,6 +1,7 @@
 import os
 import warnings
 import random
+import glob
 import time
 from tqdm import tqdm
 from mutagen.mp3 import MP3
@@ -9,7 +10,7 @@ from torch.utils.data import TensorDataset, DataLoader
 from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 
-from config.config import CONFIG
+from config.config import get_config
 from preprocessing.make_mfcc import spec_to_image, get_melspectrogram_db
 from src.pool import Pool
 from src.network.model import MyModel
@@ -27,20 +28,20 @@ def mutagen_length(path):
     length = audio.info.length
     return length
 
-
 def get_mfcc(i):
-    start_segment = i * CONFIG.data.mfcc_window
+    start_segment = i * cfg.data.mfcc_window
     spec = get_melspectrogram_db(
         file_path,
         offset=start_segment,
-        duration=CONFIG.data.mfcc_window
+        duration=cfg.data.mfcc_window
     )
     mfcc_arr = spec_to_image(spec)
     mfcc = torch.from_numpy(mfcc_arr).float()
     transform = transforms.Compose([
         transforms.ToPILImage(),
         transforms.Resize(
-            (CONFIG.data.img_size, CONFIG.data.img_size)),
+            (cfg.data.img_size, cfg.data.img_size)
+        ),
         transforms.ToTensor(),
     ])
     mfcc = transform(mfcc)
@@ -57,18 +58,19 @@ def inference(n_mfcc):
     dataset = TensorDataset(mfccs)
     dataloader = DataLoader(
         dataset,
-        batch_size=CONFIG.inference.n_frame,
+        batch_size=cfg.inference.n_frame,
         shuffle=False,
-        num_workers=CONFIG.inference.n_worker,
+        num_workers=cfg.inference.n_worker,
         pin_memory=True
     )
 
     scores = torch.Tensor()
+    model.eval()
     with torch.no_grad():
         for mfcc in tqdm(dataloader):
             outs = model(mfccs.to(device)).detach().to('cpu')
             outs = mean_scores(outs)
-            if CONFIG.model.architecture != 'PDR':
+            if cfg.model.architecture != 'PDR':
                 score = outs[0] - outs[3]
                 visualize_attention(outs)
             else:
@@ -80,16 +82,22 @@ def inference(n_mfcc):
 
 def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float:
 
+    global cfg
+    cfg = get_config(test_mode=True)
+    print(cfg)
+
     start_time = time.time()
     warnings.filterwarnings('ignore')
-    set_seed(CONFIG.seed)
+    set_seed(cfg.seed)
 
+    # log
     if learning_log_dir is None:
         timestamp = get_timestamp()
         log_dir = f'./inference_logs/{timestamp}'
     else:
         log_dir = learning_log_dir
 
+    # sound
     global file_path
     if sound_path is None:
         file_path = './misc/test.mp3'
@@ -99,24 +107,28 @@ def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float
     file_name = os.path.splitext(os.path.basename(file_path))[0]
     length = mutagen_length(file_path)
 
+    # model
     global model
-    model = MyModel(CONFIG.inference.n_frame).to(device)
+    model = MyModel(cfg, 'inference').to(device)
 
     if learning_log_dir is None:
-        model_dir = os.path.dirname(CONFIG.path)
-        state_dict_path = f'{model_dir}/split_id=0/state_dict.pt'       # lambda運用時
+        # when called from aws lambda
+        state_dict_path = glob.glob('./model/**/state_dict.pt', recursive=True)
     else:
-        state_dict_path = f'{log_dir}/state_dict.pt'                    # 学習結果評価時
+        # when called from learning.py
+        state_dict_path = f'{log_dir}/state_dict.pt'
+
     checkpoint = torch.load(state_dict_path, map_location=device)
     model.load_state_dict(checkpoint['best_model'])
-    print(f'Best epoch: {checkpoint["best_epoch"]}')
-    print(f'Best loss : {checkpoint["best_loss"]}')
-    model.eval()
+    print(f'Best epoch    : {checkpoint["best_epoch"]}')
+    print(f'Best accuracy : {checkpoint["best_acc"]}')
 
-    n_mfcc = int(length / CONFIG.data.mfcc_window)
+    # main
+    n_mfcc = int(length / cfg.data.mfcc_window)
     outputs = inference(n_mfcc)
 
-    if CONFIG.inference.save_log is True:
+    # save
+    if cfg.inference.save_log is True:
         writer = SummaryWriter(f'{log_dir}/{train_or_test}/{file_name}')
         for i in range(len(outputs)):
             writer.add_scalar("timeline", outputs[i], i)

@@ -4,7 +4,7 @@ import csv
 import pandas as pd
 import networkx as nx
 
-from config.config import CONFIG
+from config.config import get_config
 
 
 miyagawa_range = (1, 145)
@@ -21,11 +21,14 @@ def args_parser():
 
 
 def main(*args, **kwargs):
+
+    cfg = get_config()
+
     args = args_parser()
     edges = []  # list of (start, end, weight)
     unannotated_idxs = []
 
-    with open(f'./annotation/{CONFIG.data.target}/youtube.csv', mode='r') as f:
+    with open(f'./annotation/{cfg.data.target}/youtube.csv', mode='r') as f:
         reader = csv.reader(f)
 
         for i, row in enumerate(reader):
@@ -60,7 +63,7 @@ def main(*args, **kwargs):
         print('There are no pairs')
         sys.exit(0)
 
-    df = pd.read_csv(f'./annotation/{CONFIG.data.target}/all_pair.csv')
+    df = pd.read_csv(f'./annotation/{cfg.data.target}/all_pair.csv')
     print("Input 1/0/-1\n")
 
     for idx in unannotated_idxs:
@@ -70,12 +73,12 @@ def main(*args, **kwargs):
         answer = question(graph, node1, node2)
         if answer is not None:
             df.iloc[idx, 2] = str(answer)
-            df.to_csv(f'./annotation/{CONFIG.data.target}/all_pair.csv', index=False)
+            df.to_csv(f'./annotation/{cfg.data.target}/all_pair.csv', index=False)
             continue
         answer = question(graph, node2, node1)
         if answer is not None:
             df.iloc[idx, 2] = str(-1 * answer)
-            df.to_csv(f'./annotation/{CONFIG.data.target}/all_pair.csv', index=False)
+            df.to_csv(f'./annotation/{cfg.data.target}/all_pair.csv', index=False)
             continue
 
 

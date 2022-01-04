@@ -1,12 +1,15 @@
 import csv
 import pandas as pd
 
-from config.config import CONFIG
+from config.config import get_config
 
 
 def main(*args, **kwargs):
+
+    cfg = get_config()
+
     pair_list = []
-    df = pd.read_csv(f'./annotation/{CONFIG.data.target}/youtube.csv', header=0)
+    df = pd.read_csv(f'./annotation/{cfg.data.target}/youtube.csv', header=0)
     ids = df["ID"]
 
     for i, id1 in enumerate(ids):
@@ -16,7 +19,7 @@ def main(*args, **kwargs):
 
     print(len(pair_list))
 
-    with open(f'./annotation/{CONFIG.data.target}/all_pair.csv', mode='r') as f:
+    with open(f'./annotation/{cfg.data.target}/all_pair.csv', mode='r') as f:
         reader = csv.reader(f)
         old_list = []
         for row in reader:
@@ -25,7 +28,7 @@ def main(*args, **kwargs):
             old_row = {'id1': old_id1, 'id2': old_id2}
             old_list.append(old_row)
 
-    with open(f'./annotation/{CONFIG.data.target}/all_pair.csv', mode='a') as f:
+    with open(f'./annotation/{cfg.data.target}/all_pair.csv', mode='a') as f:
         writer = csv.writer(f)
 
         if len(old_list) == 0:

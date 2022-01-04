@@ -7,7 +7,7 @@ from PIL import Image
 import librosa
 # import torchlibrosa as tl
 
-from config.config import CONFIG
+from config.config import get_config
 
 
 def convert2sec(s):
@@ -16,8 +16,8 @@ def convert2sec(s):
     return sec
 
 
-def get_info():
-    id_df = pd.read_csv(f'./annotation/{CONFIG.data.target}/youtube.csv', header=0)
+def get_info(cfg):
+    id_df = pd.read_csv(f'./annotation/{cfg.data.target}/youtube.csv', header=0)
     ids = id_df['ID'].tolist()
 
     start_times = id_df['start_time'].tolist()
@@ -58,7 +58,8 @@ def spec_to_image(spec, eps=1e-6):
 
 
 def main():
-    ids, lengths = get_info()
+    cfg = get_config()
+    ids, lengths = get_info(cfg)
     warnings.filterwarnings('ignore')
 
     for (id, length) in zip(ids, lengths):
@@ -69,7 +70,7 @@ def main():
 
         # non-overlapping windows
         # NOTE: 本当に3秒だけでスキルを判定できる？要検討
-        window_width = CONFIG.data.mfcc_window
+        window_width = cfg.data.mfcc_window
 
         i = 0
         while i * window_width < length:

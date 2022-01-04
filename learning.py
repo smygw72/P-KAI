@@ -17,27 +17,26 @@ from torch.utils.tensorboard import SummaryWriter
 import optuna
 import hydra
 
-from src.data import get_dataloader
+from src.pairdata import get_dataloader
 from src.metric import get_metrics
 from src.log import AverageMeter, update_av_meters, update_writers
 from src.utils import set_seed, get_timestamp
 from src.network.model import MyModel
-from config.config import CONFIG
+from config.config import get_config
 from eval_dataset import main as eval_dataset
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-use_amp = CONFIG.learning.use_amp
 
 def inference(model, minibatch):
     model.to(device)
     sup_in = minibatch[0].to(device, dtype=torch.float32)
     inf_in = minibatch[1].to(device, dtype=torch.float32)
 
-    img_size = CONFIG.data.img_size
+    img_size = cfg.data.img_size
     sup_in = sup_in.view(-1, 1, img_size, img_size)
     inf_in = inf_in.view(-1, 1, img_size, img_size)
 
-    with autocast(enabled=use_amp):
+    with autocast(enabled=cfg.learning.use_amp):
         sup_outs = model(sup_in)
         inf_outs = model(inf_in)
 
@@ -49,7 +48,7 @@ def train(model, train_loader, optimizer, av_meters):
         value.reset()
 
     # autocast mixed precision
-    scaler = GradScaler(enabled=use_amp)
+    scaler = GradScaler(enabled=cfg.learning.use_amp)
 
     # Save previous model/optimizer for avoiding NaN loss/parameter
     # https://qiita.com/syoamakase/items/a9b3146e09f9fcafbb66
@@ -61,7 +60,7 @@ def train(model, train_loader, optimizer, av_meters):
         sup_outs, inf_outs = inference(model, minibatch)
         label_sim = minibatch[2].to(device)
 
-        meters, sizes = get_metrics(sup_outs, inf_outs, label_sim)
+        meters, sizes = get_metrics(cfg, sup_outs, inf_outs, label_sim)
 
         if torch.isnan(meters['total_loss']):
             model.load_state_dict(prev_model)
@@ -70,15 +69,15 @@ def train(model, train_loader, optimizer, av_meters):
         else:
             prev_model = copy.deepcopy(model.state_dict())
             prev_optimizer = copy.deepcopy(optimizer.state_dict())
-            loss = meters['total_loss'] / CONFIG.learning.accumulate_epoch
+            loss = meters['total_loss'] / cfg.learning.accumulate_epoch
             scaler.scale(loss).backward()
 
         # Accumulated gradients
-        if (i + 1) % CONFIG.learning.accumulate_epoch == 0:
+        if (i + 1) % cfg.learning.accumulate_epoch == 0:
             # gradient clipping
             # https://pytorch.org/docs/master/notes/amp_examples.html#gradient-clipping
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=CONFIG.learning.clip_gradient)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=cfg.learning.clip_gradient)
             scaler.step(optimizer)
             scaler.update()
             optimizer.zero_grad()
@@ -95,25 +94,25 @@ def test(model, test_loader, av_meters):
         for minibatch in tqdm(test_loader):
             sup_outs, inf_outs = inference(model, minibatch)
             label_sim = minibatch[2]
-            meters, sizes = get_metrics(sup_outs, inf_outs, label_sim)
+            meters, sizes = get_metrics(cfg, sup_outs, inf_outs, label_sim)
             update_av_meters(av_meters, meters, sizes)
 
 
 def main(trial=None) -> float:
-    print(CONFIG)
-    set_seed(CONFIG.seed)
+
+    set_seed(cfg.seed)
     torch.autograd.set_detect_anomaly(True)
 
     timestamp = get_timestamp()
-    target_dir = f'./learning_logs/{CONFIG.data.target}/{CONFIG.model.architecture}/{timestamp}'
+    target_dir = f'./learning_logs/{cfg.data.target}/{cfg.model.architecture}/{timestamp}'
     os.makedirs(target_dir, exist_ok=True)
-    shutil.copy(f'./config/{CONFIG.model.architecture}.yaml', target_dir)
+    shutil.copy(f'./config/{cfg.model.architecture}.yaml', target_dir)
     csv_file = open(f'{target_dir}/cv_result.csv', 'w', newline='')
     csv_writer = csv.writer(csv_file)
     acc_on_cv = np.empty(0)
 
     # NOTE: Cross validation is disabled when hyperparameter tuning
-    if (CONFIG.learning.cross_validation is False) or (trial is not None):
+    if (cfg.learning.cross_validation is False) or (trial is not None):
         split_ids = [0]
     else:
         split_ids = [0, 1, 2]
@@ -133,16 +132,16 @@ def main(trial=None) -> float:
         }
 
         # dataset
-        train_loader = get_dataloader('train', split_id)
-        test_loader = get_dataloader('test', split_id)
+        train_loader = get_dataloader(cfg,'train', split_id)
+        test_loader = get_dataloader(cfg, 'test', split_id)
 
-        model = MyModel(CONFIG.learning.sampling.n_frame)
-        initial_lr = CONFIG.learning.optimizer.initial_lr
+        model = MyModel(cfg, 'learning')
+        initial_lr = cfg.learning.optimizer.initial_lr
         optimizer = init_optimizer(model, initial_lr)
         scheduler = StepLR(
             optimizer,
-            step_size=CONFIG.learning.optimizer.decrease_epoch,
-            gamma=CONFIG.learning.optimizer.gamma
+            step_size=cfg.learning.optimizer.decrease_epoch,
+            gamma=cfg.learning.optimizer.gamma
         )
 
         state = {
@@ -155,7 +154,7 @@ def main(trial=None) -> float:
             'latest_optimizer': optimizer.state_dict()
         }
 
-        for epoch in range(1, CONFIG.learning.epochs + 1):
+        for epoch in range(1, cfg.learning.epochs + 1):
             print(f'Epoch {epoch}')
 
             train(model, train_loader, optimizer, av_meters)
@@ -190,18 +189,18 @@ def main(trial=None) -> float:
         best_acc = state['best_accuracy']
         acc_on_cv.append(best_acc)
         csv_writer.writerow([best_acc])
-        tb_writer.add_hparams(CONFIG, {'best_acc': state['best_acc']})
+        tb_writer.add_hparams(cfg, {'best_acc': state['best_acc']})
         tb_writer.close()
 
     csv_file.close()
-    if CONFIG.learning.eval_dataset:
+    if cfg.learning.eval_dataset:
         eval_dataset(log_dir)
 
     return np.average(acc_on_cv)  # average on k-folds cross validation
 
 
 def init_optimizer(model, initial_lr=None):
-    optimizer_algorithm = CONFIG.learning.optimizer.algorithm
+    optimizer_algorithm = cfg.learning.optimizer.algorithm
     if optimizer_algorithm == 'Adam':
         # eps needs to be set for stability
         # https://discuss.pytorch.org/t/adam-optimizer-fp16-autocast/101814
@@ -219,34 +218,37 @@ def init_optimizer(model, initial_lr=None):
 
 def objective(trial):
     # model
-    CONFIG.model.base = trial.suggest_categorical('base_arch', ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'])
-    if CONFIG.model.architecture != 'PDR':
-        CONFIG.model.disable_bad = trial.suggest_categorical('disable_bad', [False, True])
-    if CONFIG.model.architecture in ['APR_TCN', 'TCN_APR']:
-        CONFIG.model.tcn.levels = trial.suggest_int('tcn_levels', 1, 6)
-        CONFIG.model.tcn.kernel_size = trial.suggest_int('tcn_ksize', 1, 6)
-        CONFIG.model.tcn.n_unit = trial.suggest_int('tcn_n_unit', 16, 2048)
-        CONFIG.model.tcn.dropout = trial.suggest_float('tcn_dropout', 0.0, 1.0)
+    cfg.model.base = trial.suggest_categorical('base_arch', ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'])
+    if cfg.model.architecture != 'PDR':
+        cfg.model.disable_bad = trial.suggest_categorical('disable_bad', [False, True])
+    if cfg.model.architecture in ['APR_TCN', 'TCN_APR']:
+        cfg.model.tcn.levels = trial.suggest_int('tcn_levels', 1, 6)
+        cfg.model.tcn.kernel_size = trial.suggest_int('tcn_ksize', 1, 6)
+        cfg.model.tcn.n_unit = trial.suggest_int('tcn_n_unit', 16, 2048)
+        cfg.model.tcn.dropout = trial.suggest_float('tcn_dropout', 0.0, 1.0)
     # data
-    # CONFIG.data.mfcc_window = trial.suggest_float('batch_size', 0.1, 3.0) # TODO
+    # TODO
+    # cfg.data.mfcc_window = trial.suggest_float('batch_size', 0.1, 3.0)
     # learning
-    # CONFIG.learning.batch_size = trial.suggest_int('batch_size', 1, 64)
+    # cfg.learning.batch_size = trial.suggest_int('batch_size', 1, 64)
     # sampling
-    CONFIG.learning.sampling.method = trial.suggest_categorical('sampling', ['sparse', 'dense'])
-    # CONFIG.learning.sampling.n_frame = trial.suggest_int('n_frame', 1, 32)
+    cfg.learning.sampling.method = trial.suggest_categorical('sampling', ['sparse', 'dense'])
+    # cfg.learning.sampling.n_frame = trial.suggest_int('n_frame', 1, 32)
     # loss
-    CONFIG.learning.loss.method = trial.suggest_categorical('loss', ['marginal_loss', 'softplus'])
-    CONFIG.learning.loss.enable_sim_loss = trial.suggest_categorical('enable_simloss', [False, True])
+    cfg.learning.loss.method = trial.suggest_categorical('loss', ['marginal_loss', 'softplus'])
+    cfg.learning.loss.enable_sim_loss = trial.suggest_categorical('enable_simloss', [False, True])
     # optimizer
-    CONFIG.learning.optimizer.algorithm = trial.suggest_categorical('optimizer', ['SGD', 'Adam'])
-    CONFIG.learning.optimizer.initial_lr = trial.suggest_loguniform('initial_lr', 1e-5, 1e-1)
-    # CONFIG.learning.optimizer.decrease_epoch = trial.suggest_int('decrease_epoch', 10, 100)
-    # CONFIG.learning.optimizer.gamma = trial.suggest_float('gamma', 0.1, 1.0)
-    CONFIG.learning.accumulate_epoch = trial.suggest_int('clip_gradient', 1, 16)
-    # CONFIG.learning.clip_gradient = trial.suggest_float('clip_gradient', 0.5, 3.0)
+    cfg.learning.optimizer.algorithm = trial.suggest_categorical('optimizer', ['SGD', 'Adam'])
+    cfg.learning.optimizer.initial_lr = trial.suggest_loguniform('initial_lr', 1e-5, 1e-1)
+    # cfg.learning.optimizer.decrease_epoch = trial.suggest_int('decrease_epoch', 10, 100)
+    # cfg.learning.optimizer.gamma = trial.suggest_float('gamma', 0.1, 1.0)
+    cfg.learning.accumulate_epoch = trial.suggest_int('clip_gradient', 1, 16)
+    # cfg.learning.clip_gradient = trial.suggest_float('clip_gradient', 0.5, 3.0)
     # augmentation
-    # CONFIG.learning.augmentation.add_noise = trial.suggest_categorical('add_noise',[False, True]) # TODO
-    CONFIG.learning.augmentation.time_masking = trial.suggest_categorical('time_masking',[False, True])
+    # TODO
+    # cfg.learning.augmentation.add_noise = trial.suggest_categorical('add_noise',[False, True])
+    # TODO
+    # cfg.learning.augmentation.time_masking = trial.suggest_categorical('time_masking',[False, True])
 
     return main(trial)
 
@@ -279,9 +281,12 @@ def hyperparameter_tuning():
 
 if __name__ == "__main__":
     try:
+        global cfg
+        cfg = get_config()
+        print(cfg)
         # uncomment desirable one
-        hyperparameter_tuning()
-        # main(split_id=0)
+        # hyperparameter_tuning()
+        main()
     except Exception as e:
         print(traceback.format_exc())
         shutil.rmtree(log_dir)

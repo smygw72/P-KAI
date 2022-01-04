@@ -1,5 +1,3 @@
-from config.config import CONFIG
-
 class AverageMeter(object):
     """Compute and stores the average and current value"""
 
