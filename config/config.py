@@ -1,4 +1,3 @@
-# copy from https://zenn.dev/kwashizzz/articles/ml-hydra-param
 import argparse
 import sys
 import os
