@@ -9,16 +9,17 @@ from src.network.ranking_branch import RankingBranch
 from src.network.tcn import TemporalConvNet
 
 
-def _get_network():
+def _get_network(n_frame):
     arch = CONFIG.model.architecture
     if arch == 'PDR':
-        return PDR()
+        model = PDR
     elif arch == 'APR':
-        return APR()
+        model = APR
     elif arch == 'APR_TCN':
-        return APR_TCN()
+        model = APR_TCN()
     elif arch == 'TCN_APR':
-        return TCN_APR()
+        model = TCN_APR()
+    return model(n_frame)
 
 def get_resnet():
     base = CONFIG.model.base
@@ -61,9 +62,9 @@ def get_resnet():
 
 
 class MyModel(nn.Module):
-    def __init__(self):
+    def __init__(self, n_frame):
         super(MyModel, self).__init__()
-        self.network = _get_network()
+        self.network = _get_network(n_frame)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -78,13 +79,13 @@ class MyModel(nn.Module):
 
 # Pairwise Deep Ranking
 class PDR(nn.Module):
-    def __init__(self):
+    def __init__(self, n_frame):
         super(PDR, self).__init__()
         self.base_model, block, layers, base_out_channel, __ = get_resnet()
         self.ranking_branch = RankingBranch(block, layers, base_out_channel)
         self.new_fc = nn.Linear(512 * block.expansion, 1)
         self.Tanh = nn.Tanh()
-        self.n_frame = CONFIG.learning.sampling.n_frame
+        self.n_frame = n_frame
 
     def forward(self, x):
         batch_size = int(x.size(0) / self.n_frame)
@@ -104,8 +105,11 @@ class PDR(nn.Module):
 # Attention Pairwiser Ranking
 # refer to https://github.com/mosa-mprg/attention_pairwise_ranking/blob/master/resnet.py
 class APR(nn.Module):
-    def __init__(self):
+    def __init__(self, n_frame):
         super(APR, self).__init__()
+
+        self.n_frame = n_frame
+
         self.base_model, block, layers, base_out_channel, __ = get_resnet()
         self.attention_branch = AttentionBranch(block, layers)
         self.ranking_branch_good = RankingBranch(block, layers, base_out_channel)
@@ -113,7 +117,6 @@ class APR(nn.Module):
         self.new_fc_good = nn.Linear(512 * block.expansion, 1)
         self.new_fc_bad = nn.Linear(512 * block.expansion, 1)
         self.Tanh = nn.Tanh()
-        self.n_frame = CONFIG.learning.sampling.n_frame
 
     def forward(self, x):
 
@@ -164,10 +167,10 @@ class APR(nn.Module):
 
 # Our model #1
 class APR_TCN(nn.Module):
-    def __init__(self):
+    def __init__(self, n_frame):
         super(APR_TCN, self).__init__()
 
-        self.n_frame = CONFIG.learning.sampling.n_frame
+        self.n_frame = n_frame
         tcn_levels = CONFIG.model.tcn.levels
         kernel_size = CONFIG.model.tcn.kernel_size
         n_unit = CONFIG.model.tcn.n_unit
@@ -240,10 +243,10 @@ class APR_TCN(nn.Module):
 
 # Our model #2
 class TCN_APR(nn.Module):
-    def __init__(self):
+    def __init__(self, n_frame):
         super(TCN_APR, self).__init__()
 
-        self.n_frame = CONFIG.learning.sampling.n_frame
+        self.n_frame = n_frame
         tcn_levels = CONFIG.model.tcn.levels
         kernel_size = CONFIG.model.tcn.kernel_size
         n_unit = CONFIG.model.tcn.n_unit

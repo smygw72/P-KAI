@@ -1,7 +1,6 @@
 import os
 import warnings
 import random
-from multiprocessing import cpu_count  # Pool is restricted
 import time
 from tqdm import tqdm
 from mutagen.mp3 import MP3
@@ -35,32 +34,20 @@ def get_mfcc(i):
         offset=start_segment,
         duration=CONFIG.data.mfcc_window
     )
-    mfcc = spec_to_image(spec)
-    mfcc = torch.from_numpy(mfcc).float()
-    mfcc = mfcc.unsqueeze(0).unsqueeze(0)
+    mfcc_arr = spec_to_image(spec)
+    mfcc = torch.from_numpy(mfcc_arr).float()
     transform = transforms.Compose([
+        transforms.ToPILImage(),
         transforms.Resize(
             (CONFIG.data.img_size, CONFIG.data.img_size)),
+        transforms.ToTensor(),
     ])
     mfcc = transform(mfcc)
+    mfcc = mfcc.unsqueeze(0)
     return mfcc
 
 
-def cpu_inference(i):
-    mfcc = get_mfcc(i)
-    with torch.no_grad():
-        outs = model(mfccs).detach()
-        outs = mean_scores(outs)
-        if CONFIG.model.architecture != 'PDR':
-            score = outs[0] - outs[3]
-            visualize_attention(outs)
-        else:
-            score = outs[0]
-
-    return score
-
-
-def gpu_inference(n_mfcc):
+def inference(n_mfcc):
     mfccs = torch.Tensor()
     for i in tqdm(range(n_mfcc)):
         mfcc = get_mfcc(i)
@@ -69,7 +56,7 @@ def gpu_inference(n_mfcc):
     dataset = torch.utils.TensorDataset(mfccs)
     dataloader = DataLoader(
         dataset,
-        batch_size=CONFIG.inference.batch_size,
+        batch_size=CONFIG.inference.n_frame,
         shuffle=False,
         num_workers=CONFIG.inference.n_worker,
         pin_memory=True
@@ -103,7 +90,7 @@ def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float
         log_dir = learning_log_dir
 
     global file_path
-    if file_path is None:
+    if sound_path is None:
         file_path = './misc/test.mp3'
     else:
         file_path = sound_path
@@ -112,33 +99,21 @@ def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float
     length = mutagen_length(file_path)
 
     global model
-    model = MyModel().to(device)
+    model = MyModel(CONFIG.inference.n_frame).to(device)
 
     if learning_log_dir is None:
-        state_dict_path = f'{CONFIG.inference.model_dir}/state_dict.pt'       # lambda運用時
+        model_dir = os.path.dirname(CONFIG.path)
+        state_dict_path = f'{model_dir}/split_id=0/state_dict.pt'       # lambda運用時
     else:
-        state_dict_path = f'{log_dir}/state_dict.pt'    # 学習結果評価時
-    checkpoint = torch.load(state_dict_path)
+        state_dict_path = f'{log_dir}/state_dict.pt'                    # 学習結果評価時
+    checkpoint = torch.load(state_dict_path, map_location=device)
     model.load_state_dict(checkpoint['best_model'])
     print(f'Best epoch: {checkpoint["best_epoch"]}')
     print(f'Best loss : {checkpoint["best_loss"]}')
     model.eval()
 
     n_mfcc = int(length / CONFIG.data.mfcc_window)
-    if device == torch.device('cpu'):
-        # parallel learning
-        if CONFIG.inference.enable_multiproc is True:
-            model.share_memory()
-            p = Pool(cpu_count() - 1)
-            args = [i for i in range(n_mfcc)]
-            outputs = p.map(cpu_inference, args)
-        else:
-            outputs = []
-            for i in tqdm(range(n_mfcc)):
-                outputs.append(cpu_inference(i))
-
-    elif device == torch.device('cuda'):
-        outputs = gpu_inference(n_mfcc)
+    outputs = inference(n_mfcc)
 
     if CONFIG.inference.save_log is True:
         writer = SummaryWriter(f'{log_dir}/{train_or_test}/{file_name}')

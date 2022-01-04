@@ -136,7 +136,7 @@ def main(trial=None) -> float:
         train_loader = get_dataloader('train', split_id)
         test_loader = get_dataloader('test', split_id)
 
-        model = MyModel()
+        model = MyModel(CONFIG.learning.sampling.n_frame)
         initial_lr = CONFIG.learning.optimizer.initial_lr
         optimizer = init_optimizer(model, initial_lr)
         scheduler = StepLR(
