@@ -2,6 +2,7 @@ import os
 import sys
 import copy
 import csv
+# import yaml
 import shutil
 import logging
 import traceback
@@ -15,7 +16,6 @@ from torch.optim.lr_scheduler import StepLR
 from torch.cuda.amp import GradScaler, autocast
 from torch.utils.tensorboard import SummaryWriter
 import optuna
-import hydra
 
 from src.pairdata import get_dataloader
 from src.metric import get_metrics
@@ -106,6 +106,8 @@ def main(trial=None) -> float:
     timestamp = get_timestamp()
     target_dir = f'./learning_logs/{cfg.data.target}/{cfg.model.architecture}/{timestamp}'
     os.makedirs(target_dir, exist_ok=True)
+    # with open(f'{target_dir}/config.yaml', 'w') as config_file:
+    #     yaml.dump(cfg, config_file)
     shutil.copy(f'./config/{cfg.model.architecture}.yaml', target_dir)
     csv_file = open(f'{target_dir}/cv_result.csv', 'w', newline='')
     csv_writer = csv.writer(csv_file)
@@ -186,10 +188,9 @@ def main(trial=None) -> float:
                 if trial.should_prune():
                     raise optuna.TrialPruned()
 
-        best_acc = state['best_accuracy']
-        acc_on_cv.append(best_acc)
+        np.append(acc_on_cv, state['best_accuracy'])
         csv_writer.writerow([best_acc])
-        tb_writer.add_hparams(cfg, {'best_acc': state['best_acc']})
+        tb_writer.add_hparams(cfg, {'best_acc': state['best_accuracy']})
         tb_writer.close()
 
     csv_file.close()
@@ -285,7 +286,7 @@ if __name__ == "__main__":
         cfg = get_config()
         print(cfg)
         # uncomment desirable one
-        # hyperparameter_tuning()
+        hyperparameter_tuning()
         main()
     except Exception as e:
         print(traceback.format_exc())
