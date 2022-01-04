@@ -78,13 +78,13 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 
     python make_mfcc.py
 
-　4. Learn model.
+　4. Learn model (config is defined in "./config/*.yaml").
 
-    python learning.py --config ./config/{PDR/APR/APR_TCN/TCN_APR}.yaml
+    python learning.py [--config ./config/{PDR/APR/APR_TCN/TCN_APR}.yaml]
 
-　5. Use model.
+　5. Use model (model is in "./model/**/state_dict.pt").
 
-    python inference.py --config <TRAINING LOG(learning_logs) DIRECTORY>/config.yaml")
+    python inference.py
 
 ## How to update dataset
 
