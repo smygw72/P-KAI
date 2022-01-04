@@ -35,19 +35,19 @@ learning:
     initial_lr      : 0.1
     decrease_epoch  : 20
     gamma           : 0.5
-  accumulate_epoch  : 16            # equlats to batch_size
+  accumulate_epoch  : 16            # equals to batch_size
   clip_gradient     : 1.0
   save_ths          : 3
   use_amp           : False
   eval_dataset      : False
   augmentation:
-    add_noise       : True
-    time_masking    : True
+    add_noise       : False
+    time_masking    : False
   resume:
     enable          : False
     log_dir         : './learning_logs/psa/PDR/12-31-21-19-26'
 
 inference:
-  batch_size        : 16
+  n_frame           : 128
   n_worker          : 2
   save_log          : True

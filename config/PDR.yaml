@@ -41,8 +41,8 @@ learning:
   use_amp           : False
   eval_dataset      : False
   augmentation:
-    add_noise       : True
-    time_masking    : True
+    add_noise       : False
+    time_masking    : False
   resume:
     enable          : False
     log_dir         : './learning_logs/psa/PDR/resnet34_w_simloss/split_id=0'

@@ -41,13 +41,13 @@ learning:
   use_amp           : False
   eval_dataset      : False
   augmentation:
-    add_noise       : True
-    time_masking    : True
+    add_noise       : False
+    time_masking    : False
   resume:
     enable          : False
     log_dir         : './learning_logs/psa/PDR/12-31-21-19-26'
 
 inference:
-  batch_size        : 128
+  n_frame           : 128
   n_worker          : 2
   save_log          : True
