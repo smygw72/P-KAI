@@ -45,11 +45,10 @@ learning:
     time_masking    : True
   resume:
     enable          : False
-    log_dir         : './learning_logs/psa/PDR/12-31-21-19-26'
+    log_dir         : './learning_logs/psa/PDR/resnet34_w_simloss/split_id=0'
 
 inference:
-  batch_size        : 128
+  n_frame           : 128
   n_worker          : 2
   save_log          : False
   enable_multiproc  : False
-  model_dir         : './learning_logs/psa/PDR/12-31-21-19-26'

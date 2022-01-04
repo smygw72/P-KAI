@@ -52,4 +52,3 @@ inference:
   n_worker          : 2
   save_log          : False
   enable_multiproc  : False
-  model_dir         : './learning_logs/psa/PDR/12-31-21-19-26'
