@@ -5,6 +5,7 @@ import time
 from tqdm import tqdm
 from mutagen.mp3 import MP3
 import torch
+from torch.utils.data import TensorDataset, DataLoader
 from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 
@@ -49,11 +50,11 @@ def get_mfcc(i):
 
 def inference(n_mfcc):
     mfccs = torch.Tensor()
-    for i in tqdm(range(n_mfcc)):
+    for i in range(n_mfcc):
         mfcc = get_mfcc(i)
         mfccs = torch.cat([mfccs, mfcc], dim=0)
 
-    dataset = torch.utils.TensorDataset(mfccs)
+    dataset = TensorDataset(mfccs)
     dataloader = DataLoader(
         dataset,
         batch_size=CONFIG.inference.n_frame,
@@ -64,7 +65,7 @@ def inference(n_mfcc):
 
     scores = torch.Tensor()
     with torch.no_grad():
-        for mfcc in dataloader:
+        for mfcc in tqdm(dataloader):
             outs = model(mfccs.to(device)).detach().to('cpu')
             outs = mean_scores(outs)
             if CONFIG.model.architecture != 'PDR':
