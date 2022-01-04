@@ -100,6 +100,7 @@ def test(model, test_loader, av_meters):
 
 
 def main(trial=None) -> float:
+    print(CONFIG)
     set_seed(CONFIG.seed)
     torch.autograd.set_detect_anomaly(True)
 
@@ -153,34 +154,30 @@ def main(trial=None) -> float:
             'latest_epoch': 0,
             'latest_optimizer': optimizer.state_dict()
         }
-        count = 0
 
         for epoch in range(1, CONFIG.learning.epochs + 1):
             print(f'Epoch {epoch}')
 
             train(model, train_loader, optimizer, av_meters)
             update_writers(tb_writer, av_meters, 'train', epoch)
-            train_loss = av_meters["total_loss"].avg
-            print(f' train loss : {train_loss}')
+            train_acc = av_meters["total_acc"].avg
+            print(f' train accuracy : {train_acc}')
 
             test(model, test_loader, av_meters)
             update_writers(tb_writer, av_meters, 'test', epoch)
-            test_loss = av_meters["total_loss"].avg
-            print(f' test  loss : {test_loss}')
+            test_acc = av_meters["total_acc"].avg
+            print(f' test  accuracy : {test_acc}')
 
             # save best model (without optimizer)
-            if state['best_loss'] > test_loss:
-                count += 1
-                if count >= CONFIG.learning.save_ths:
-                    state['best_epoch'] = epoch
-                    state['best_loss'] = test_loss
-                    state['best_model'] = model.cpu().state_dict()
-                    state['best_accuracy'] = av_meters['total_acc'].avg
-            else:
-                count = 0
-            state['latest_model'] = model.cpu().state_dict()
+            if state['best_accuracy'] > test_acc:
+                state['best_epoch'] = epoch
+                state['best_loss'] = test_loss
+                state['best_model'] = copy.deepcopy(model).cpu().state_dict()
+                state['best_accuracy'] = test_acc
+
+            state['latest_model'] = copy.deepcopy(model).cpu().state_dict()
             state['latest_epoch'] = epoch
-            state['latest_optimizer'] = optimizer.state_dict()
+            state['latest_optimizer'] = copy.deepcopy(optimizer).state_dict()
             scheduler.step()
             torch.save(state, f'{log_dir}/state_dict.pt')
 
