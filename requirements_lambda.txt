@@ -8,6 +8,6 @@ pandas
 tqdm
 numpy==1.20
 mutagen
-hydra-core
 awslambdaric
 boto3
+addict

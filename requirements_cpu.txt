@@ -7,6 +7,6 @@ pyyaml
 pandas
 tqdm
 mutagen
-hydra-core
 torchlibrosa
 optuna
+addict
