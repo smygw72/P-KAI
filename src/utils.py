@@ -27,9 +27,9 @@ def get_timestamp():
     return timestamp
 
 def debug_setting(enable=True):
-    torch.autograd.detect_anomaly(enable)
+    # torch.autograd.detect_anomaly(enable)
+    # torch.autograd.profiler.profile(enable)
     torch.autograd.set_detect_anomaly(enable)
-    torch.autograd.profiler.profile(enable)
-    torch.autograd.profiler.emit_nvtx(enable)
-    torch.autograd.gradcheck(enable)
-    torch.autograd.gradgradcheck(enable)
+    # torch.autograd.profiler.emit_nvtx(enable)
+    # torch.autograd.gradcheck(enable)
+    # torch.autograd.gradgradcheck(enable)
