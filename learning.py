@@ -189,7 +189,7 @@ def main(trial=None) -> float:
                     raise optuna.TrialPruned()
 
         np.append(acc_on_cv, state['best_accuracy'])
-        csv_writer.writerow([best_acc])
+        csv_writer.writerow([state['best_accuracy']])
         tb_writer.add_hparams(cfg, {'best_acc': state['best_accuracy']})
         tb_writer.close()
 
