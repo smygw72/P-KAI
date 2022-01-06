@@ -183,7 +183,7 @@ def main(trial=None) -> float:
 
             # pruning
             if trial is not None:
-                trial.report(state['best_epoch'], epoch)
+                trial.report(state['best_accuracy'], epoch)
                 if trial.should_prune():
                     raise optuna.TrialPruned()
 
