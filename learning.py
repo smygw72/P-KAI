@@ -188,6 +188,7 @@ def main(trial=None) -> float:
                     raise optuna.TrialPruned()
 
         acc_on_cv = np.append(acc_on_cv, state['best_accuracy'])
+        print(acc_on_cv)
         csv_writer.writerow([state['best_accuracy']])
         # metric_dict = {
         #     'hparam/best_acc': float(state['best_accuracy']),
