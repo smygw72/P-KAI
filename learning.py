@@ -2,7 +2,7 @@ import os
 import sys
 import copy
 import csv
-# import yaml
+import yaml
 import shutil
 import logging
 import traceback
@@ -106,9 +106,8 @@ def main(trial=None) -> float:
     timestamp = get_timestamp()
     target_dir = f'./learning_logs/{cfg.data.target}/{cfg.model.architecture}/{timestamp}'
     os.makedirs(target_dir, exist_ok=True)
-    # with open(f'{target_dir}/config.yaml', 'w') as config_file:
-    #     yaml.dump(cfg, config_file)
-    shutil.copy(f'./config/{cfg.model.architecture}.yaml', target_dir)
+    with open(f'{target_dir}/config.yaml', 'w') as config_file:
+        yaml.dump(cfg.to_dict(), config_file)
     csv_file = open(f'{target_dir}/cv_result.csv', 'w', newline='')
     csv_writer = csv.writer(csv_file)
     acc_on_cv = np.empty(0)
@@ -150,47 +149,51 @@ def main(trial=None) -> float:
             'best_loss': float('inf'),
             'best_model': model.cpu().state_dict(),
             'best_epoch': 0,
-            'best_accuracy': 0,
+            'best_accuracy': 0.0,
             'latest_model': model.cpu().state_dict(),
             'latest_epoch': 0,
             'latest_optimizer': optimizer.state_dict()
         }
 
-        for epoch in range(1, cfg.learning.epochs + 1):
-            print(f'Epoch {epoch}')
+        # for epoch in range(1, cfg.learning.epochs + 1):
+        #     print(f'Epoch {epoch}')
 
-            train(model, train_loader, optimizer, av_meters)
-            update_writers(tb_writer, av_meters, 'train', epoch)
-            train_acc = av_meters["total_acc"].avg
-            print(f' train accuracy : {train_acc}')
+        #     train(model, train_loader, optimizer, av_meters)
+        #     update_writers(tb_writer, av_meters, 'train', epoch)
+        #     train_acc = av_meters["total_acc"].avg
+        #     print(f' train accuracy : {train_acc}')
 
-            test(model, test_loader, av_meters)
-            update_writers(tb_writer, av_meters, 'test', epoch)
-            test_acc = av_meters["total_acc"].avg
-            print(f' test  accuracy : {test_acc}')
+        #     test(model, test_loader, av_meters)
+        #     update_writers(tb_writer, av_meters, 'test', epoch)
+        #     test_acc = av_meters["total_acc"].avg
+        #     print(f' test  accuracy : {test_acc}')
 
-            # save best model (without optimizer)
-            if state['best_accuracy'] > test_acc:
-                state['best_epoch'] = epoch
-                state['best_loss'] = test_loss
-                state['best_model'] = copy.deepcopy(model).cpu().state_dict()
-                state['best_accuracy'] = test_acc
+        #     # save best model (without optimizer)
+        #     if state['best_accuracy'] > test_acc:
+        #         state['best_epoch'] = epoch
+        #         state['best_loss'] = test_loss
+        #         state['best_model'] = copy.deepcopy(model).cpu().state_dict()
+        #         state['best_accuracy'] = test_acc
 
-            state['latest_model'] = copy.deepcopy(model).cpu().state_dict()
-            state['latest_epoch'] = epoch
-            state['latest_optimizer'] = copy.deepcopy(optimizer).state_dict()
-            scheduler.step()
-            torch.save(state, f'{log_dir}/state_dict.pt')
+        #     state['latest_model'] = copy.deepcopy(model).cpu().state_dict()
+        #     state['latest_epoch'] = epoch
+        #     state['latest_optimizer'] = copy.deepcopy(optimizer).state_dict()
+        #     scheduler.step()
+        #     torch.save(state, f'{log_dir}/state_dict.pt')
 
-            # pruning
-            if trial is not None:
-                trial.report(state['best_epoch'], epoch)
-                if trial.should_prune():
-                    raise optuna.TrialPruned()
+        #     # pruning
+        #     if trial is not None:
+        #         trial.report(state['best_epoch'], epoch)
+        #         if trial.should_prune():
+        #             raise optuna.TrialPruned()
 
         np.append(acc_on_cv, state['best_accuracy'])
         csv_writer.writerow([state['best_accuracy']])
-        tb_writer.add_hparams(cfg, {'best_acc': state['best_accuracy']})
+        # metric_dict = {
+        #     'hparam/best_acc': float(state['best_accuracy']),
+        #     'hparam/best_epoch': state['best_epoch']
+        # }
+        # tb_writer.add_hparams(cfg.to_dict(), metric_dict)
         tb_writer.close()
 
     csv_file.close()
