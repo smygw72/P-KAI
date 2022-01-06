@@ -171,7 +171,7 @@ def main(trial=None) -> float:
             # save best model (without optimizer)
             if state['best_accuracy'] < test_acc:
                 state['best_epoch'] = epoch
-                state['best_loss'] = test_loss
+                state['best_loss'] = av_meters["total_loss"].avg
                 state['best_model'] = copy.deepcopy(model).cpu().state_dict()
                 state['best_accuracy'] = test_acc
 
