@@ -187,7 +187,7 @@ def main(trial=None) -> float:
                 if trial.should_prune():
                     raise optuna.TrialPruned()
 
-        np.append(acc_on_cv, state['best_accuracy'])
+        acc_on_cv = np.append(acc_on_cv, state['best_accuracy'])
         csv_writer.writerow([state['best_accuracy']])
         # metric_dict = {
         #     'hparam/best_acc': float(state['best_accuracy']),
