@@ -247,7 +247,7 @@ def objective(trial):
     cfg.learning.optimizer.initial_lr = trial.suggest_loguniform('initial_lr', 1e-5, 1e-1)
     # cfg.learning.optimizer.decrease_epoch = trial.suggest_int('decrease_epoch', 10, 100)
     # cfg.learning.optimizer.gamma = trial.suggest_float('gamma', 0.1, 1.0)
-    cfg.learning.accumulate_epoch = trial.suggest_int('clip_gradient', 1, 16)
+    cfg.learning.accumulate_epoch = trial.suggest_int('accumulate_epoch', 1, 16)
     # cfg.learning.clip_gradient = trial.suggest_float('clip_gradient', 0.5, 3.0)
     # augmentation
     # TODO
