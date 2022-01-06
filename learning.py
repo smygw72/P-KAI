@@ -169,7 +169,7 @@ def main(trial=None) -> float:
             print(f' test  accuracy : {test_acc}')
 
             # save best model (without optimizer)
-            if state['best_accuracy'] > test_acc:
+            if state['best_accuracy'] < test_acc:
                 state['best_epoch'] = epoch
                 state['best_loss'] = test_loss
                 state['best_model'] = copy.deepcopy(model).cpu().state_dict()
