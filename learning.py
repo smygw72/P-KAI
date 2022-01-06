@@ -155,37 +155,37 @@ def main(trial=None) -> float:
             'latest_optimizer': optimizer.state_dict()
         }
 
-        # for epoch in range(1, cfg.learning.epochs + 1):
-        #     print(f'Epoch {epoch}')
+        for epoch in range(1, cfg.learning.epochs + 1):
+            print(f'Epoch {epoch}')
 
-        #     train(model, train_loader, optimizer, av_meters)
-        #     update_writers(tb_writer, av_meters, 'train', epoch)
-        #     train_acc = av_meters["total_acc"].avg
-        #     print(f' train accuracy : {train_acc}')
+            train(model, train_loader, optimizer, av_meters)
+            update_writers(tb_writer, av_meters, 'train', epoch)
+            train_acc = av_meters["total_acc"].avg
+            print(f' train accuracy : {train_acc}')
 
-        #     test(model, test_loader, av_meters)
-        #     update_writers(tb_writer, av_meters, 'test', epoch)
-        #     test_acc = av_meters["total_acc"].avg
-        #     print(f' test  accuracy : {test_acc}')
+            test(model, test_loader, av_meters)
+            update_writers(tb_writer, av_meters, 'test', epoch)
+            test_acc = av_meters["total_acc"].avg
+            print(f' test  accuracy : {test_acc}')
 
-        #     # save best model (without optimizer)
-        #     if state['best_accuracy'] > test_acc:
-        #         state['best_epoch'] = epoch
-        #         state['best_loss'] = test_loss
-        #         state['best_model'] = copy.deepcopy(model).cpu().state_dict()
-        #         state['best_accuracy'] = test_acc
+            # save best model (without optimizer)
+            if state['best_accuracy'] > test_acc:
+                state['best_epoch'] = epoch
+                state['best_loss'] = test_loss
+                state['best_model'] = copy.deepcopy(model).cpu().state_dict()
+                state['best_accuracy'] = test_acc
 
-        #     state['latest_model'] = copy.deepcopy(model).cpu().state_dict()
-        #     state['latest_epoch'] = epoch
-        #     state['latest_optimizer'] = copy.deepcopy(optimizer).state_dict()
-        #     scheduler.step()
-        #     torch.save(state, f'{log_dir}/state_dict.pt')
+            state['latest_model'] = copy.deepcopy(model).cpu().state_dict()
+            state['latest_epoch'] = epoch
+            state['latest_optimizer'] = copy.deepcopy(optimizer).state_dict()
+            scheduler.step()
+            torch.save(state, f'{log_dir}/state_dict.pt')
 
-        #     # pruning
-        #     if trial is not None:
-        #         trial.report(state['best_epoch'], epoch)
-        #         if trial.should_prune():
-        #             raise optuna.TrialPruned()
+            # pruning
+            if trial is not None:
+                trial.report(state['best_epoch'], epoch)
+                if trial.should_prune():
+                    raise optuna.TrialPruned()
 
         np.append(acc_on_cv, state['best_accuracy'])
         csv_writer.writerow([state['best_accuracy']])
