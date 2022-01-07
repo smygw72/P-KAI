@@ -9,4 +9,5 @@ tqdm
 mutagen
 torchlibrosa
 optuna
+optuna-dashboard
 addict
