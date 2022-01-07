@@ -241,7 +241,7 @@ def objective(trial):
     # cfg.learning.sampling.n_frame = trial.suggest_int('n_frame', 1, 32)
     # loss
     cfg.learning.loss.method = trial.suggest_categorical('loss', ['marginal_loss', 'softplus'])
-    # cfg.learning.loss.enable_sim_loss = trial.suggest_categorical('enable_simloss', [False, True])
+    # cfg.learning.loss.dif_weight = trial.suggest_float('dif_weight', 0.0, 1.0)
     # optimizer
     cfg.learning.optimizer.algorithm = trial.suggest_categorical('optimizer', ['SGD', 'Adam'])
     cfg.learning.optimizer.initial_lr = trial.suggest_loguniform('initial_lr', 1e-5, 1e-1)
@@ -260,8 +260,15 @@ def objective(trial):
 def hyperparameter_tuning():
     optuna.logging.get_logger("optuna").addHandler(logging.StreamHandler(sys.stdout))
 
+    study_name = "PDR_tuning"
+    storage_name = f"{study_name}.db"
+    db_path = './optuna'
+
     # NOTE: default sampler is TPE
     study = optuna.create_study(
+        study_name=study_name,
+        storage=f"sqlite:///{db_path}/{storage_name}",
+        load_if_exists=True,
         direction="maximize",
         pruner=optuna.pruners.HyperbandPruner(min_resource=10)
     )
