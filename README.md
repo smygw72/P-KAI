@@ -3,7 +3,7 @@
 ## Overview
 
 P-KAI is a 2D-CNN that calculates your piano skill from an audio.
-This task is very difficult because the model needs to extract fine-grained features for skill assessment under a weakly supervised learning.
+This task is very difficult because the model needs to extract fine-grained features for skill assessment under a weakly-supervised learning.
 
 ## Model
 

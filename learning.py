@@ -223,7 +223,7 @@ def init_optimizer(model, initial_lr=None):
 
 def objective(trial):
     # model
-    cfg.model.base = trial.suggest_categorical('base_arch', ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'])
+    cfg.model.base = trial.suggest_categorical('base_arch', ['resnet18', 'resnet34'])
     if cfg.model.architecture != 'PDR':
         cfg.model.disable_bad = trial.suggest_categorical('disable_bad', [False, True])
     if cfg.model.architecture in ['APR_TCN', 'TCN_APR']:
@@ -241,7 +241,7 @@ def objective(trial):
     # cfg.learning.sampling.n_frame = trial.suggest_int('n_frame', 1, 32)
     # loss
     cfg.learning.loss.method = trial.suggest_categorical('loss', ['marginal_loss', 'softplus'])
-    cfg.learning.loss.enable_sim_loss = trial.suggest_categorical('enable_simloss', [False, True])
+    # cfg.learning.loss.enable_sim_loss = trial.suggest_categorical('enable_simloss', [False, True])
     # optimizer
     cfg.learning.optimizer.algorithm = trial.suggest_categorical('optimizer', ['SGD', 'Adam'])
     cfg.learning.optimizer.initial_lr = trial.suggest_loguniform('initial_lr', 1e-5, 1e-1)
