@@ -116,10 +116,8 @@ def get_metrics(cfg, sup_outs, inf_outs, label_sim):
     # loss
     loss_func = _PDR_loss if arch == 'PDR' else _APR_loss
     dif_loss, sim_loss = loss_func(cfg, sup_outs_dif, sup_outs_sim, inf_outs_dif, inf_outs_sim)
-    if cfg.learning.loss.enable_sim_loss:
-        total_loss = dif_loss + sim_loss
-    else:
-        total_loss = dif_loss
+    dif_weight = cfg.learning.loss.dif_weight
+    total_loss = dif_weight * dif_loss + (1.0 - dif_weight) * sim_loss
 
     # average frame-by-frame scores for each video
     sup_outs_dif = mean_scores(sup_outs_dif)

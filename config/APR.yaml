@@ -30,7 +30,7 @@ learning:
   loss:
     method          : softplus # [marginal_loss, softplus]
     margin          : 1.0
-    enable_sim_loss : True
+    dif_weight      : 0.5
   optimizer:
     algorithm       : 'Adam'
     initial_lr      : 0.1
