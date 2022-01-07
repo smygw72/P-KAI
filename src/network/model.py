@@ -16,7 +16,7 @@ class MyModel(nn.Module):
         if learning_or_inference == 'learning':
             n_frame = cfg.learning.sampling.n_frame
         elif learning_or_inference == 'inference':
-            n_frame = cfg.inference.sampling.n_frame
+            n_frame = cfg.inference.n_frame
         base = cfg.model.base
         pretrained = cfg.model.pretrained
         tcn_levels = cfg.model.tcn.levels
@@ -63,7 +63,7 @@ class PDR(nn.Module):
         # (B*L, C) -> (B*L, 1)
         x = self.new_fc(x)
         # x = self.Tanh(x)
-        # (B*L, C) -> (B, L)
+        # (B*L, 1) -> (B, L)
         x = x.view(batch_size, self.n_frame)
         return [x, None, None, None, None, None]
 

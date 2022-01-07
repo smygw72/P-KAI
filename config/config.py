@@ -12,5 +12,6 @@ def get_config(test_mode=False):
     if test_mode is False:
         config = Dict(yaml.safe_load(open(args.config)))
     else:
-        config = Dict(yaml.safe_load(open(glob.glob("./model/**/*.yaml"))))
+        config_file = glob.glob("./model/**/*.yaml")[0]
+        config = Dict(yaml.safe_load(open(config_file)))
     return config

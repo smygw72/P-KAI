@@ -12,7 +12,6 @@ from torch.utils.tensorboard import SummaryWriter
 
 from config.config import get_config
 from preprocessing.make_mfcc import spec_to_image, get_melspectrogram_db
-from src.pool import Pool
 from src.network.model import MyModel
 from src.metric import mean_scores
 from src.utils import set_seed, get_timestamp
@@ -68,16 +67,16 @@ def inference(n_mfcc):
     model.eval()
     with torch.no_grad():
         for mfcc in tqdm(dataloader):
-            outs = model(mfccs.to(device)).detach().to('cpu')
+            outs = model(mfcc[0].to(device))
             outs = mean_scores(outs)
             if cfg.model.architecture != 'PDR':
                 score = outs[0] - outs[3]
                 visualize_attention(outs)
             else:
                 score = outs[0]
-            scores = torch.cat([scores, score], dim=0)
+            scores = torch.cat([scores, score.to('cpu')], dim=0)
 
-    return outputs.squeeze().tolist()
+    return scores.squeeze().tolist()
 
 
 def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float:
@@ -113,7 +112,7 @@ def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float
 
     if learning_log_dir is None:
         # when called from aws lambda
-        state_dict_path = glob.glob('./model/**/state_dict.pt', recursive=True)
+        state_dict_path = glob.glob('./model/**/state_dict.pt', recursive=True)[0]
     else:
         # when called from learning.py
         state_dict_path = f'{log_dir}/state_dict.pt'
@@ -121,7 +120,7 @@ def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float
     checkpoint = torch.load(state_dict_path, map_location=device)
     model.load_state_dict(checkpoint['best_model'])
     print(f'Best epoch    : {checkpoint["best_epoch"]}')
-    print(f'Best accuracy : {checkpoint["best_acc"]}')
+    print(f'Best accuracy : {checkpoint["best_accuracy"]}')
 
     # main
     n_mfcc = int(length / cfg.data.mfcc_window)
