@@ -30,13 +30,13 @@ learning:
   loss:
     method          : marginal_loss # [marginal_loss, softplus]
     margin          : 1.0
-    enable_sim_loss : False
+    enable_sim_loss : True
   optimizer:
     algorithm       : 'Adam'
     initial_lr      : 0.1
     decrease_epoch  : 20
     gamma           : 0.5
-  accumulate_epoch  : 16            # equlats to batch_size
+  accumulate_epoch  : 16            # equals to batch_size
   clip_gradient     : 1.0
   save_ths          : 3
   use_amp           : False
