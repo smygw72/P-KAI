@@ -276,20 +276,6 @@ def hyperparameter_tuning():
     study.optimize(objective, n_trials=20, gc_after_trial=True)
     print(f"Best trial config: {study.best_params}")
     print(f"Best trial value: {study.best_value}")
-    timestamp = get_timstamp()
-    joblib.dump(study, f"./optuna/{timestamp}/study.pkl")
-
-    # save
-    tb_writer = SummaryWriter(f'./optuna/{timestamp}/')
-    df = study.trials_dataframe()
-    df_records = df.to_dict(orient='records')
-    for i in range(len(df_records)):
-        df_records[i]['datetime_start'] = str(df_records[i]['datetime_start'])
-        df_records[i]['datetime_complete'] = str(df_records[i]['datetime_complete'])
-        value = df_records[i].pop('value')
-        value_dict = {'value': value}
-        tb_writer.add_hparams(df_records[i], value_dict)
-    tb_writer.close()
 
 if __name__ == "__main__":
     try:
