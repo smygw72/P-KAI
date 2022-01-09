@@ -34,13 +34,12 @@ RUN apt-get install -y \
 # Source
 # ==================================================================
 WORKDIR ${FUNCTION_DIR}
-COPY ./requirements_lambda.txt ./requirements_lambda.txt
+COPY ./setup/requirements_lambda.txt ./setup/requirements_lambda.txt
 
 # ==================================================================
 # Libs
 # ==================================================================
-RUN pip install --no-cache-dir \
-    -r ./requirements_lambda.txt
+RUN pip install --no-cache-dir -r ./setup/requirements_lambda.txt
 
 # ==================================================================
 # AWS Lambda (copied from https://qiita.com/yohei7328/items/df7ebaa4544621e16c2b)
@@ -57,5 +56,5 @@ COPY . .
 
 EXPOSE 9000
 
-ENTRYPOINT [ "./entry.sh" ]
+ENTRYPOINT [ "./sh/entry.sh" ]
 CMD ["app.handler"]

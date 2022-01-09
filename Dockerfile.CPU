@@ -29,8 +29,7 @@ WORKDIR ${FUNCTION_DIR}
 # ==================================================================
 # Libs
 # ------------------------------------------------------------------
-RUN pip install --no-cache-dir \
-    -r ./requirements_cpu.txt
+RUN pip install --no-cache-dir -r ./setup/requirements_cpu.txt
 
 # ==================================================================
 # PID1 command
