@@ -232,8 +232,8 @@ def objective(trial):
         cfg.model.tcn.n_unit = trial.suggest_int('tcn_n_unit', 16, 2048)
         cfg.model.tcn.dropout = trial.suggest_float('tcn_dropout', 0.0, 1.0)
     # data
-    # TODO
-    # cfg.data.mfcc_window = trial.suggest_float('mfcc_window', 0.1, 3.0)
+    cfg.data.feature = trial.suggest_categorical('feature', ['mel_spectrogram', 'mfcc'])
+    cfg.data.time_len = trial.suggest_float('time_len', 0.5, 3.0)
     # learning
     # cfg.learning.batch_size = trial.suggest_int('batch_size', 1, 64)
     # sampling
@@ -283,8 +283,8 @@ if __name__ == "__main__":
         cfg = get_config()
         print(cfg)
         # uncomment desirable one
-        hyperparameter_tuning()
-        # main()
+        # hyperparameter_tuning()
+        main()
     except Exception as e:
         print(traceback.format_exc())
         shutil.rmtree(log_dir)

@@ -15,8 +15,9 @@ model:
 
 data:
   target            : psa
+  feature           : 'mel_spectrogram' # [mel_spectrogram, mfcc]
   img_size          : 224
-  mfcc_window       : 0.5
+  time_len          : 0.5
 
 learning:
   train:

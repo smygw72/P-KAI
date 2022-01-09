@@ -7,7 +7,7 @@ from torchvision import transforms
 from torchaudio.transforms import TimeMasking
 
 from src.utils import seed_worker
-
+from src.audio import get_mfccs
 
 class PairRecord(object):
     def __init__(self, row):
@@ -67,41 +67,37 @@ class PairDataSet(Dataset):
 
 
     def _sampling(self, sound_id):
-        sound_dir = f'../dataset/mfcc/{sound_id}/'
-        files = os.listdir(sound_dir)
-        files.sort()
-        n_file = len(files)
-        n_frame = self.cfg.learning.sampling.n_frame
-        segment_len = int(n_file / n_frame)
+        sound_path = f'../dataset/sounds/{sound_id}.mp3'
+        mfccs = get_mfccs(self.cfg, sound_path)
 
-        mfcc_tensor = torch.Tensor(
-            n_frame, 1, self.cfg.data.img_size, self.cfg.data.img_size
-        )
+        total_frame = len(mfccs)
+        n_frame = self.cfg.learning.sampling.n_frame
+
+        img_size = self.cfg.data.img_size
+        raw_mfcc = torch.Tensor(n_frame, 1, img_size, img_size)
         transform = transforms.Compose([
-            transforms.Resize(
-                (self.cfg.data.img_size, self.cfg.data.img_size)
-            ),
+            transforms.ToPILImage(),
+            transforms.Resize((img_size, img_size)),
             transforms.ToTensor(),
         ])
 
+        transformed_mfcc = torch.Tensor(n_frame, 1, img_size, img_size)
+
         if self.cfg.learning.sampling.method == 'sparse':
+            segment_len = int(total_frame / n_frame)
             for i in range(n_frame):
                 start_idx = i * segment_len
                 end_idx = (i + 1) * segment_len - 1
                 if i == (n_frame - 1):
-                    end_idx = n_file - 1
+                    end_idx = total_frame - 1
                 idx = random.randint(start_idx, end_idx)
-                path = f'{sound_dir}/{files[idx]}'
-                mfcc_img = Image.open(path)
-                mfcc_tensor[i] = transform(mfcc_img)
+                transformed_mfcc[i] = transform(mfccs[idx])
         elif self.cfg.learning.sampling.method == 'dense':
-            start_idx = random.randint(0, n_file - n_frame)
+            start_idx = random.randint(0, total_frame - n_frame)
             for i in range(n_frame):
-                idx = start_idx + i
-                path = f'{sound_dir}/{files[idx]}'
-                mfcc_img = Image.open(path)
-                mfcc_tensor[i] = transform(mfcc_img)
-        return mfcc_tensor
+                transformed_mfcc[i] = transform(mfccs[start_idx + i])
+
+        return transformed_mfcc
 
 # TODO
 def data_augmentation():
@@ -130,6 +126,7 @@ def get_dataloader(cfg, train_or_test, split_id):
         shuffle=shuffle,
         num_workers=cfg.learning.n_worker,
         worker_init_fn=seed_worker,
-        pin_memory=True
+        pin_memory=True,
+        drop_last=True
     )
     return dataloader

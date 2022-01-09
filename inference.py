@@ -1,82 +1,22 @@
 import os
 import warnings
-import random
 import glob
 import time
 from tqdm import tqdm
-from mutagen.mp3 import MP3
 import torch
-from torch.utils.data import TensorDataset, DataLoader
 from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 
 from config.config import get_config
-from preprocessing.make_mfcc import spec_to_image, get_melspectrogram_db
+from src.audio import get_mfccs
 from src.network.model import MyModel
 from src.metric import mean_scores
+from src.singledata import get_dataloader
 from src.utils import set_seed, get_timestamp
 
 # global variables
 model = None
-file_path = None
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-
-
-def mutagen_length(path):
-    audio = MP3(path)
-    length = audio.info.length
-    return length
-
-def get_mfcc(i):
-    start_segment = i * cfg.data.mfcc_window
-    spec = get_melspectrogram_db(
-        file_path,
-        offset=start_segment,
-        duration=cfg.data.mfcc_window
-    )
-    mfcc_arr = spec_to_image(spec)
-    mfcc = torch.from_numpy(mfcc_arr).float()
-    transform = transforms.Compose([
-        transforms.ToPILImage(),
-        transforms.Resize(
-            (cfg.data.img_size, cfg.data.img_size)
-        ),
-        transforms.ToTensor(),
-    ])
-    mfcc = transform(mfcc)
-    mfcc = mfcc.unsqueeze(0)
-    return mfcc
-
-
-def inference(n_mfcc):
-    mfccs = torch.Tensor()
-    for i in range(n_mfcc):
-        mfcc = get_mfcc(i)
-        mfccs = torch.cat([mfccs, mfcc], dim=0)
-
-    dataset = TensorDataset(mfccs)
-    dataloader = DataLoader(
-        dataset,
-        batch_size=cfg.inference.n_frame,
-        shuffle=False,
-        num_workers=cfg.inference.n_worker,
-        pin_memory=True
-    )
-
-    scores = torch.Tensor()
-    model.eval()
-    with torch.no_grad():
-        for mfcc in tqdm(dataloader):
-            outs = model(mfcc[0].to(device))
-            outs = mean_scores(outs)
-            if cfg.model.architecture != 'PDR':
-                score = outs[0] - outs[3]
-                visualize_attention(outs)
-            else:
-                score = outs[0]
-            scores = torch.cat([scores, score.to('cpu')], dim=0)
-
-    return scores.squeeze().tolist()
 
 
 def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float:
@@ -97,14 +37,9 @@ def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float
         log_dir = learning_log_dir
 
     # sound
-    global file_path
     if sound_path is None:
-        file_path = './misc/test.mp3'
-    else:
-        file_path = sound_path
-
-    file_name = os.path.splitext(os.path.basename(file_path))[0]
-    length = mutagen_length(file_path)
+        sound_path = './misc/test.mp3'
+    file_name = os.path.splitext(os.path.basename(sound_path))[0]
 
     # model
     global model
@@ -123,8 +58,7 @@ def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float
     print(f'Best accuracy : {checkpoint["best_accuracy"]}')
 
     # main
-    n_mfcc = int(length / cfg.data.mfcc_window)
-    outputs = inference(n_mfcc)
+    outputs = inference(sound_path)
 
     # save
     if cfg.inference.save_log is True:
@@ -137,9 +71,35 @@ def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float
     print(f"average score: {score_avg}")
 
     end_time = time.time()
-    sec_per_frame = (end_time - start_time) / n_mfcc
-    print(f"elapsed time: {sec_per_frame}")
+    print(f"elapsed time: {end_time - start_time}")
     return score_avg
+
+
+def inference(sound_path):
+
+    img_size = cfg.data.img_size
+    transform = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.Resize((img_size, img_size)),
+        transforms.ToTensor(),
+    ])
+
+    dataloader = get_dataloader(cfg, sound_path, transform)
+
+    scores = torch.Tensor()
+    model.eval()
+    with torch.no_grad():
+        for mfcc in tqdm(dataloader):
+            outs = model(mfcc.to(device))
+            outs = mean_scores(outs)
+            if cfg.model.architecture != 'PDR':
+                score = outs[0] - outs[3]
+                visualize_attention(outs)
+            else:
+                score = outs[0]
+            scores = torch.cat([scores, score.to('cpu')], dim=0)
+
+    return scores.squeeze().tolist()
 
 
 def visualize_attention(outs):

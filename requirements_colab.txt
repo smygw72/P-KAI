@@ -1,6 +1,5 @@
 tensorboard
 youtube-dl
-mutagen
 optuna
 optuna-dashboard
 addict

@@ -4,7 +4,7 @@ debug               : False
 model:
   base              : resnet18
   pretrained        : True
-  architecture      : TCN_APR         # [PDR, APR, APR_TCN, TCN_APR]
+  architecture      : PDR         # [PDR, APR, APR_TCN, TCN_APR]
   disable_bad       : False
   disable_attention : False
   tcn:
@@ -15,8 +15,9 @@ model:
 
 data:
   target            : psa
+  feature           : 'mfcc' # [mel_spectrogram, mfcc]
   img_size          : 224
-  mfcc_window       : 0.5
+  time_len          : 0.5
 
 learning:
   train:
@@ -24,7 +25,7 @@ learning:
   test:
     batch_size      : 8
   sampling:
-    method          : dense # [dense, sparse]
+    method          : sparse # [dense, sparse]
     n_frame         : 16
   loss:
     method          : marginal_loss # [marginal_loss, softplus]

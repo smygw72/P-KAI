@@ -74,15 +74,11 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 
     python download.py
 
-　3. Create MFCC images as model inputs.
-
-    python make_mfcc.py
-
-　4. Learn model (config is defined in "./config/*.yaml").
+　3. Model learning (config is defined in "./config/*.yaml").
 
     python learning.py [--config ./config/{PDR/APR/APR_TCN/TCN_APR}.yaml]
 
-　5. Use model (model is in "./model/**/state_dict.pt").
+　4. Model inference (Used model is in "./model/**/state_dict.pt").
 
     python inference.py
 
