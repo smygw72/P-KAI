@@ -238,15 +238,15 @@ def objective(trial):
     # cfg.learning.batch_size = trial.suggest_int('batch_size', 1, 64)
     # sampling
     cfg.learning.sampling.method = trial.suggest_categorical('sampling', ['sparse', 'dense'])
-    # cfg.learning.sampling.n_frame = trial.suggest_int('n_frame', 1, 32)
+    cfg.learning.sampling.n_frame = trial.suggest_int('n_frame', 1, 16)
     # loss
     cfg.learning.loss.method = trial.suggest_categorical('loss', ['marginal_loss', 'softplus'])
     cfg.learning.loss.dif_weight = trial.suggest_float('dif_weight', 0.0, 1.0)
     # optimizer
     cfg.learning.optimizer.algorithm = trial.suggest_categorical('optimizer', ['SGD', 'Adam'])
-    cfg.learning.optimizer.initial_lr = trial.suggest_loguniform('initial_lr', 1e-5, 1e-1)
+    cfg.learning.optimizer.initial_lr = trial.suggest_loguniform('initial_lr', 1e-3, 1e-1)
     # cfg.learning.optimizer.decrease_epoch = trial.suggest_int('decrease_epoch', 10, 100)
-    # cfg.learning.optimizer.gamma = trial.suggest_float('gamma', 0.1, 1.0)
+    cfg.learning.optimizer.gamma = trial.suggest_loguniform('gamma', 1e-2, 1.0)
     cfg.learning.optimizer.accumulate_epoch = trial.suggest_int('accumulate_epoch', 1, 16)
     # cfg.learning.optimizer.clip_gradient = trial.suggest_float('clip_gradient', 0.5, 3.0)
     # augmentation
@@ -254,19 +254,21 @@ def objective(trial):
     # cfg.learning.augmentation.add_noise = trial.suggest_categorical('add_noise',[False, True])
     cfg.learning.augmentation.time_masking = trial.suggest_categorical('time_masking',[False, True])
 
-    return main(trial)
+    try:
+        return main(trial)
+    except Exception:
+        raise optuna.TrialPruned()
 
 def hyperparameter_tuning():
     optuna.logging.get_logger("optuna").addHandler(logging.StreamHandler(sys.stdout))
 
-    study_name = "PDR_tuning"
+    study_name = "PDR_tuning2"
     storage_name = f"{study_name}.db"
-    db_path = './optuna'
 
     # NOTE: default sampler is TPE
     study = optuna.create_study(
         study_name=study_name,
-        storage=f"sqlite:///{db_path}/{storage_name}",
+        storage=f"sqlite:///./optuna/{storage_name}",
         load_if_exists=True,
         direction="maximize",
         pruner=optuna.pruners.HyperbandPruner(min_resource=10)
@@ -282,8 +284,11 @@ if __name__ == "__main__":
         cfg = get_config()
         print(cfg)
         # uncomment desirable one
-        # hyperparameter_tuning()
-        main()
+        hyperparameter_tuning()
+        # main()
     except Exception as e:
         print(traceback.format_exc())
-        shutil.rmtree(log_dir)
+        try:
+            shutil.rmtree(log_dir)
+        except Exception:
+            pass
