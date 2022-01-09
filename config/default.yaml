@@ -41,7 +41,7 @@ learning:
     clip_gradient   : 1.0
   augmentation:
     add_noise       : False
-    time_masking    : False
+    time_masking    : True
   k_fold            : 3
   cross_validation  : False
   epochs            : 100

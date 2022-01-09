@@ -6,7 +6,7 @@ import torchaudio.transforms as T
 torchaudio.set_audio_backend('sox_io')  # linux/macos
 # torchaudio.set_audio_backend('soundfile')  # windows
 
-def get_mfccs(cfg, filepath):
+def get_samples(cfg, filepath):
     waveform, __ = torchaudio.load(filepath)
 
     n_fft = 2048
@@ -32,16 +32,15 @@ def get_mfccs(cfg, filepath):
     )
 
     if cfg.data.feature == 'mel_spectrogram':
-        mfcc = to_mel_spectrogram(waveform[0])  # (n_mel, time)
+        sample = to_mel_spectrogram(waveform[0])  # (n_mel, time)
     elif cfg.data.feature == 'mfcc':
-        mfcc = to_mfcc(waveform[0])  # (n_mfcc, time)
-
+        sample = to_mfcc(waveform[0])  # (n_mfcc, time)
 
     # segmentation
     time_len = cfg.data.time_len
-    mfcc_len = int(sample_rate * time_len / hop_length)
-    mfccs = torch.split(mfcc, mfcc_len, dim=1)
-    if mfccs[-1].shape[1] != mfcc_len:  # drop last element if needs
-        mfccs = list(mfccs)[:-1]
+    frame_len = int(sample_rate * time_len / hop_length)
+    samples = torch.split(sample, frame_len, dim=1)
+    if samples[-1].shape[1] != frame_len:  # drop last element if needs
+        samples = list(samples)[:-1]
 
-    return torch.stack(mfccs, dim=0)  # (N, n_mfcc, mfcc_len)
+    return torch.stack(samples, dim=0)

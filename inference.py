@@ -8,7 +8,7 @@ from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 
 from config.config import get_config
-from src.audio import get_mfccs
+from src.audio import get_samples
 from src.network.model import MyModel
 from src.metric import mean_scores
 from src.singledata import get_dataloader
@@ -78,19 +78,19 @@ def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float
 def inference(sound_path):
 
     img_size = cfg.data.img_size
-    transform = transforms.Compose([
+    img_transform = transforms.Compose([
         transforms.ToPILImage(),
         transforms.Resize((img_size, img_size)),
         transforms.ToTensor(),
     ])
 
-    dataloader = get_dataloader(cfg, sound_path, transform)
+    dataloader = get_dataloader(cfg, sound_path, img_transform)
 
     scores = torch.Tensor()
     model.eval()
     with torch.no_grad():
-        for mfcc in tqdm(dataloader):
-            outs = model(mfcc.to(device))
+        for sample in tqdm(dataloader):
+            outs = model(sample.to(device))
             outs = mean_scores(outs)
             if cfg.model.architecture != 'PDR':
                 score = outs[0] - outs[3]

@@ -252,8 +252,7 @@ def objective(trial):
     # augmentation
     # TODO
     # cfg.learning.augmentation.add_noise = trial.suggest_categorical('add_noise',[False, True])
-    # TODO
-    # cfg.learning.augmentation.time_masking = trial.suggest_categorical('time_masking',[False, True])
+    cfg.learning.augmentation.time_masking = trial.suggest_categorical('time_masking',[False, True])
 
     return main(trial)
 

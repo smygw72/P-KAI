@@ -7,7 +7,7 @@ from torchvision import transforms
 from torchaudio.transforms import TimeMasking
 
 from src.utils import seed_worker
-from src.audio import get_mfccs
+from src.audio import get_samples
 
 class PairRecord(object):
     def __init__(self, row):
@@ -68,20 +68,20 @@ class PairDataSet(Dataset):
 
     def _sampling(self, sound_id):
         sound_path = f'../dataset/sounds/{sound_id}.mp3'
-        mfccs = get_mfccs(self.cfg, sound_path)
+        samples = get_samples(self.cfg, sound_path)
 
-        total_frame = len(mfccs)
+        total_frame = len(samples)
         n_frame = self.cfg.learning.sampling.n_frame
 
         img_size = self.cfg.data.img_size
-        raw_mfcc = torch.Tensor(n_frame, 1, img_size, img_size)
-        transform = transforms.Compose([
+        raw_samples = torch.Tensor(n_frame, 1, img_size, img_size)
+        img_transform = transforms.Compose([
             transforms.ToPILImage(),
             transforms.Resize((img_size, img_size)),
             transforms.ToTensor(),
         ])
 
-        transformed_mfcc = torch.Tensor(n_frame, 1, img_size, img_size)
+        transformed_samples = torch.Tensor(n_frame, 1, img_size, img_size)
 
         if self.cfg.learning.sampling.method == 'sparse':
             segment_len = int(total_frame / n_frame)
@@ -91,22 +91,24 @@ class PairDataSet(Dataset):
                 if i == (n_frame - 1):
                     end_idx = total_frame - 1
                 idx = random.randint(start_idx, end_idx)
-                transformed_mfcc[i] = transform(mfccs[idx])
+                raw_samples = samples[idx]
+                augmented_samples = self.augment(raw_samples)
+                transformed_samples[i] = img_transform(augmented_samples)
         elif self.cfg.learning.sampling.method == 'dense':
             start_idx = random.randint(0, total_frame - n_frame)
             for i in range(n_frame):
-                transformed_mfcc[i] = transform(mfccs[start_idx + i])
+                raw_samples = samples[start_idx + i]
+                augmented_samples = self.augment(raw_samples)
+                transformed_samples[i] = img_transform(augmented_samples)
 
-        return transformed_mfcc
+        return transformed_samples
 
-# TODO
-def data_augmentation():
-    # data augmentation
-    if self.train_or_test == 'train':
-        if self.cfg.learning.augmentation.time_masking is True:
-            time_masking = TimeMasking(time_mask_param=80)
-            sup = time_masking(sup)
-            inf = time_masking(inf)
+    def augment(self, sample):
+        if self.train_or_test == 'train':
+            if self.cfg.learning.augmentation.time_masking is True:
+                time_masking = TimeMasking(time_mask_param=80)
+                sample = time_masking(sample)
+        return sample
 
 
 def get_dataloader(cfg, train_or_test, split_id):

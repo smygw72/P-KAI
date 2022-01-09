@@ -7,21 +7,21 @@ from torchvision import transforms
 from torchaudio.transforms import TimeMasking
 
 from src.utils import seed_worker
-from src.audio import get_mfccs
+from src.audio import get_samples
 
 
 class SingleDataSet(Dataset):
     def __init__(self, cfg, sound_path, transform):
-        self.mfccs = get_mfccs(cfg, sound_path)
+        self.samples = get_samples(cfg, sound_path)
         self.transform = transform
 
     def __len__(self):
-        return len(self.mfccs)
+        return len(self.samples)
 
     def __getitem__(self, index):
-        mfcc = self.mfccs[index]
-        mfcc = self.transform(mfcc)
-        return mfcc
+        sample = self.samples[index]
+        sample = self.transform(sample)
+        return sample
 
 
 def get_dataloader(cfg, sound_path, transform):
