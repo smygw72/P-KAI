@@ -53,7 +53,7 @@ def main(*args, **kwargs):
 
     for i, row in df.iterrows():
         print(row)
-        data_path = f'../dataset/sounds/{row["ID"]}.mp3'
+        data_path = f'../dataset/{row["ID"]}.mp3'
         if not os.path.isfile(data_path):
             download(row, f'../dataset/sounds')
             trim(row, f'../dataset/sounds')

@@ -32,15 +32,15 @@ def get_samples(cfg, filepath):
     )
 
     if cfg.data.feature == 'mel_spectrogram':
-        sample = to_mel_spectrogram(waveform[0])  # (n_mel, time)
+        samples = to_mel_spectrogram(waveform[0])  # (n_mel, time)
     elif cfg.data.feature == 'mfcc':
-        sample = to_mfcc(waveform[0])  # (n_mfcc, time)
+        samples = to_mfcc(waveform[0])  # (n_mfcc, time)
 
     # segmentation
     time_len = cfg.data.time_len
     frame_len = int(sample_rate * time_len / hop_length)
-    samples = torch.split(sample, frame_len, dim=1)
-    if samples[-1].shape[1] != frame_len:  # drop last element if needs
-        samples = list(samples)[:-1]
+    splitted_samples = torch.split(samples, frame_len, dim=1)
+    if splitted_samples[-1].shape[1] != frame_len:  # drop last element if needs
+        splitted_samples = list(splitted_samples)[:-1]
 
-    return torch.stack(samples, dim=0)
+    return torch.stack(splitted_samples, dim=0)

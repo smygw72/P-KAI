@@ -67,7 +67,7 @@ class PairDataSet(Dataset):
 
 
     def _sampling(self, sound_id):
-        sound_path = f'../dataset/sounds/{sound_id}.mp3'
+        sound_path = f'../dataset/{sound_id}.mp3'
         samples = get_samples(self.cfg, sound_path)
 
         total_frame = len(samples)

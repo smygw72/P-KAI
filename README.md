@@ -24,6 +24,16 @@ We used two kinds of small dataset (< 100) and a pairwise annotation representin
 One dataset is from [PSA(Piano-Skill-Assessment)](https://github.com/ParitoshParmar/Piano-Skills-Assessment) and the other is our original dataset collected from Youtube.
 PSA contains 62 different songs and our dataset 32 same songs (”For Elise” by Beethoven).
 
+
+## Performance
+
+Accuracy on k-folds cross validation (k=3)
+
+- PDR: XX%
+- APR: XX%
+- APR_TCN: XX%
+- TCN_APR: XX%
+
 ## Release
 
 Web service would be released [here](https://feature.d3c5bfncikrlyq.amplifyapp.com) (COMING SOON!!).
@@ -34,7 +44,7 @@ Web service would be released [here](https://feature.d3c5bfncikrlyq.amplifyapp.c
 
 See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJfEsj_?usp=sharing)
 
-### Docker (supports inference with cpu)
+### Docker (supports CPU environment)
 
 　0. (Option) Install Docker.
 
@@ -68,7 +78,7 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 
     python -m venv venv
     source venv/bin/activate
-    pip install -r requirements_cpu.txt
+    pip install -r ./setup/requirements_cpu.txt
 
 　2. Download dataset from Youtube.
 

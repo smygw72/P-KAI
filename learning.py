@@ -197,9 +197,10 @@ def main(trial=None) -> float:
         # tb_writer.add_hparams(cfg.to_dict(), metric_dict)
         tb_writer.close()
 
+        if cfg.learning.eval_dataset:
+            eval_dataset(log_dir)
+
     csv_file.close()
-    if cfg.learning.eval_dataset:
-        eval_dataset(log_dir)
 
     return np.average(acc_on_cv)  # average on k-folds cross validation
 

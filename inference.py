@@ -64,7 +64,7 @@ def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float
     if cfg.inference.save_log is True:
         writer = SummaryWriter(f'{log_dir}/{train_or_test}/{file_name}')
         for i in range(len(outputs)):
-            writer.add_scalar("timeline", outputs[i], i)
+            writer.add_scalar("score_change", outputs[i], i)
         writer.close()
 
     score_avg = sum(outputs) / len(outputs)
