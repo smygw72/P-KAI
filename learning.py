@@ -274,7 +274,7 @@ def hyperparameter_tuning():
         pruner=optuna.pruners.HyperbandPruner(min_resource=10)
     )
 
-    study.optimize(objective, n_trials=20, gc_after_trial=True)
+    study.optimize(objective, n_trials=50, gc_after_trial=True)
     print(f"Best trial config: {study.best_params}")
     print(f"Best trial value: {study.best_value}")
 
