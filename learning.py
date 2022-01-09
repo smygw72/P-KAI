@@ -69,15 +69,15 @@ def train(model, train_loader, optimizer, av_meters):
         else:
             prev_model = copy.deepcopy(model.state_dict())
             prev_optimizer = copy.deepcopy(optimizer.state_dict())
-            loss = meters['total_loss'] / cfg.learning.accumulate_epoch
+            loss = meters['total_loss'] / cfg.learning.optimizer.accumulate_epoch
             scaler.scale(loss).backward()
 
         # Accumulated gradients
-        if (i + 1) % cfg.learning.accumulate_epoch == 0:
+        if (i + 1) % cfg.learning.optimizer.accumulate_epoch == 0:
             # gradient clipping
             # https://pytorch.org/docs/master/notes/amp_examples.html#gradient-clipping
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=cfg.learning.clip_gradient)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=cfg.learning.optimizer.clip_gradient)
             scaler.step(optimizer)
             scaler.update()
             optimizer.zero_grad()
@@ -217,13 +217,13 @@ def init_optimizer(model, initial_lr=None):
         if initial_lr is None:
             optimizer = optim.SGD(model.parameters())
         else:
-            optimizer = optim.SGD(model.parameters(), lr=initial_lr)
+            optimizer = optim.SGD(model.parameters(), lr=initial_lr, momentum=cfg.learning.optimizer.sgd_momentum)
     return optimizer
 
 
 def objective(trial):
     # model
-    cfg.model.base = trial.suggest_categorical('base_arch', ['resnet18', 'resnet34'])
+    cfg.model.base = trial.suggest_categorical('base', ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'])
     if cfg.model.architecture != 'PDR':
         cfg.model.disable_bad = trial.suggest_categorical('disable_bad', [False, True])
     if cfg.model.architecture in ['APR_TCN', 'TCN_APR']:
@@ -233,7 +233,7 @@ def objective(trial):
         cfg.model.tcn.dropout = trial.suggest_float('tcn_dropout', 0.0, 1.0)
     # data
     # TODO
-    # cfg.data.mfcc_window = trial.suggest_float('batch_size', 0.1, 3.0)
+    # cfg.data.mfcc_window = trial.suggest_float('mfcc_window', 0.1, 3.0)
     # learning
     # cfg.learning.batch_size = trial.suggest_int('batch_size', 1, 64)
     # sampling
@@ -241,14 +241,14 @@ def objective(trial):
     # cfg.learning.sampling.n_frame = trial.suggest_int('n_frame', 1, 32)
     # loss
     cfg.learning.loss.method = trial.suggest_categorical('loss', ['marginal_loss', 'softplus'])
-    # cfg.learning.loss.dif_weight = trial.suggest_float('dif_weight', 0.0, 1.0)
+    cfg.learning.loss.dif_weight = trial.suggest_float('dif_weight', 0.0, 1.0)
     # optimizer
     cfg.learning.optimizer.algorithm = trial.suggest_categorical('optimizer', ['SGD', 'Adam'])
     cfg.learning.optimizer.initial_lr = trial.suggest_loguniform('initial_lr', 1e-5, 1e-1)
     # cfg.learning.optimizer.decrease_epoch = trial.suggest_int('decrease_epoch', 10, 100)
     # cfg.learning.optimizer.gamma = trial.suggest_float('gamma', 0.1, 1.0)
-    cfg.learning.accumulate_epoch = trial.suggest_int('accumulate_epoch', 1, 16)
-    # cfg.learning.clip_gradient = trial.suggest_float('clip_gradient', 0.5, 3.0)
+    cfg.learning.optimizer.accumulate_epoch = trial.suggest_int('accumulate_epoch', 1, 16)
+    # cfg.learning.optimizer.clip_gradient = trial.suggest_float('clip_gradient', 0.5, 3.0)
     # augmentation
     # TODO
     # cfg.learning.augmentation.add_noise = trial.suggest_categorical('add_noise',[False, True])

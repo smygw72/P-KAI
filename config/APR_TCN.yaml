@@ -19,14 +19,13 @@ data:
   mfcc_window       : 0.5
 
 learning:
-  k_fold            : 3
-  cross_validation  : False
-  batch_size        : 8
-  n_worker          : 2
+  train:
+    batch_size      : 8
+  test:
+    batch_size      : 8
   sampling:
     method          : dense # [dense, sparse]
     n_frame         : 16
-  epochs            : 100
   loss:
     method          : marginal_loss # [marginal_loss, softplus]
     margin          : 1.0
@@ -34,21 +33,22 @@ learning:
   optimizer:
     algorithm       : 'Adam'
     initial_lr      : 0.1
+    sgd_momentum    : 0.9
     decrease_epoch  : 20
     gamma           : 0.5
-  accumulate_epoch  : 16            # equlats to batch_size
-  clip_gradient     : 1.0
-  save_ths          : 3
-  use_amp           : False
-  eval_dataset      : False
+    accumulate_epoch: 16            # equals to batch_size
+    clip_gradient   : 1.0
   augmentation:
     add_noise       : False
     time_masking    : False
-  resume:
-    enable          : False
-    log_dir         : './learning_logs/psa/PDR/12-31-21-19-26'
+  k_fold            : 3
+  cross_validation  : False
+  epochs            : 100
+  n_worker          : 4
+  use_amp           : False
+  eval_dataset      : False
 
 inference:
   n_frame           : 128
-  n_worker          : 2
+  n_worker          : 4
   save_log          : True

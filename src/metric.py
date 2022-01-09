@@ -66,7 +66,7 @@ def _get_acc(cfg, sup_outs_dif, sup_outs_sim, inf_outs_dif, inf_outs_sim):
 
 def _get_dif_loss(cfg, dif1, dif2):
     if len(dif1) == 0:
-        return torch.zeros(1).to(device)
+        return torch.zeros(1, requires_grad=dif1.requires_grad).to(device)
     if cfg.learning.loss.method == 'marginal_loss':
         loss = cfg.learning.loss.margin - dif1 + dif2
         is_positive = torch.gt(loss, 0.0).float()
@@ -79,7 +79,7 @@ def _get_dif_loss(cfg, dif1, dif2):
 
 def _get_sim_loss(cfg, sim1, sim2):
     if len(sim1) == 0:
-        return torch.zeros(1).to(device)
+        return torch.zeros(1, requires_grad=sim1.requires_grad).to(device)
     loss = torch.abs(sim1 - sim2) - cfg.learning.loss.margin
     is_positive = torch.gt(loss, 0.0).float()
     loss = loss * is_positive.float()

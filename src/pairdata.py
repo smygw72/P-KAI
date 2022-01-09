@@ -117,14 +117,16 @@ def get_dataloader(cfg, train_or_test, split_id):
 
     if train_or_test == 'train':
         dataset = PairDataSet(cfg, 'train', split_id)
+        batch_size = cfg.learning.train.batch_size
         shuffle = True
     else:
         dataset = PairDataSet(cfg, 'test', split_id)
+        batch_size = cfg.learning.test.batch_size
         shuffle = False
 
     dataloader = DataLoader(
         dataset,
-        batch_size=cfg.learning.batch_size,
+        batch_size=batch_size,
         shuffle=shuffle,
         num_workers=cfg.learning.n_worker,
         worker_init_fn=seed_worker,
