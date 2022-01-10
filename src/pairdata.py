@@ -33,6 +33,7 @@ class PairDataSet(Dataset):
         self.pair_list = []
         self.split_id = split_id
         self._parse_list()
+        self.samples = self._get_samples()
 
     def __len__(self):
         return len(self.pair_list)
@@ -59,16 +60,23 @@ class PairDataSet(Dataset):
         return sup, inf, label_sim
 
     def _parse_list(self):
-        file_path = f'./annotation/{self.cfg.data.target}/{self.split_id}/{self.train_or_test}_pair.csv'
-        for row in open(file_path):
+        pair_file = f'./annotation/{self.cfg.data.target}/{self.split_id}/{self.train_or_test}_pair.csv'
+        for row in open(pair_file):
             record = PairRecord(row.strip().split(','))
             if record.label != 'X':
                 self.pair_list.append(record)
 
+    def _get_samples(self):
+        samples = {}
+        id_file = f'./annotation/{self.cfg.data.target}/{self.split_id}/{self.train_or_test}_id.csv'
+        for row in open(id_file):
+            sound_id = row.replace( '\n' , '' )
+            sound_path = f'../dataset/{sound_id}.mp3'
+            samples[sound_id] = get_samples(self.cfg, sound_path)
+        return samples
 
     def _sampling(self, sound_id):
-        sound_path = f'../dataset/{sound_id}.mp3'
-        samples = get_samples(self.cfg, sound_path)
+        samples = self.samples[sound_id]
 
         total_frame = len(samples)
         n_frame = self.cfg.learning.sampling.n_frame
