@@ -8,7 +8,6 @@ from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 
 from config.config import get_config
-from src.audio import get_samples
 from src.network.model import MyModel
 from src.metric import mean_scores
 from src.singledata import get_dataloader

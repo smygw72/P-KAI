@@ -49,14 +49,14 @@ def main(*args, **kwargs):
     cfg = get_config()
     df = pd.read_csv(f'./annotation/{cfg.data.target}/youtube.csv', header=0)
     df.drop_duplicates(subset='ID', inplace=True)
-    os.makedirs(f'../dataset/sounds', exist_ok=True)
+    os.makedirs(f'../dataset/', exist_ok=True)
 
     for i, row in df.iterrows():
         print(row)
         data_path = f'../dataset/{row["ID"]}.mp3'
         if not os.path.isfile(data_path):
-            download(row, f'../dataset/sounds')
-            trim(row, f'../dataset/sounds')
+            download(row, f'../dataset/')
+            trim(row, f'../dataset/')
 
 
 if __name__ == "__main__":
