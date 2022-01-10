@@ -7,7 +7,7 @@ ECR_CONTAINER='pkai-container'
 
 # 1. Build image
 # docker-compose -f docker-compose.lambda.yml up -d --build
-docker build -f Dockerfile.Lambda -t $LOCAL_CONTAINER .
+docker build -f ./setup/Dockerfile.Lambda -t $LOCAL_CONTAINER .
 
 # 2. tag image
 docker tag $LOCAL_CONTAINER $AWS_ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$ECR_CONTAINER

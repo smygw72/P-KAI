@@ -1,4 +1,7 @@
 .vscode/
+learning_logs/
+*.pptx
+optuna/
 
 **/__pycache__
 **/.DS_Store
