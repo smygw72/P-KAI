@@ -5,6 +5,8 @@ tensorboard
 pyyaml
 pandas
 tqdm
+addict
+grad-cam
+audiomentations
 optuna
 optuna-dashboard
-addict

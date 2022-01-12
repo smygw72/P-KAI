@@ -1,5 +1,7 @@
 tensorboard
 youtube-dl
+addict
+grad-cam
+audiomentations
 optuna
 optuna-dashboard
-addict

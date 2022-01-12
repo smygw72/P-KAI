@@ -15,17 +15,10 @@ ENV TZ JST-9
 ENV TERM xterm
 
 
-RUN apt-get install -y \
+RUN apt-get install -y --no-install-recommends \
     g++ \
     make \
-    cmake \
-    unzip \
-    libcurl4-openssl-dev \
-    libsm6 \
-    libxrender1 \
-    libxtst6 \
-    libsndfile1 \
-    ffmpeg && \
+    cmake && \
     apt-get autoremove -y &&\
     apt-get clean &&\
     rm -rf /usr/local/src/*
@@ -50,11 +43,11 @@ RUN chmod 755 /usr/bin/aws-lambda-rie
 
 # Setting chache output for librosa (numba)
 # https://stackoverflow.com/questions/59290386/runtimeerror-at-cannot-cache-function-shear-dense-no-locator-available-fo
-ENV NUMBA_CACHE_DIR /tmp
+# ENV NUMBA_CACHE_DIR /tmp
 
 COPY . .
 
 EXPOSE 9000
 
-ENTRYPOINT [ "./sh/entry.sh" ]
+ENTRYPOINT [ "./setup/entry.sh" ]
 CMD ["app.handler"]

@@ -4,6 +4,7 @@ pyyaml
 pandas
 tqdm
 numpy==1.20
+addict
+grad-cam
 awslambdaric
 boto3
-addict

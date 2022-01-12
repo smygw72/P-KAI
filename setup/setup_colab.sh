@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # pip install
-python3 -m pip install -r ./misc/requirements_colab.txt
+python3 -m pip install -r ./setup/requirements_colab.txt
 
 # Visual Studio Code :: Package list
 pkglist=(
