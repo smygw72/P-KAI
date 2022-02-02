@@ -6,14 +6,17 @@ import pandas as pd
 def main(*args, **kwargs):
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('target', choices=['all', 'elise', 'psa'])
+    parser.add_argument('--target', choices=['all', 'elise', 'psa'])
     args = parser.parse_args()
+    target = args.target
 
     pair_list = []
 
     datalist_path = f'./annotation/{target}/datalist.txt'
     with open(datalist_path, 'r') as f:
         data_list = f.readlines()
+    for i in range(len(data_list)):
+        data_list[i] = data_list[i].replace('\n', '')
 
     for i, id1 in enumerate(data_list):
         for j, id2 in enumerate(data_list):
