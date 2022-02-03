@@ -284,9 +284,10 @@ if __name__ == "__main__":
         global cfg
         cfg = get_config()
         print(cfg)
-        # uncomment desirable one
-        # hyperparameter_tuning()
-        main()
+        if cfg.tuning:
+            hyperparameter_tuning()
+        else:
+            main()
     except Exception as e:
         print(traceback.format_exc())
         try:
