@@ -5,7 +5,7 @@ model:
   base              : resnet18
   pretrained        : True
   architecture      : APR        # [PDR, APR, APR_TCN, TCN_APR]
-  disable_bad       : True
+  disable_bad       : False
   disable_attention : False
   tcn:
     levels          : 4
@@ -17,7 +17,7 @@ data:
   target            : psa
   feature           : 'mel_spectrogram' # [mel_spectrogram, mfcc]
   img_size          : 224
-  time_len          : 0.5
+  time_len          : 2.0
 
 learning:
   train:
@@ -26,22 +26,22 @@ learning:
     batch_size      : 8
   sampling:
     method          : sparse # [dense, sparse]
-    n_frame         : 3
+    n_frame         : 9
   loss:
-    method          : softplus # [marginal_loss, softplus]
+    method          : marginal_loss # [marginal_loss, softplus]
     margin          : 1.0
-    dif_weight      : 0.5
+    dif_weight      : 0.28
   optimizer:
     algorithm       : 'Adam'
-    initial_lr      : 0.1
+    initial_lr      : 0.024
     sgd_momentum    : 0.9
-    decrease_epoch  : 80
-    gamma           : 0.5
-    accumulate_epoch  : 16            # equals to batch_size
-    clip_gradient     : 1.0
+    decrease_epoch  : 30
+    gamma           : 0.01
+    accumulate_epoch: 9            # equals to batch_size
+    clip_gradient   : 1.0
   augmentation:
     add_noise       : False
-    time_masking    : False
+    time_masking    : True
   k_fold            : 3
   cross_validation  : False
   epochs            : 100
