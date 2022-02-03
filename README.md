@@ -20,16 +20,19 @@ Therefore, we considered APR with Temporal Convolutional Networks.
 
 ## Dataset
 
-We used two kinds of small dataset (< 100) and a pairwise annotation representing which one is superior/inferior/equivalent for each pair.
+We used two kinds of small dataset (size < 100) and a pairwise annotation representing which one is superior/inferior/equivalent for each pair.
 One dataset is from [PSA(Piano-Skill-Assessment)](https://github.com/ParitoshParmar/Piano-Skills-Assessment) and the other is our original dataset collected from Youtube.
 PSA contains 62 different songs and our dataset 32 same songs (”For Elise” by Beethoven).
 
+## Example
+
+hoge
 
 ## Performance
 
 Accuracy on k-folds cross validation (k=3)
 
-- PDR: XX%
+- PDR: 84%
 - APR: XX%
 - APR_TCN: XX%
 - TCN_APR: XX%
@@ -48,11 +51,11 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 
 　0. (Option) Install Docker.
 
-    bash setup_linux.sh
+    bash ./setup/setup_linux.sh
 
 　1. Build image and create container.
 
-    docker build -f Dockerfile.CPU -t psa_cpu .
+    docker build -f ./setup/Dockerfile.CPU -t psa_cpu .
 
 　2. Run container.
 
@@ -62,11 +65,11 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 
 　0. (Option) Install Docker.
 
-    bash setup_linux.sh
+    bash ./setup/setup_linux.sh
 
 　1. Build and push image to AWS ECR.
 
-    bash ./deploy.sh
+    bash ./setup/deploy.sh
 
 　2. Sending request to the container.
 
@@ -82,7 +85,7 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 
 　2. Download dataset from Youtube.
 
-    python download.py
+    python ./preprocessing/download.py
 
 　3. Model learning (config is defined in "./config/*.yaml").
 
@@ -94,19 +97,19 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 
 ## How to update dataset
 
-　1. Update Youtube.csv
+　1. Update ./annotation/youtube.csv
 
 　2. Create all_pair.csv file
 
-    python make_pair.py
+    python ./preprocessing/make_pair.py
 
 　3. Fill a label column (0/1/-1 instead of 'X') in all_pair.csv. You can use semi-automatic labeling with stdin.
 
-    python annotate.py
+    python ./preprocessing/annotate.py
 
 　4. Split all pairs into train/test and based on k-fold cross validation
 
-    python split_pair.py
+    python ./preprocessing/split_pair.py
 
 ## Reference
 
