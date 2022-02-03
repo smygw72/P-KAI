@@ -263,7 +263,7 @@ def objective(trial):
 def hyperparameter_tuning():
     optuna.logging.get_logger("optuna").addHandler(logging.StreamHandler(sys.stdout))
 
-    study_name = "PDR_tuning2"
+    study_name = f"{cfg.model.architecture}_tuning"
     storage_name = f"{study_name}.db"
 
     # NOTE: default sampler is TPE
@@ -285,8 +285,8 @@ if __name__ == "__main__":
         cfg = get_config()
         print(cfg)
         # uncomment desirable one
-        hyperparameter_tuning()
-        # main()
+        # hyperparameter_tuning()
+        main()
     except Exception as e:
         print(traceback.format_exc())
         try:
