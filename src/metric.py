@@ -38,10 +38,10 @@ def _APR_loss(cfg, sup_outs_dif, sup_outs_sim, inf_outs_dif, inf_outs_sim):
     sim_loss = sim_loss_rx_good + sim_loss_ax_good
 
     if cfg.model.disable_bad is False:
-        dif_loss_rx_bad = _get_dif_loss(cfg, sup_outs_dif[3], inf_outs_dif[3])
-        dif_loss_ax_bad = _get_dif_loss(cfg, sup_outs_dif[4], inf_outs_dif[4])
-        sim_loss_rx_bad = _get_sim_loss(cfg, sup_outs_sim[3], inf_outs_sim[3])
-        sim_loss_ax_bad = _get_sim_loss(cfg, sup_outs_sim[4], inf_outs_sim[4])
+        dif_loss_rx_bad = _get_dif_loss(cfg, inf_outs_dif[3], sup_outs_dif[3])
+        dif_loss_ax_bad = _get_dif_loss(cfg, inf_outs_dif[4], sup_outs_dif[4])
+        sim_loss_rx_bad = _get_sim_loss(cfg, inf_outs_sim[3], sup_outs_sim[3])
+        sim_loss_ax_bad = _get_sim_loss(cfg, inf_outs_sim[4], sup_outs_sim[4])
         dif_loss = dif_loss + dif_loss_rx_bad + dif_loss_ax_bad
         sim_loss = sim_loss + sim_loss_rx_bad + sim_loss_ax_bad
 
