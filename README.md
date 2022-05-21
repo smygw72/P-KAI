@@ -9,14 +9,9 @@ This task is very difficult because the model needs to extract fine-grained feat
 
 We implemented four kinds of model below.
 PDR and APR are 2D-CNN with time-series modeling called [TSN (Temporal Segment Network)](https://arxiv.org/abs/1608.00859).
-However we thought TSN is not sufficient to extract fine-grained features for skill assessment.
-Therefore, we considered APR with Temporal Convolutional Networks.
 
 - PDR (Pairwise Deep Ranking)
 - APR (Attention Pairwise Ranking)
-- APR with TCN (Temporal Convolutional Networks)
-  - APR_TCN: TCN after APR
-  - TCN_APR: TCN before APR
 
 ## Dataset
 
@@ -34,8 +29,6 @@ Accuracy on k-folds cross validation (k=3)
 
 - PDR: 84%
 - APR: XX%
-- APR_TCN: XX%
-- TCN_APR: XX%
 
 ## Release
 
