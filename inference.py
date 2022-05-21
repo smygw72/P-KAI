@@ -7,7 +7,12 @@ import torch
 from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 
+from pytorch_grad_cam import GradCAM
+from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
+from pytorch_grad_cam.utils.image import show_cam_on_image
+
 from config.config import get_config
+from calc_score import read_score, predict_absolute_score
 from src.network.model import MyModel
 from src.metric import mean_scores
 from src.singledata import get_dataloader
@@ -18,7 +23,7 @@ model = None
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 
-def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float:
+def main(sound_path=None, learning_log_dir=None) -> float:
 
     global cfg
     cfg = get_config(test_mode=True)
@@ -61,7 +66,7 @@ def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float
 
     # save
     if cfg.inference.save_log is True:
-        writer = SummaryWriter(f'{log_dir}/{train_or_test}/{file_name}')
+        writer = SummaryWriter(f'{log_dir}/{file_name}')
         for i in range(len(outputs)):
             writer.add_scalar("score_change", outputs[i], i)
         writer.close()
@@ -96,15 +101,25 @@ def inference(sound_path):
                 visualize_attention(outs)
             else:
                 score = outs[0]
+                # gradcam()
             scores = torch.cat([scores, score.to('cpu')], dim=0)
 
     return scores.squeeze().tolist()
 
 
+def gradcam(input):
+    target_layers = [model.layer4[-1]]
+    targets = [ClassifierOutputTarget(0)]
+    cam = GradCAM(model=model, target_layers=target_layers, use_cuda=(device == torch.device('cuda')))
+    grayscale_cam = cam(input_tensor=input_tensor, targets=targets)
+    grayscale_cam = grayscale_cam[0, :]
+    visualization = show_cam_on_image(rgb_img, grayscale_cam, use_rgb=False)
+    visualization.save('')
+
+
 def visualize_attention(outs):
     att_good, att_bad = outs[2], outs[5]
     # TODO
-
 
 if __name__ == "__main__":
     main()

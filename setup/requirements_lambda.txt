@@ -3,8 +3,8 @@ tensorboard
 pyyaml
 pandas
 tqdm
-numpy==1.20
+numpy==1.21
 addict
-grad-cam
+{% comment %} grad-cam {% endcomment %}
 awslambdaric
 boto3
