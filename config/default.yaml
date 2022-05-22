@@ -14,8 +14,8 @@ model:
     dropout         : 0.05
 
 data:
-  target            : psa
-  feature           : 'mfcc' # [mel_spectrogram, mfcc]
+  target            : all
+  feature           : 'mel_spectrogram' # [mel_spectrogram, mfcc]
   img_size          : 224
   time_len          : 0.5
 

@@ -1,6 +1,4 @@
-import os
 import random
-from PIL import Image
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
@@ -8,6 +6,7 @@ from torchaudio.transforms import TimeMasking
 
 from src.utils import seed_worker
 from src.audio import get_samples
+
 
 class PairRecord(object):
     def __init__(self, row):
@@ -70,7 +69,7 @@ class PairDataSet(Dataset):
         samples = {}
         id_file = f'./annotation/{self.cfg.data.target}/{self.split_id}/{self.train_or_test}_id.csv'
         for row in open(id_file):
-            sound_id = row.replace( '\n' , '' )
+            sound_id = row.replace('\n', '')
             sound_path = f'../dataset/{sound_id}.mp3'
             samples[sound_id] = get_samples(self.cfg, sound_path)
         return samples

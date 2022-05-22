@@ -45,7 +45,8 @@ def main(log_dir=None):
         save_dir = log_dir
 
     train_scores, standard = read_score(f'{save_dir}/train_score.txt')
-    test_scores, __ = read_score(f'{save_dir}/test_score.txt')
+    # test_scores, __ = read_score(f'{save_dir}/test_score.txt')
+    test_scores, __ = read_score(f'{save_dir}/elise_all.txt')
 
     for key, value in train_scores.items():
         if value[1] is None:
@@ -57,7 +58,7 @@ def main(log_dir=None):
     with open(f'{save_dir}/train_score_completed.txt', 'w') as file:
         for key, value in train_scores.items():
             file.write(f'{key} {value[0]} {value[1]}\n')
-    with open(f'{save_dir}/test_score_completed.txt', 'w') as file:
+    with open(f'{save_dir}/elise_all_completed.txt', 'w') as file:
         for key, value in test_scores.items():
             file.write(f'{key} {value[0]} {value[1]}\n')
 
