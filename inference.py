@@ -13,14 +13,15 @@ from pytorch_grad_cam.utils.image import show_cam_on_image
 
 from config.config import get_config
 from calc_score import read_score, predict_absolute_score
-from src.network.model import MyModel
+from src.network.model import get_model
 from src.metric import mean_scores
 from src.singledata import get_dataloader
 from src.utils import set_seed, get_timestamp
 
 # global variables
 model = None
-device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+device = torch.device(
+    'cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 
 def main(sound_path=None, learning_log_dir=None) -> float:
@@ -47,11 +48,12 @@ def main(sound_path=None, learning_log_dir=None) -> float:
 
     # model
     global model
-    model = MyModel(cfg, 'inference').to(device)
+    model = get_model(cfg, 'inference').to(device)
 
     if learning_log_dir is None:
         # when called from aws lambda
-        state_dict_path = glob.glob('./model/**/state_dict.pt', recursive=True)[0]
+        state_dict_path = glob.glob(
+            './model/**/state_dict.pt', recursive=True)[0]
     else:
         # when called from learning.py
         state_dict_path = f'{log_dir}/state_dict.pt'
@@ -110,7 +112,8 @@ def inference(sound_path):
 def gradcam(input):
     target_layers = [model.layer4[-1]]
     targets = [ClassifierOutputTarget(0)]
-    cam = GradCAM(model=model, target_layers=target_layers, use_cuda=(device == torch.device('cuda')))
+    cam = GradCAM(model=model, target_layers=target_layers,
+                  use_cuda=(device == torch.device('cuda')))
     grayscale_cam = cam(input_tensor=input_tensor, targets=targets)
     grayscale_cam = grayscale_cam[0, :]
     visualization = show_cam_on_image(rgb_img, grayscale_cam, use_rgb=False)
@@ -120,6 +123,7 @@ def gradcam(input):
 def visualize_attention(outs):
     att_good, att_bad = outs[2], outs[5]
     # TODO
+
 
 if __name__ == "__main__":
     main()

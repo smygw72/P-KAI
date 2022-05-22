@@ -1,12 +1,16 @@
+import os
 import matplotlib.pyplot as plt
 import torch
 import torchaudio
 import torchaudio.transforms as T
 
-torchaudio.set_audio_backend('sox_io')  # linux/macos
-# torchaudio.set_audio_backend('soundfile')  # windows
+if os.name == 'nt':
+    torchaudio.set_audio_backend('soundfile')  # windows
+elif os.name == 'posix':
+    torchaudio.set_audio_backend('sox_io')  # linux/macos
 
-device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+device = torch.device(
+    'cuda') if torch.cuda.is_available() else torch.device('cpu')
 n_fft = 2048
 hop_length = 512
 n_mels = 128
@@ -34,7 +38,8 @@ def get_samples(cfg, filepath):
     ).to(device)
 
     if cfg.data.feature == 'mel_spectrogram':
-        samples = to_mel_spectrogram(waveform[0].to(device)).to('cpu')  # (n_mel, time)
+        samples = to_mel_spectrogram(
+            waveform[0].to(device)).to('cpu')  # (n_mel, time)
     elif cfg.data.feature == 'mfcc':
         samples = to_mfcc(waveform[0].to(device)).to('cpu')  # (n_mfcc, time)
 
@@ -55,7 +60,8 @@ def get_samples(cfg, filepath):
 
 def reconstruct_wave(cfg, specs):
     n_stft = int(n_fft / 2 + 1)
-    inverse_mel_pred = T.InverseMelScale(sample_rate=sample_rate, n_stft=n_stft).to(device)
+    inverse_mel_pred = T.InverseMelScale(
+        sample_rate=sample_rate, n_stft=n_stft).to(device)
     griffinlim = T.GriffinLim(
         n_fft=n_fft,
         hop_length=hop_length,

@@ -5,18 +5,22 @@ import torch.nn as nn
 def min_max(inputs):
     min_val = torch.min(inputs)
     max_val = torch.max(inputs)
-    output = (inputs - min_val) / (max_val  - min_val)
+    output = (inputs - min_val) / (max_val - min_val)
     return output
+
 
 class SingleBranch(nn.Module):
     def __init__(self, block, layers):
         super(SingleBranch, self).__init__()
         self.relu = nn.ReLU(inplace=True)
-        self.att_conv4 = nn.Conv2d(block.channel_num*2, block.channel_num*2, kernel_size=3, padding=1, bias=False)
-        self.att_conv6 = nn.Conv2d(block.channel_num*2, block.channel_num, kernel_size=3, padding=1, bias=False)
-        self.bn_att4 = nn.BatchNorm2d(block.channel_num*2)
+        self.att_conv4 = nn.Conv2d(
+            block.channel_num * 2, block.channel_num * 2, kernel_size=3, padding=1, bias=False)
+        self.att_conv6 = nn.Conv2d(
+            block.channel_num * 2, block.channel_num, kernel_size=3, padding=1, bias=False)
+        self.bn_att4 = nn.BatchNorm2d(block.channel_num * 2)
         self.bn_att6 = nn.BatchNorm2d(block.channel_num)
-        self.att_wgp = nn.Conv2d(block.channel_num, 1, kernel_size=14, padding=0, bias=False)
+        self.att_wgp = nn.Conv2d(block.channel_num, 1,
+                                 kernel_size=14, padding=0, bias=False)
 
     def forward(self, x):
         ax = self.relu(self.bn_att4(self.att_conv4(x)))

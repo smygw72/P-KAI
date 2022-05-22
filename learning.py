@@ -6,8 +6,8 @@ import yaml
 import shutil
 import logging
 import traceback
-import random
-import joblib
+# import random
+# import joblib
 from tqdm import tqdm
 import numpy as np
 import torch
@@ -21,11 +21,13 @@ from src.pairdata import get_dataloader
 from src.metric import get_metrics
 from src.log import AverageMeter, update_av_meters, update_writers
 from src.utils import set_seed, get_timestamp, debug_setting
-from src.network.model import MyModel
+from src.network.model import get_model
 from config.config import get_config
 from eval_dataset import main as eval_dataset
 
-device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+device = torch.device(
+    'cuda') if torch.cuda.is_available() else torch.device('cpu')
+
 
 def inference(model, minibatch):
     model.to(device)
@@ -69,7 +71,8 @@ def train(model, train_loader, optimizer, av_meters):
         else:
             prev_model = copy.deepcopy(model.state_dict())
             prev_optimizer = copy.deepcopy(optimizer.state_dict())
-            loss = meters['total_loss'] / cfg.learning.optimizer.accumulate_epoch
+            loss = meters['total_loss'] / \
+                cfg.learning.optimizer.accumulate_epoch
             scaler.scale(loss).backward()
 
         # Accumulated gradients
@@ -77,7 +80,8 @@ def train(model, train_loader, optimizer, av_meters):
             # gradient clipping
             # https://pytorch.org/docs/master/notes/amp_examples.html#gradient-clipping
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=cfg.learning.optimizer.clip_gradient)
+            torch.nn.utils.clip_grad_norm_(
+                model.parameters(), max_norm=cfg.learning.optimizer.clip_gradient)
             scaler.step(optimizer)
             scaler.update()
             optimizer.zero_grad()
@@ -133,10 +137,10 @@ def main(trial=None) -> float:
         }
 
         # dataset
-        train_loader = get_dataloader(cfg,'train', split_id)
+        train_loader = get_dataloader(cfg, 'train', split_id)
         test_loader = get_dataloader(cfg, 'test', split_id)
 
-        model = MyModel(cfg, 'learning')
+        model = get_model(cfg, 'learning')
         initial_lr = cfg.learning.optimizer.initial_lr
         optimizer = init_optimizer(model, initial_lr)
         scheduler = StepLR(
@@ -218,50 +222,62 @@ def init_optimizer(model, initial_lr=None):
         if initial_lr is None:
             optimizer = optim.SGD(model.parameters())
         else:
-            optimizer = optim.SGD(model.parameters(), lr=initial_lr, momentum=cfg.learning.optimizer.sgd_momentum)
+            optimizer = optim.SGD(model.parameters(
+            ), lr=initial_lr, momentum=cfg.learning.optimizer.sgd_momentum)
     return optimizer
 
 
 def objective(trial):
     # model
-    cfg.model.base = trial.suggest_categorical('base', ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'])
+    cfg.model.base = trial.suggest_categorical(
+        'base', ['resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'])
     if cfg.model.architecture != 'PDR':
-        cfg.model.disable_bad = trial.suggest_categorical('disable_bad', [False, True])
+        cfg.model.disable_bad = trial.suggest_categorical(
+            'disable_bad', [False, True])
     if cfg.model.architecture in ['APR_TCN', 'TCN_APR']:
         cfg.model.tcn.levels = trial.suggest_int('tcn_levels', 1, 6)
         cfg.model.tcn.kernel_size = trial.suggest_int('tcn_ksize', 1, 6)
         cfg.model.tcn.n_unit = trial.suggest_int('tcn_n_unit', 16, 2048)
         cfg.model.tcn.dropout = trial.suggest_float('tcn_dropout', 0.0, 1.0)
     # data
-    cfg.data.feature = trial.suggest_categorical('feature', ['mel_spectrogram', 'mfcc'])
+    cfg.data.feature = trial.suggest_categorical(
+        'feature', ['mel_spectrogram', 'mfcc'])
     cfg.data.time_len = trial.suggest_float('time_len', 0.5, 3.0)
     # learning
     # cfg.learning.batch_size = trial.suggest_int('batch_size', 1, 64)
     # sampling
-    cfg.learning.sampling.method = trial.suggest_categorical('sampling', ['sparse', 'dense'])
+    cfg.learning.sampling.method = trial.suggest_categorical(
+        'sampling', ['sparse', 'dense'])
     cfg.learning.sampling.n_frame = trial.suggest_int('n_frame', 1, 16)
     # loss
-    cfg.learning.loss.method = trial.suggest_categorical('loss', ['marginal_loss', 'softplus'])
+    cfg.learning.loss.method = trial.suggest_categorical(
+        'loss', ['marginal_loss', 'softplus'])
     cfg.learning.loss.dif_weight = trial.suggest_float('dif_weight', 0.0, 1.0)
     # optimizer
-    cfg.learning.optimizer.algorithm = trial.suggest_categorical('optimizer', ['SGD', 'Adam'])
-    cfg.learning.optimizer.initial_lr = trial.suggest_loguniform('initial_lr', 1e-3, 1e-1)
+    cfg.learning.optimizer.algorithm = trial.suggest_categorical('optimizer', [
+                                                                 'SGD', 'Adam'])
+    cfg.learning.optimizer.initial_lr = trial.suggest_loguniform(
+        'initial_lr', 1e-3, 1e-1)
     # cfg.learning.optimizer.decrease_epoch = trial.suggest_int('decrease_epoch', 10, 100)
     cfg.learning.optimizer.gamma = trial.suggest_loguniform('gamma', 1e-2, 1.0)
-    cfg.learning.optimizer.accumulate_epoch = trial.suggest_int('accumulate_epoch', 1, 16)
+    cfg.learning.optimizer.accumulate_epoch = trial.suggest_int(
+        'accumulate_epoch', 1, 16)
     # cfg.learning.optimizer.clip_gradient = trial.suggest_float('clip_gradient', 0.5, 3.0)
     # augmentation
     # TODO
     # cfg.learning.augmentation.add_noise = trial.suggest_categorical('add_noise',[False, True])
-    cfg.learning.augmentation.time_masking = trial.suggest_categorical('time_masking',[False, True])
+    cfg.learning.augmentation.time_masking = trial.suggest_categorical(
+        'time_masking', [False, True])
 
     try:
         return main(trial)
     except Exception:
         raise optuna.TrialPruned()
 
+
 def hyperparameter_tuning():
-    optuna.logging.get_logger("optuna").addHandler(logging.StreamHandler(sys.stdout))
+    optuna.logging.get_logger("optuna").addHandler(
+        logging.StreamHandler(sys.stdout))
 
     study_name = f"{cfg.model.architecture}_tuning"
     storage_name = f"{study_name}.db"
@@ -279,6 +295,7 @@ def hyperparameter_tuning():
     print(f"Best trial config: {study.best_params}")
     print(f"Best trial value: {study.best_value}")
 
+
 if __name__ == "__main__":
     try:
         global cfg
@@ -288,7 +305,7 @@ if __name__ == "__main__":
             hyperparameter_tuning()
         else:
             main()
-    except Exception as e:
+    except Exception:
         print(traceback.format_exc())
         try:
             shutil.rmtree(log_dir)
