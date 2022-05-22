@@ -18,7 +18,7 @@ model = None
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 
-def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float:
+def main(sound_path=None, learning_log_dir=None) -> float:
 
     global cfg
     cfg = get_config(test_mode=True)
@@ -61,7 +61,7 @@ def main(sound_path=None, learning_log_dir=None, train_or_test='train') -> float
 
     # save
     if cfg.inference.save_log is True:
-        writer = SummaryWriter(f'{log_dir}/{train_or_test}/{file_name}')
+        writer = SummaryWriter(f'{log_dir}/{file_name}')
         for i in range(len(outputs)):
             writer.add_scalar("score_change", outputs[i], i)
         writer.close()
