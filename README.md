@@ -82,7 +82,7 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 
 　3. Model learning (config is defined in "./config/*.yaml").
 
-    python learning.py [--config ./config/{PDR/APR/APR_TCN/TCN_APR}.yaml]
+    python learning.py [--config ./config/{PDR/APR}.yaml]
 
 　4. Model inference (Used model is in "./model/**/state_dict.pt").
 
@@ -109,7 +109,6 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 - Architecture
   - PDR: [Who's Better? Who's Best? Pairwise Deep Ranking for Skill Determination (CVPR'18)](https://arxiv.org/abs/1703.09913)
   - APR: [Attention Pairwise Ranking (MIRU'20)](https://github.com/mosa-mprg/attention_pairwise_ranking)
-  - TCN: [An Empirical Evaluation of Generic Convolutional and Recurrent Networks for Sequence Modeling (arXiv'18)](https://github.com/locuslab/TCN)
   - TSN: [Temporal Segment Networks: Towards Good Practices for Deep Action Recognition](https://arxiv.org/abs/1608.00859)
 - Dataset
   - [ParitoshParmar/Piano-Skills-Assessment](https://github.com/ParitoshParmar/Piano-Skills-Assessment)

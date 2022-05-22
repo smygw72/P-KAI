@@ -4,14 +4,9 @@ debug               : False
 model:
   base              : resnet18
   pretrained        : True
-  architecture      : APR        # [PDR, APR, APR_TCN, TCN_APR]
+  architecture      : APR        # [PDR, APR]
   disable_bad       : False
   disable_attention : False
-  tcn:
-    levels          : 4
-    n_unit          : 250
-    kernel_size     : 4
-    dropout         : 0.05
 
 data:
   target            : psa
@@ -41,7 +36,7 @@ learning:
     clip_gradient   : 1.0
   augmentation:
     add_noise       : False
-    time_masking    : True
+    time_masking    : False
   k_fold            : 3
   cross_validation  : False
   epochs            : 100

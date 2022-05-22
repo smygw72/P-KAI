@@ -234,11 +234,6 @@ def objective(trial):
     if cfg.model.architecture != 'PDR':
         cfg.model.disable_bad = trial.suggest_categorical(
             'disable_bad', [False, True])
-    if cfg.model.architecture in ['APR_TCN', 'TCN_APR']:
-        cfg.model.tcn.levels = trial.suggest_int('tcn_levels', 1, 6)
-        cfg.model.tcn.kernel_size = trial.suggest_int('tcn_ksize', 1, 6)
-        cfg.model.tcn.n_unit = trial.suggest_int('tcn_n_unit', 16, 2048)
-        cfg.model.tcn.dropout = trial.suggest_float('tcn_dropout', 0.0, 1.0)
     # data
     cfg.data.feature = trial.suggest_categorical(
         'feature', ['mel_spectrogram', 'mfcc'])
