@@ -88,6 +88,8 @@ def inference(model, sound_path):
     ])
 
     dataloader = get_dataloader(cfg, sound_path, img_transform)
+    if len(dataloader) == 0:
+        print("Wargnin: len(dataloader) == 0")
 
     scores = torch.Tensor()
     model.eval()
