@@ -19,7 +19,6 @@ from src.singledata import get_dataloader
 from src.utils import set_seed, get_timestamp
 
 # global variables
-model = None
 device = torch.device(
     'cuda') if torch.cuda.is_available() else torch.device('cpu')
 
@@ -46,8 +45,6 @@ def main(sound_path=None, learning_log_dir=None) -> float:
         sound_path = './misc/test.mp3'
     file_name = os.path.splitext(os.path.basename(sound_path))[0]
 
-    # model
-    global model
     model = get_model(cfg, 'inference').to(device)
 
     if learning_log_dir is None:
@@ -64,7 +61,7 @@ def main(sound_path=None, learning_log_dir=None) -> float:
     print(f'Best accuracy : {checkpoint["best_accuracy"]}')
 
     # main
-    outputs = inference(sound_path)
+    outputs = inference(model, sound_path)
 
     # save
     if cfg.inference.save_log is True:
@@ -81,7 +78,7 @@ def main(sound_path=None, learning_log_dir=None) -> float:
     return score_avg
 
 
-def inference(sound_path):
+def inference(model, sound_path):
 
     img_size = cfg.data.img_size
     img_transform = transforms.Compose([
@@ -109,7 +106,7 @@ def inference(sound_path):
     return scores.squeeze().tolist()
 
 
-def gradcam(input):
+def gradcam(model, input):
     target_layers = [model.layer4[-1]]
     targets = [ClassifierOutputTarget(0)]
     cam = GradCAM(model=model, target_layers=target_layers,
