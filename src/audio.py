@@ -1,16 +1,17 @@
 import os
-import matplotlib.pyplot as plt
 import torch
 import torchaudio
 import torchaudio.transforms as T
 
 if os.name == 'nt':
+    import soundfile as sf
     torchaudio.set_audio_backend('soundfile')  # windows
+    sf.available_formats()
 elif os.name == 'posix':
     torchaudio.set_audio_backend('sox_io')  # linux/macos
 
-device = torch.device(
-    'cuda') if torch.cuda.is_available() else torch.device('cpu')
+device = torch.device('cuda') \
+    if torch.cuda.is_available() else torch.device('cpu')
 n_fft = 2048
 hop_length = 512
 n_mels = 128

@@ -1,9 +1,8 @@
 import argparse
-import sys
-import os
 import glob
 import yaml
 from addict import Dict
+
 
 def get_config(test_mode=False):
     parser = argparse.ArgumentParser()

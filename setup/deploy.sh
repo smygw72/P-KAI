@@ -6,7 +6,6 @@ LOCAL_CONTAINER='psa_lambda'
 ECR_CONTAINER='pkai-container'
 
 # 1. Build image
-# docker-compose -f docker-compose.lambda.yml up -d --build
 docker build -f ./setup/Dockerfile.Lambda -t $LOCAL_CONTAINER .
 
 # 2. tag image

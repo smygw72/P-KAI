@@ -5,6 +5,6 @@ pandas
 tqdm
 numpy==1.21
 addict
-{% comment %} grad-cam {% endcomment %}
+grad-cam
 awslambdaric
 boto3

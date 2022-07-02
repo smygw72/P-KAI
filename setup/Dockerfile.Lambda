@@ -14,15 +14,6 @@ ENV LC_ALL ja_JP.UTF-8
 ENV TZ JST-9
 ENV TERM xterm
 
-
-RUN apt-get install -y --no-install-recommends \
-    g++ \
-    make \
-    cmake && \
-    apt-get autoremove -y &&\
-    apt-get clean &&\
-    rm -rf /usr/local/src/*
-
 # ==================================================================
 # Source
 # ==================================================================
