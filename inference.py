@@ -7,26 +7,23 @@ import torch
 from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 
-from pytorch_grad_cam import GradCAM
-from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
-from pytorch_grad_cam.utils.image import show_cam_on_image
+# from pytorch_grad_cam import GradCAM
+# from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
+# from pytorch_grad_cam.utils.image import show_cam_on_image
 
-from config.config import get_config
-from calc_score import read_score, predict_absolute_score
+from src.config import get_config
+# from calc_score import read_score, predict_absolute_score
 from src.network.model import get_model
 from src.metric import mean_scores
 from src.singledata import get_dataloader
 from src.utils import set_seed, get_timestamp
 
-# global variables
-device = torch.device(
-    'cuda') if torch.cuda.is_available() else torch.device('cpu')
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 
-def main(sound_path=None, learning_log_dir=None) -> float:
+def main(sound_path=None, learning_log_dir=None, local_or_lambda='local') -> float:
 
-    global cfg
-    cfg = get_config(test_mode=True)
+    cfg = get_config(inference_mode=True)
     print(cfg)
 
     start_time = time.time()
@@ -61,10 +58,10 @@ def main(sound_path=None, learning_log_dir=None) -> float:
     print(f'Best accuracy : {checkpoint["best_accuracy"]}')
 
     # main
-    outputs = inference(model, sound_path)
+    outputs = inference(cfg, model, sound_path)
 
     # save
-    if cfg.inference.save_log is True:
+    if (cfg.inference.save_log is True) and (local_or_lambda == 'local'):
         writer = SummaryWriter(f'{log_dir}/{file_name}')
         for i in range(len(outputs)):
             writer.add_scalar("score_change", outputs[i], i)
@@ -78,7 +75,7 @@ def main(sound_path=None, learning_log_dir=None) -> float:
     return score_avg
 
 
-def inference(model, sound_path):
+def inference(cfg, model, sound_path):
 
     img_size = cfg.data.img_size
     img_transform = transforms.Compose([
@@ -89,7 +86,7 @@ def inference(model, sound_path):
 
     dataloader = get_dataloader(cfg, sound_path, img_transform)
     if len(dataloader) == 0:
-        print("Wargnin: len(dataloader) == 0")
+        print("Warning: len(dataloader) == 0")
 
     scores = torch.Tensor()
     model.eval()
@@ -123,6 +120,5 @@ def visualize_attention(outs):
     att_good, att_bad = outs[2], outs[5]
     # TODO
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

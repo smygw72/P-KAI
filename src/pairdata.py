@@ -2,7 +2,7 @@ import random
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
-from torchaudio.transforms import TimeMasking
+# from torchaudio.transforms import TimeMasking
 
 from src.utils import seed_worker
 from src.audio import get_samples
@@ -111,10 +111,10 @@ class PairDataSet(Dataset):
         return transformed_samples
 
     def augment(self, sample):
-        if self.train_or_test == 'train':
-            if self.cfg.learning.augmentation.time_masking is True:
-                time_masking = TimeMasking(time_mask_param=80)
-                sample = time_masking(sample)
+        # if self.train_or_test == 'train':
+        #     if self.cfg.learning.augmentation.time_masking is True:
+        #         time_masking = TimeMasking(time_mask_param=80)
+        #         sample = time_masking(sample)
         return sample
 
 

@@ -1,10 +1,11 @@
--f https://download.pytorch.org/whl/lts/1.8/torch_lts.html torch==1.8.2+cpu torchvision==0.9.2+cpu torchaudio==0.8.2
-tensorboard
+-f https://download.pytorch.org/whl/torch_stable.html torch==1.10.1+cpu torchvision==0.11.2+cpu
+librosa
+# librosa needs numpy<=1.20
+# ref: https://stackoverflow.com/questions/71689095/how-to-solve-the-pytorch-runtimeerror-numpy-is-not-available-without-upgrading
+numpy
 pyyaml
-pandas
 tqdm
-numpy==1.21
 addict
-grad-cam
-awslambdaric
+# grad-cam
 boto3
+awslambdaric

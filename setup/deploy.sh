@@ -16,3 +16,6 @@ aws ecr get-login-password --region $REGION | docker login --username AWS --pass
 
 # 4. Push image to AWS ECR
 docker push $AWS_ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$ECR_CONTAINER
+
+# 5. delete Image
+docker image rm $AWS_ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$ECR_CONTAINER

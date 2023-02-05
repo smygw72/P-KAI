@@ -4,7 +4,7 @@ from PIL import Image
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
-from torchaudio.transforms import TimeMasking
+# from torchaudio.transforms import TimeMasking
 
 from src.utils import seed_worker
 from src.audio import get_samples
@@ -32,7 +32,7 @@ def get_dataloader(cfg, sound_path, transform):
         dataset,
         batch_size=cfg.inference.n_frame,
         shuffle=False,
-        num_workers=cfg.inference.n_worker,
+        num_workers=0,  # we can't use multiprocessing in AWS Lambda
         worker_init_fn=seed_worker,
         pin_memory=True,
         drop_last=True

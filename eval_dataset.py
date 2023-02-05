@@ -1,13 +1,13 @@
 import glob
 
 import inference
-from config.config import get_config
+from src.config import get_config
 
 split_id = 0
 
 def main(log_dir=None):
 
-    cfg = get_config(test_mode=True)
+    cfg = get_config(inference_mode=True)
 
     if log_dir is None:
         save_dir = glob.glob(f'./model/**/split_id={split_id}/', recursive=True)[0]

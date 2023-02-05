@@ -22,7 +22,7 @@ from src.metric import get_metrics
 from src.log import AverageMeter, update_av_meters, update_writers
 from src.utils import set_seed, get_timestamp, debug_setting
 from src.network.model import get_model
-from config.config import get_config
+from src.config import get_config
 from eval_dataset import main as eval_dataset
 
 device = torch.device(

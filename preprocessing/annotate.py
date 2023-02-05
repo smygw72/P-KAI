@@ -4,7 +4,7 @@ import csv
 import pandas as pd
 import networkx as nx
 
-from config.config import get_config
+from src.config import get_config
 
 
 miyagawa_range = (1, 145)

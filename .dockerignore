@@ -1,11 +1,13 @@
 .vscode/
 learning_logs
+inference_logs
 preprocessing
-*.pptx
-optuna
+misc/*.pptx
+optuna/
 README.md
 LICENSE
-.git
+learning.py
+.git/
 
 **/__pycache__
 **/.DS_Store

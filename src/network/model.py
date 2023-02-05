@@ -13,10 +13,11 @@ class BaseModel(nn.Module):
         self.arch = cfg.model.architecture
         if learning_or_inference == 'learning':
             self.n_frame = cfg.learning.sampling.n_frame
+            self.pretrained = cfg.model.pretrained
         elif learning_or_inference == 'inference':
             self.n_frame = cfg.inference.n_frame
+            self.pretrained = False
         self.base = cfg.model.base
-        self.pretrained = cfg.model.pretrained
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):

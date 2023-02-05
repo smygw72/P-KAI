@@ -1,29 +1,40 @@
-# Define custom function directory
 ARG FUNCTION_DIR="/functions/"
-FROM python:3.8.5
-# Include global arg in this stage of the build
+# python>3.10 failed to compile numpy<=1.20
+FROM python:3.10
 ARG FUNCTION_DIR
 # USER root
 
+# ENV LANG ja_JP.UTF-8
+# ENV LANGUAGE ja_JP:ja
+# ENV LC_ALL ja_JP.UTF-8
+# ENV TZ JST-9
+# ENV TERM xterm
+
+WORKDIR ${FUNCTION_DIR}
+
+# Libraries
 RUN apt-get update
 RUN apt-get -y install locales && \
     localedef -f UTF-8 -i ja_JP ja_JP.UTF-8
-ENV LANG ja_JP.UTF-8
-ENV LANGUAGE ja_JP:ja
-ENV LC_ALL ja_JP.UTF-8
-ENV TZ JST-9
-ENV TERM xterm
+RUN apt-get install -y \
+    g++ \
+    make \
+    cmake \
+    unzip \
+    libcurl4-openssl-dev \
+    libsm6 \
+    libxrender1 \
+    libxtst6 \
+    libsndfile1 \
+    ffmpeg && \
+    apt-get autoremove -y &&\
+    apt-get clean &&\
+    rm -rf /usr/local/src/*
 
-# ==================================================================
-# Source
-# ==================================================================
-WORKDIR ${FUNCTION_DIR}
-COPY ./setup/requirements_lambda.txt ./setup/requirements_lambda.txt
-
-# ==================================================================
-# Libs
-# ==================================================================
-RUN pip install --no-cache-dir -r ./setup/requirements_lambda.txt
+COPY ./setup/requirements_lambda.txt "./setup/requirements_lambda.txt"
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r ./setup/requirements_lambda.txt
+# pip install --no-cache-dir -r requirements_lambda.txt --target "${FUNCTION_DIR}"
 
 # ==================================================================
 # AWS Lambda (copied from https://qiita.com/yohei7328/items/df7ebaa4544621e16c2b)
@@ -32,13 +43,17 @@ ADD https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest
     /usr/bin/aws-lambda-rie
 RUN chmod 755 /usr/bin/aws-lambda-rie
 
+COPY ./setup/entry.sh /entry.sh
+COPY . .
+
+RUN chmod 755 /entry.sh
+# RUN chmod -R 755 .
+
 # Setting chache output for librosa (numba)
 # https://stackoverflow.com/questions/59290386/runtimeerror-at-cannot-cache-function-shear-dense-no-locator-available-fo
-# ENV NUMBA_CACHE_DIR /tmp
-
-COPY . .
+ENV NUMBA_CACHE_DIR /tmp
 
 EXPOSE 9000
 
-ENTRYPOINT [ "./setup/entry.sh" ]
+ENTRYPOINT [ "/entry.sh" ]
 CMD ["app.handler"]

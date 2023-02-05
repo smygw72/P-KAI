@@ -5,3 +5,4 @@ grad-cam
 audiomentations
 optuna
 optuna-dashboard
+librosa

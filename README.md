@@ -3,7 +3,7 @@
 ## Overview
 
 P-KAI is a 2D-CNN that calculates your piano skill from an audio.
-This task is very difficult because the model needs to extract fine-grained features for skill assessment under a weakly-supervised learning.
+This task is very difficult because the model needs to extract fine-grained features for skill assessment from pairwise annotation, leading that weakly-supervised learning.
 
 ## Model
 
@@ -64,7 +64,11 @@ See [here](https://colab.research.google.com/drive/1CDboBGtF6i3MOdFJEbY6IBdowrJf
 
     bash ./setup/deploy.sh
 
-　2. Sending request to the container.
+　2. Connect Lambda image to ECR image.
+
+    - select "arm64" architecture.
+
+　3. Sending request to the container.
 
     curl -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{}'
 
